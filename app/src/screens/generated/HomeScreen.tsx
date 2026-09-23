@@ -75,6 +75,15 @@ export default function HomeScreen({ v }: { v: any }) {
               </>
             ) : null}
             <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "padding": "5px 7px", "borderRadius": "9px", "background": "rgba(20,21,28,.55)", "border": "1px solid rgba(245,245,247,.14)", "backdropFilter": "blur(10px)" }}>
+              <button type="button" onClick={v.toggleBgOpen} title={v.bgOpen ? "Ocultar configurações de fundo" : "Configurar fundo"} style={{ "display": "flex", "alignItems": "center", "justifyContent": "center", "width": "24px", "height": "24px", "color": "#F5F5F7", "cursor": "pointer", "borderRadius": "7px", "border": "1px solid rgba(245,245,247,.3)", "background": v.bgOpen ? "rgba(245,245,247,.16)" : "transparent", "padding": "0" }}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" stroke="currentColor" strokeWidth="1.8"></rect>
+                  <circle cx="9" cy="10" r="1.6" fill="currentColor"></circle>
+                  <path d="M4 17l5-4.5 3.5 3 3-2.5 4.5 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </button>
+              {v.bgOpen ? (
+              <>
               <span style={{ "fontSize": "11px", "color": "rgba(245,245,247,.78)", "whiteSpace": "nowrap" }}>
                 Fundo
               </span>
@@ -83,12 +92,20 @@ export default function HomeScreen({ v }: { v: any }) {
               </div>
               {v.bgIsImage ? (
                 <>
-                  <label title="Trocar imagem" style={{ "display": "flex", "alignItems": "center", "justifyContent": "center", "width": "24px", "height": "24px", "color": "#F5F5F7", "cursor": "pointer", "borderRadius": "7px", "border": "1px solid rgba(65,97,255,.55)", "transition": "background .15s" }} className={hv("background:rgba(65,97,255,.22)", undefined, undefined)}>
+                  <label title={v.bgTip} style={{ "display": "flex", "alignItems": "center", "justifyContent": "center", "width": "24px", "height": "24px", "color": "#F5F5F7", "cursor": "pointer", "borderRadius": "7px", "border": "1px solid rgba(65,97,255,.55)", "transition": "background .15s" }} className={hv("background:rgba(65,97,255,.22)", undefined, undefined)}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                       <path d="M12 16V4M7.5 8.5L12 4l4.5 4.5M4 16v3.5h16V16" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" strokeLinejoin="round"></path>
                     </svg>
-                    <input type="file" accept="image/*" onChange={v.onPickBg} style={{ "display": "none" }} />
+                    <input type="file" accept="image/jpeg,image/png,image/webp" onChange={v.onPickBg} style={{ "display": "none" }} />
                   </label>
+                  <span style={{ "fontSize": "10.5px", "color": "rgba(245,245,247,.6)", "whiteSpace": "nowrap" }}>
+                    {v.bgHint}
+                  </span>
+                  {v.bgHasCustom ? (
+                    <button type="button" onClick={v.restoreBg} title="Apagar a sua imagem e voltar ao fundo padrão" style={{ "fontSize": "10.5px", "color": "#F5F5F7", "cursor": "pointer", "padding": "3px 8px", "borderRadius": "7px", "border": "1px solid rgba(245,245,247,.3)", "background": "transparent", "whiteSpace": "nowrap" }}>
+                      Restaurar padrão
+                    </button>
+                  ) : null}
                 </>
               ) : null}
               {v.bgIsColor ? (
@@ -101,6 +118,8 @@ export default function HomeScreen({ v }: { v: any }) {
                     ))}
                   </div>
                 </>
+              ) : null}
+              </>
               ) : null}
             </div>
           </div>

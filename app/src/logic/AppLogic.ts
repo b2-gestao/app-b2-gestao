@@ -24,6 +24,8 @@ export class AppLogic extends Component<any, any> {
     module: 'Painel',
     bgMode: 'image',
     bgUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2200&q=70',
+    bgCustom: false,
+    bgOpen: false,
     bgColor: '#161826',
     place: 'Localizando…',
     temp: null,
@@ -842,7 +844,7 @@ export class AppLogic extends Component<any, any> {
     this.loadWeather();
     this.loadIndicators();
     if (this.live) {
-      if (this.props.session) this.loadCatalogs();
+      if (this.props.session) { this.loadCatalogs(); this.loadBg(); }
       this.setState({ lcRowsData: [], pgDateFrom: todayIso(), pgDateTo: todayIso(), sbDate: todayIso(), lcFrom: todayIso(), lcTo: addDays(todayIso(), 12) });
     }
   }
@@ -899,8 +901,68 @@ export class AppLogic extends Component<any, any> {
   saveBg(patch) {
     this.setState(patch, () => {
       const s = this.state;
-      try { localStorage.setItem('he_home_bg', JSON.stringify({ bgMode: s.bgMode, bgColor: s.bgColor, bgUrl: s.bgUrl.startsWith('data:') ? '' : s.bgUrl })); } catch { /* storage blocked */ }
+      // Custom images live in Storage (signed URL that expires); only the default URL is kept here.
+      const own = s.bgUrl.startsWith('data:') || s.bgUrl.includes('/storage/v1/');
+      try { localStorage.setItem('he_home_bg', JSON.stringify({ bgMode: s.bgMode, bgColor: s.bgColor, bgUrl: own ? '' : s.bgUrl })); } catch { /* storage blocked */ }
     });
+  }
+
+  static BG_DEFAULT = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2200&q=70';
+  static BG_MAX_BYTES = 5 * 1024 * 1024;
+  static BG_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+  /** Loads the signed-in user's saved background from the private "app-fundos" bucket. */
+  async loadBg() {
+    const uid = this.props.session?.user?.id;
+    if (!supabase || !uid) return;
+    const { data } = await supabase.storage.from('app-fundos').createSignedUrl(`${uid}/fundo`, 7 * 24 * 3600);
+    if (data?.signedUrl) this.setState({ bgUrl: data.signedUrl, bgCustom: true });
+  }
+
+  /** Deletes the user's uploaded background and goes back to the app's default image. */
+  async restoreBg() {
+    const uid = this.props.session?.user?.id;
+    if (!window.confirm('Restaurar o fundo padrão? A sua imagem será apagada.')) return;
+    if (supabase && uid) {
+      const { error } = await supabase.storage.from('app-fundos').remove([`${uid}/fundo`]);
+      if (error) return this.toast('Não foi possível restaurar o fundo: ' + error.message);
+    }
+    this.setState({ bgCustom: false });
+    this.saveBg({ bgUrl: AppLogic.BG_DEFAULT, bgMode: 'image' });
+    this.toast('Fundo padrão restaurado.');
+  }
+
+  /** Validates and uploads a background image (JPG/PNG/WebP, up to 5 MB) to the user's own folder. */
+  async uploadBg(file: File) {
+    if (!AppLogic.BG_TYPES.includes(file.type)) return this.toast('Formato não aceito. Use JPG, PNG ou WebP.');
+    if (file.size > AppLogic.BG_MAX_BYTES) {
+      return this.toast(`Imagem muito grande (${(file.size / 1048576).toFixed(1).replace('.', ',')} MB). O limite é 5 MB — o ideal é 1920×1080.`);
+    }
+    const dims = await new Promise<{ w: number; h: number } | null>(res => {
+      const img = new Image();
+      const u = URL.createObjectURL(file);
+      img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(u); };
+      img.onerror = () => { res(null); URL.revokeObjectURL(u); };
+      img.src = u;
+    });
+    if (!dims) return this.toast('Não foi possível ler a imagem.');
+    const small = dims.w < 1280 || dims.h < 720;
+
+    const uid = this.props.session?.user?.id;
+    if (!supabase || !uid) {
+      // Demo mode: keep it in memory only.
+      const r = new FileReader();
+      r.onload = () => this.saveBg({ bgUrl: r.result, bgMode: 'image' });
+      r.readAsDataURL(file);
+      return;
+    }
+    const path = `${uid}/fundo`;
+    const { error } = await supabase.storage.from('app-fundos').upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' });
+    if (error) return this.toast('Não foi possível enviar a imagem: ' + error.message);
+    const { data, error: e2 } = await supabase.storage.from('app-fundos').createSignedUrl(path, 7 * 24 * 3600);
+    if (e2 || !data?.signedUrl) return this.toast('Imagem enviada, mas não foi possível exibi-la: ' + (e2?.message || ''));
+    this.saveBg({ bgUrl: data.signedUrl + '&t=' + Date.now(), bgMode: 'image', bgCustom: true });
+    this.toast(small ? `Fundo salvo, mas a imagem (${dims.w}×${dims.h}) é pequena e pode ficar borrada. O ideal é 1920×1080.` : 'Fundo salvo.');
   }
 
   kindFor(code, temp) {

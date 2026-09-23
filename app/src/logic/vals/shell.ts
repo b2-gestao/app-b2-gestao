@@ -257,12 +257,17 @@ export function renderVals(this: AppLogic) {
       pick: () => this.saveBg({ bgColor: sw.v }),
     })),
     onPickBg: (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = () => this.saveBg({ bgUrl: r.result, bgMode: 'image' });
-      r.readAsDataURL(f);
+      const input = e.target;
+      const f = input.files && input.files[0];
+      input.value = '';
+      if (f) this.uploadBg(f);
     },
+    bgOpen: !!s.bgOpen,
+    toggleBgOpen: () => this.setState({ bgOpen: !s.bgOpen }),
+    bgHasCustom:!!s.bgCustom,
+    restoreBg: () => this.restoreBg(),
+    bgHint:'1920×1080 · até 5 MB',
+    bgTip: 'Trocar imagem — resolução ideal 1920×1080 px (16:9, paisagem). JPG, PNG ou WebP, até 5 MB.',
 
     collapsed: c,
 
