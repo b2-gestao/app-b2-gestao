@@ -10,7 +10,7 @@ export default function UsuariosPage({ v }: { v: any }) {
     <>
     {v.isUsuarios ? (
       <>
-        <main style={{ "flex": "1", "overflowY": "auto", "padding": "24px 32px 32px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
+        <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "24px 32px 32px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div>
               <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>

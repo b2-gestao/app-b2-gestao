@@ -267,7 +267,7 @@ export class AppLogic extends Component<any, any> {
   }
 
   // Multi-select company filter: searchable + scrollable checkbox list, for use with a large (Supabase-backed) company catalog.
-  mkMultiDropdown(key, s, selected, catalog, onToggle) {
+  mkMultiDropdown(key, s, selected, catalog, onToggle, onSetMany?) {
     const open = s.ddOpen === key;
     const hasSearch = catalog.length > 6;
     const query = (s.ddQuery || '').trim().toLowerCase();
@@ -290,7 +290,9 @@ export class AppLogic extends Component<any, any> {
         e.stopPropagation();
         const names = filtered.map(c => c.name);
         const allVisOn = names.every(n => selected.indexOf(n) >= 0);
-        if (allVisOn) names.forEach(n => onToggle(n));
+        // Batch update: calling onToggle in a loop reuses the same stale `selected`, so only the last toggle would stick.
+        if (onSetMany) onSetMany(allVisOn ? selected.filter(n => names.indexOf(n) < 0) : selected.concat(names.filter(n => selected.indexOf(n) < 0)));
+        else if (allVisOn) names.forEach(n => onToggle(n));
         else names.forEach(n => { if (selected.indexOf(n) < 0) onToggle(n); });
       },
       items: filtered.map(c => {

@@ -16,7 +16,8 @@ export function progVals(this: AppLogic, subItemStyle: string) {
   const pgEmpSel = s.pgEmpSel || empAllNames;
   const groups = allGroups.filter(g => pgEmpSel.indexOf(g.emp) >= 0);
   const ddPgEmp = this.mkMultiDropdown('pgEmp', s, pgEmpSel, empCatalog,
-    name => this.setState({ pgEmpSel: pgEmpSel.indexOf(name) >= 0 ? pgEmpSel.filter(x => x !== name) : pgEmpSel.concat([name]) }));
+    name => this.setState({ pgEmpSel: pgEmpSel.indexOf(name) >= 0 ? pgEmpSel.filter(x => x !== name) : pgEmpSel.concat([name]) }),
+    list => this.setState({ pgEmpSel: list }));
   const savedDefault = s.pgEmpDefault;
   const isSavedMatch = !!savedDefault && savedDefault.length === pgEmpSel.length && savedDefault.every(n => pgEmpSel.indexOf(n) >= 0);
 
@@ -33,7 +34,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     const after = g.saldo - total;
     const aporte = after < 0 ? -after : 0;
     totSaldo += g.saldo; totTit += tit; totMan += man; totAporte += aporte; totCount += onItems.length;
-    const open = s['pgOpen_' + g.cd] !== false;
+    const open = s['pgOpen_' + g.cd] === true;
     return {
       cd: g.cd, emp: g.emp, saldo: f2(g.saldo), tit: tit ? '−' + f2(tit) : '—',
       man: man ? '−' + f2(man) : '—',
