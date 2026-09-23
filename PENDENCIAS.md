@@ -6,9 +6,10 @@ Atualizado em 23/09/2026. Detalhes técnicos do app em [`app/README.md`](app/REA
 
 | Parte | Linguagem / ferramenta | Onde |
 | --- | --- | --- |
-| Tela (front-end) | **TypeScript** com React 19 + Vite | `app/` |
+| Tela (front-end) | **React 19** escrito em **TypeScript**, empacotado com Vite | `app/` |
+| Ferramentas de desenvolvimento | **Node.js** + npm (instalar, `npm run dev`, build, testes). Em produção não há Node rodando: o build gera arquivos estáticos | `app/package.json` |
 | Banco de dados | **SQL / PL/pgSQL** (Postgres) | `supabase/migrations/` |
-| Edge functions (código no servidor) | **TypeScript** rodando em Deno | `supabase/functions/` |
+| Edge functions (código no servidor) | **TypeScript** rodando em Deno (ambiente do Supabase, não Node) | `supabase/functions/` |
 | Testes automáticos | JavaScript (Node) + Playwright | `app/scripts/` |
 | Design de origem | HTML/CSS/JS do Claude Design | `project/` |
 
