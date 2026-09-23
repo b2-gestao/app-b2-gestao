@@ -24,24 +24,56 @@ exemplo do protótipo (útil para revisar o design).
 | `src/logic/AppLogic.ts` + `src/logic/vals/*.ts` | Lógica das telas, portada do protótipo (estado, filtros, modais, animações). Cada arquivo em `vals/` monta os valores de uma tela. |
 | `src/logic/data.ts`, `*Data.ts`, `saldosLive.ts`, `insights.ts` | Dados reais: chamadas ao Supabase, cache por período e cálculos (fluxo, aportes, análises). |
 | `src/lib/api.ts` | Tipos e chamadas às funções RPC do Supabase. |
-| `src/auth/AuthGate.tsx` | Login com Supabase Auth (tela simples; o design "SaaS Login" ainda não foi portado). |
+| `src/auth/AuthGate.tsx`, `LoginScreen.tsx` | Login com Supabase Auth no design "SaaS Login" (`project/SaaS Login.dc.html`): entrar, manter conectado, esqueci minha senha, definir senha do convite e "acesso não liberado". |
 
 ## Dados
 
-O front-end não lê tabelas diretamente. Ele chama funções `app_*` (SECURITY DEFINER)
-criadas em `../supabase/migrations/20260923190000_app_rpc_financeiro.sql`:
+Os dados do Sienge vêm só por funções `app_*` (SECURITY DEFINER) de
+`../supabase/migrations/20260923190000_app_rpc_financeiro.sql`. As tabelas próprias do app
+(`app_*`, migration `20260923210000_app_cadastros_financeiro.sql`) são lidas e gravadas
+direto, protegidas por RLS: leitura para membros, escrita conforme o perfil.
 
 | Tela | Fonte |
 | --- | --- |
 | Empresas (filtros, seletores) | `empresas` LEFT JOIN `de_para_sharepoint` (nome do empreendimento; várias linhas no De Para viram uma lista, sem duplicar a empresa) |
 | Centros de custo | `centros_custo` |
-| Saldos bancários | contas de `contas_correntes` (status ENABLED). **O saldo é digitado ou importado pelo CSV-modelo e fica salvo neste navegador** — não há tabela de saldos. |
-| Programação do dia | títulos em aberto de `parcelas_pagar_raw` no período + lançamentos manuais, contra o saldo informado |
+| Saldos bancários | contas de `contas_correntes` (status ENABLED); o saldo digitado ou importado pelo CSV-modelo vai para `app_saldo_contas_manual` (um registro por conta e dia) |
+| Programação do dia | títulos em aberto de `parcelas_pagar_raw` no período + lançamentos manuais, contra o saldo informado do primeiro dia |
 | Fluxo de caixa | `parcelas_receber` (receitas) e `parcelas_pagar_raw` (pagamentos) em aberto, 10 dias, por empresa; aportes calculados para a holding (`VITE_HOLDING_EMPRESA_ID`) |
-| Painel (Visão Geral) | totais diários de receber/pagar, próximos vencimentos, ranking por empresa e por segmento (`business_area_name`) |
-| Lançamentos manuais | **ficam salvos neste navegador** — não há tabela |
+| Painel (Visão Geral) | totais diários de receber/pagar, próximos vencimentos, ranking por empresa e por segmento (`business_area_name`); pago, juros (juros + multa) e descontos por data de pagamento em `parcelas_pagar_payments` (`app_pagos_diario`) |
+| Lançamentos manuais | `app_rec_financeiro_lancamento`. Uma recorrência ("Mensal · 6x") grava 6 linhas com o mesmo `grupo_id` (parcela 1/6 … 6/6); cada parcela é editada/excluída sozinha |
 | Usuários | tabela `app_usuarios` + Supabase Auth, pela edge function `app-usuarios` (convite, status, links de senha, exclusão) |
-| Departamentos, Perfis | **em memória** (perdidos ao recarregar) — não há tabelas |
+| Departamentos, Perfis | `app_departamentos` e `app_perfis`. A "Função" do usuário é o nome do perfil (FK com `on update cascade`) |
+| Indicadores (tela inicial) | API SGS do Banco Central pela edge function `app-indicadores` (cache de 1 h); se ela falhar, direto do navegador |
+| Análise com IA | edge function `app-ia` (modelo configurável, ver abaixo); sem modelo configurado, regras fixas sobre os dados |
+
+Saldos e lançamentos que tinham ficado salvos só no navegador (versão anterior) são
+enviados ao banco automaticamente no primeiro acesso com permissão de edição.
+
+### Perfis e permissões
+
+- Cada perfil tem permissões de **ver** e **editar** por menu (`app_perfis.permissoes`).
+  Menus sem "ver" somem da barra lateral; a tela também é bloqueada se aberta por outro caminho.
+- As gravações em saldos, lançamentos, departamentos e perfis passam por `app_pode()` na RLS,
+  então a regra vale mesmo fora do app.
+- Gerenciar usuários exige "editar" em Configurações › Usuários (edge function `app-usuarios`).
+- O perfil **Administrador** é do sistema: tem tudo e não pode ser renomeado, inativado nem excluído.
+- Empresas vinculadas ao usuário **não** restringem o que ele vê (decisão de 23/09).
+
+### Análise com IA
+
+A edge function `app-ia` usa qualquer API compatível com OpenAI `/chat/completions`. Para
+ligar, defina os segredos em *Edge Functions › Secrets* (sem mudar código):
+
+| Segredo | Valor |
+| --- | --- |
+| `IA_API_KEY` | chave da OpenAI (ou `OPENAI_API_KEY`) |
+| `IA_MODEL` | id exato do modelo, como está na documentação da OpenAI |
+| `IA_API_URL` | opcional; padrão `https://api.openai.com/v1` (troque para usar outro provedor compatível) |
+| `IA_JSON_MODE` | opcional; `false` se o provedor não aceitar `response_format: json_object` |
+
+Trocar de modelo ou provedor = trocar os segredos. Enquanto não houver chave e modelo, a
+função responde 503 e o painel mostra a análise por regras.
 
 ### Usuários e login
 
@@ -54,11 +86,12 @@ criadas em `../supabase/migrations/20260923190000_app_rpc_financeiro.sql`:
 
 ### Para colocar no ar
 
-1. Aplicar, nesta ordem: `20260923190000_app_rpc_financeiro.sql`,
-   `20260923190100_fechar_tabelas_anon.sql` (impacto verificado — ver cabeçalho do
-   arquivo) e `20260923200000_app_usuarios.sql`.
-2. Publicar a edge function: `supabase functions deploy app-usuarios` e definir o
-   segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam para lá).
+1. ✅ (23/09) Migrations aplicadas, nesta ordem: `20260923190000_app_rpc_financeiro.sql`,
+   `20260923190100_fechar_tabelas_anon.sql`, `20260923200000_app_usuarios.sql`,
+   `20260923210000_app_cadastros_financeiro.sql`, `20260923210100_app_endurece_triggers.sql`.
+2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
+   **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
+   para lá). Rodando local, use `http://localhost:5173`.
 3. Auth → URL Configuration: colocar o `APP_URL` em *Site URL* / *Redirect URLs*.
    Auth → Providers → Email: desligar **Allow new users to sign up**.
 4. Configurar SMTP próprio (Auth → SMTP): o envio padrão do Supabase tem limite baixo
@@ -80,7 +113,7 @@ npm run smoke                     # modo demonstração, todas as telas
 
 VITE_SUPABASE_URL=https://fake-project.supabase.co VITE_SUPABASE_ANON_KEY=fake \
   npx vite build --outDir dist-live && npx vite preview --outDir dist-live --port 4174 &
-npm run smoke:live                # modo real com RPCs simuladas (não toca no projeto)
+npm run smoke:live                # modo real com RPCs, tabelas app_* e edge functions simuladas (não toca no projeto)
 ```
 
 Se o Chromium do Playwright não estiver instalado, use `PW_CHROMIUM=/caminho/do/chrome`.

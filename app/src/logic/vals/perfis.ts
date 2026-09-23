@@ -1,4 +1,5 @@
 import type { AppLogic } from '../AppLogic';
+import { cadastrosApi } from '../../lib/api';
 
 export function perfisVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -13,6 +14,12 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     if (statusKey !== null && p.active !== statusKey) return false;
     return true;
   });
+
+  const perm = 'configuracoes.perfis';
+  // Live writes go to app_perfis; renaming cascades to app_usuarios.funcao, so users reload too.
+  const write = (fn: () => Promise<unknown>, okMsg: string, onError?: (m: string) => void) =>
+    this.cadastroAcao(fn, okMsg, async () => { await this.loadCadastros(); await this.loadUsuarios(); }, onError);
+  const toDb = (r: any) => ({ nome: r.name, descricao: r.desc || null, ativo: r.active, permissoes: r.perms });
 
   const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
 
@@ -31,6 +38,11 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
       toggleTitle: p.active ? 'Inativar perfil' : 'Ativar perfil',
       actEditStyle: actBtn, actPowerStyle: actBtn + (p.active ? '' : ';color:#43B997;border-color:#C7EEE0'),
       toggle: () => {
+        if (this.live) {
+          if (p.sistema) { this.toast(`O perfil ${p.name} é do sistema e não pode ser inativado.`); return; }
+          if (this.podeEditar(perm)) write(() => cadastrosApi.salvarPerfil(p.id, toDb({ ...p, active: !p.active })), p.active ? `${p.name} foi inativado.` : `${p.name} foi reativado.`);
+          return;
+        }
         this.setPerfis(list => list.map(x => x.id === p.id ? Object.assign({}, x, { active: !x.active }) : x));
         this.toast(p.active ? `${p.name} foi inativado.` : `${p.name} foi reativado.`);
       },
@@ -119,6 +131,13 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     removePerfil: () => {
       const id = s.editingPerfilId;
       const target = all.find(x => x.id === id);
+      if (this.live) {
+        if (target?.sistema) { this.setState({ pFormErr: `O perfil ${target.name} é do sistema e não pode ser excluído.` }); return; }
+        if (!this.pode(perm, true)) { this.setState({ pFormErr: 'Seu perfil não tem permissão para alterar perfis.' }); return; }
+        write(() => cadastrosApi.excluirPerfil(id), target ? `${target.name} excluído.` : 'Perfil excluído.', m => this.setState({ pFormErr: m }))
+          .then(ok => ok && this.setState({ perfilModalOpen: false, editingPerfilId: null, pForm: null }));
+        return;
+      }
       this.setPerfis(list => list.filter(x => x.id !== id));
       this.setState({ perfilModalOpen: false, editingPerfilId: null, pForm: null });
       this.toast(target ? `${target.name} excluído.` : 'Perfil excluído.');
@@ -127,6 +146,14 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
       if (!form.name.trim()) { this.setState({ pFormErr: 'Informe o nome do perfil.' }); return; }
       const id = s.editingPerfilId;
       const rec = { name: form.name.trim(), desc: (form.desc || '').trim(), active: form.active, perms: form.perms };
+      if (this.live) {
+        const cur = all.find(x => x.id === id);
+        if (cur?.sistema && (rec.name !== cur.name || !rec.active)) { this.setState({ pFormErr: `O perfil ${cur.name} é do sistema: não pode ser renomeado nem inativado.` }); return; }
+        if (!this.pode(perm, true)) { this.setState({ pFormErr: 'Seu perfil não tem permissão para alterar perfis.' }); return; }
+        write(() => cadastrosApi.salvarPerfil(id || null, toDb(rec)), id ? 'Cadastro atualizado.' : 'Perfil cadastrado.', m => this.setState({ pFormErr: m }))
+          .then(ok => ok && this.setState({ perfilModalOpen: false, editingPerfilId: null, pForm: null, pFormErr: '' }));
+        return;
+      }
       if (id) {
         this.setPerfis(list => list.map(x => x.id === id ? Object.assign({}, x, rec) : x));
         this.toast('Cadastro atualizado.');

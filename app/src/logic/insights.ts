@@ -114,3 +114,53 @@ export function fluxoInsights(app: AppLogic) {
     sub: `Análise com IA · projeção dos próximos ${L.days.length} dias`,
   };
 }
+
+// ---- compact data sent to the app-ia edge function (LLM) ----
+const r2 = (v: number) => Math.round(v * 100) / 100;
+
+export function iaContextoProg(app: AppLogic) {
+  const { groups } = progLiveGroups.call(app);
+  const sel: string[] | undefined = app.state.pgEmpSel;
+  const gs = (sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups).map((g: any) => {
+    const on = g.items.filter((i: any) => i.on);
+    const tit = on.filter((i: any) => i.tag === 'Título');
+    const total = on.reduce((t: number, i: any) => t + i.val, 0);
+    return {
+      empresa: g.emp,
+      saldo_inicial: r2(g.saldo),
+      titulos_sienge: r2(tit.reduce((t: number, i: any) => t + i.val, 0)),
+      lancamentos_manuais: r2(total - tit.reduce((t: number, i: any) => t + i.val, 0)),
+      qtd_pagamentos: on.length,
+      aporte_necessario: r2(Math.max(0, total - g.saldo)),
+      maiores_titulos: tit.slice().sort((a: any, b: any) => b.val - a.val).slice(0, 3)
+        .map((i: any) => ({ credor: i.title, valor: r2(i.val), vencimento: i.due, autorizado: i.authorized !== false })),
+    };
+  }).sort((a, b) => b.titulos_sienge + b.lancamentos_manuais - a.titulos_sienge - a.lancamentos_manuais);
+  return {
+    periodo: { de: app.state.pgDateFrom, ate: app.state.pgDateTo },
+    empresas_com_saldo_informado: gs.filter(g => g.saldo_inicial).length,
+    empresas: gs.slice(0, 40),
+    empresas_omitidas: Math.max(0, gs.length - 40),
+  };
+}
+
+export function iaContextoFluxo(app: AppLogic) {
+  const L = fluxoLive.call(app);
+  const empresas = L.groups.map((g: any) => ({
+    empresa: g.name,
+    tipo: g.tag,
+    caixa_inicial: r2(g.data.caixa),
+    receitas: g.data.receitas.map(r2),
+    pagamentos: g.data.pagamentos.map(r2),
+    lancamentos_manuais: g.data.inputs.map(r2),
+    saldo_projetado: (g.aportes ? L.holdingCells : L.running(g.data)).map(r2),
+    aportes_enviados: g.aportes ? g.aportes.map(r2) : undefined,
+  }));
+  const peso = (e: any) => Math.min(...e.saldo_projetado);
+  return {
+    dias: L.days,
+    total_aportes: r2(L.totalAportes),
+    empresas: empresas.sort((a, b) => peso(a) - peso(b)).slice(0, 25),
+    empresas_omitidas: Math.max(0, empresas.length - 25),
+  };
+}

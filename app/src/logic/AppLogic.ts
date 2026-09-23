@@ -8,12 +8,12 @@ import { progVals } from './vals/programacao';
 import { fluxoVals } from './vals/fluxo';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
-import { todayIso, addDays, isoDate, usuariosApi } from '../lib/api';
+import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
-  readSaldos, writeSaldos, saldoPorEmpresa, readLanc, writeLanc,
+  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc,
 } from './data';
-import { progInsights, fluxoInsights } from './insights';
+import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
 
 export class AppLogic extends Component<any, any> {
   // Memoized seeds and timers are attached as ad-hoc fields, as in the prototype.
@@ -81,9 +81,78 @@ export class AppLogic extends Component<any, any> {
 
   uLast2 = ['Ribeiro','Lima','Souza','Almeida','Prado','Vieira','Machado','Correia','Bastos'];
 
-  uRoles = ['Administrador','Gestor Financeiro','Analista Financeiro','Analista de RH','Comercial','Jurídico','Controladoria','Suporte'];
+  demoRoles = ['Administrador','Gestor Financeiro','Analista Financeiro','Analista de RH','Comercial','Jurídico','Controladoria','Suporte'];
 
-  uDepts = ['Financeiro','RH','Comercial','Jurídico','Obras','TI','Controladoria'];
+  demoDepts = ['Financeiro','RH','Comercial','Jurídico','Obras','TI','Controladoria'];
+
+  /** "Função" options: active profiles from app_perfis in live mode. */
+  get uRoles(): string[] {
+    if (!this.live) return this.demoRoles;
+    return (this.state.perfis || []).filter(p => p.active).map(p => p.name);
+  }
+
+  /** Department options: active rows of app_departamentos in live mode. */
+  get uDepts(): string[] {
+    if (!this.live) return this.demoDepts;
+    return (this.state.depts || []).filter(d => d.active).map(d => d.name);
+  }
+
+  /** Loads app_perfis and app_departamentos into the screens' shapes. */
+  async loadCadastros() {
+    try {
+      const [perfis, depts] = await Promise.all([cadastrosApi.perfis(), cadastrosApi.departamentos()]);
+      this.setState({
+        perfis: perfis.map(p => ({ id: p.id, name: p.nome, desc: p.descricao || '', active: p.ativo, perms: { ...this.emptyPermMap(), ...(p.permissoes || {}) }, sistema: p.sistema })),
+        depts: depts.map(d => ({ id: d.id, name: d.nome, desc: d.descricao || '', active: d.ativo })),
+      });
+    } catch (e: any) {
+      this.toast('Não foi possível carregar perfis e departamentos: ' + e.message);
+    }
+  }
+
+  /** Runs a write against an app_* table, then reloads; returns true on success. */
+  async cadastroAcao(fn: () => Promise<unknown>, okMsg: string, reload: () => Promise<void>, onError?: (msg: string) => void): Promise<boolean> {
+    try {
+      await fn();
+      await reload();
+      this.toast(okMsg);
+      return true;
+    } catch (e: any) {
+      if (onError) onError(e.message); else this.toast(e.message);
+      return false;
+    }
+  }
+
+  /** Signed-in user's profile (app_usuarios.funcao → app_perfis), or null while loading. */
+  meuPerfil(): any {
+    const uid = this.props.session?.user?.id;
+    const me = (this.state.users || []).find(u => u.id === uid);
+    return me ? (this.state.perfis || []).find(p => p.name === me.role) || null : null;
+  }
+
+  /** Menu permission from the user's profile. Demo mode and "still loading" allow. */
+  pode(path: string, editar = false): boolean {
+    if (!this.live) return true;
+    if (!this.state.users || !this.state.perfis) return !editar;
+    const p = this.meuPerfil();
+    if (!p || !p.active) return false;
+    if (p.sistema) return true;
+    const perm = p.perms?.[path];
+    return !!(perm && (editar ? perm.edit : perm.view));
+  }
+
+  /** Page → menu permission key (Painel has none). */
+  pagePerm: Record<string, string> = {
+    saldos: 'financeiro.saldos', lancamentos: 'financeiro.lancamentos', programacao: 'financeiro.programacao', fluxo: 'financeiro.fluxo',
+    usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
+  };
+
+  /** Toast + false when the profile cannot edit this menu (the database enforces it too). */
+  podeEditar(path: string): boolean {
+    if (this.pode(path, true)) return true;
+    this.toast('Seu perfil não tem permissão para alterar este cadastro.');
+    return false;
+  }
 
   uCentros = ['01 · Obras','02 · Pós-obra','03 · Administrativo','04 · Incorporação','05 · Comercial','06 · Jurídico'];
 
@@ -187,7 +256,8 @@ export class AppLogic extends Component<any, any> {
       items: filtered.map(o => ({
         label: o,
         selected: o === value,
-        onClick: e => { e.stopPropagation(); onChange(o); this.setState({ ddOpen: null, ddQuery: '' }); },
+        // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button.
+        onClick: e => { e.stopPropagation(); e.preventDefault(); onChange(o); this.setState({ ddOpen: null, ddQuery: '' }); },
         style: `display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;font-size:12.5px;font-weight:${o === value ? 600 : 500};color:${o === value ? '#4161FF' : '#374151'};background:${o === value ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s;white-space:nowrap`,
         hoverStyle: `background:${o === value ? '#EAF1FF' : '#F4F4F6'}`,
       })),
@@ -225,7 +295,7 @@ export class AppLogic extends Component<any, any> {
         const on = selected.indexOf(c.name) >= 0;
         return {
           name: c.name,
-          onClick: e => { e.stopPropagation(); onToggle(c.name); },
+          onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(c.name); },
           style: `display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : '#374151'};background:${on ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s`,
           hoverStyle: `background:${on ? '#EAF1FF' : '#F4F4F6'}`,
           boxStyle: `flex:none;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : '#FFFFFF'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
@@ -261,7 +331,7 @@ export class AppLogic extends Component<any, any> {
         return {
           id: c.id,
           name: c.name,
-          onClick: e => { e.stopPropagation(); onToggle(c.name); },
+          onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(c.name); },
           style: `display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : '#374151'};background:${on ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s`,
           hoverStyle: `background:${on ? '#EAF1FF' : '#F4F4F6'}`,
           idBadgeStyle: `flex:none;margin-top:1px;min-width:30px;padding:2px 6px;border-radius:5px;background:${on ? '#DCE6FF' : '#F1F1F4'};color:${on ? '#2445E8' : '#94A3B8'};font-size:10px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums`,
@@ -277,11 +347,53 @@ export class AppLogic extends Component<any, any> {
     this.startSbAnim();
   }
 
+  /**
+   * Asks the app-ia edge function (LLM) for the panel's analysis. Until it answers, or when
+   * the model is not configured (503), the panel shows the rule-based analysis.
+   */
+  async askIa(panel: 'prog' | 'fluxo') {
+    if (!this.live || this.state.iaOff) return;
+    const rules = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
+    const contexto = panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this);
+    const key = JSON.stringify(contexto);
+    const cur = (this.state.iaRemote || {})[panel];
+    if (cur && cur.key === key && cur.status !== 'error') return;
+    const put = (v: any) => this.setState(st => ({ iaRemote: { ...(st.iaRemote || {}), [panel]: v } }));
+    put({ key, status: 'loading' });
+    try {
+      const data = await apoioApi.ia(panel, contexto, rules.items.map(i => ({ label: i.label, text: i.text })));
+      put({ key, status: 'ready', data });
+    } catch (e: any) {
+      if (e.status === 503) this.setState({ iaOff: true });
+      put({ key, status: 'error', error: e.message });
+    }
+  }
+
+  /** LLM answer for the panel when it matches the current data, else null. */
+  iaRemoteFor(panel: 'prog' | 'fluxo') {
+    const r = (this.state.iaRemote || {})[panel];
+    return r && r.status === 'ready' ? r.data : null;
+  }
+
   iaInsights(panel) {
     if (this.live && (panel === 'prog' || panel === 'fluxo')) {
       const r = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
+      const remote = this.iaRemoteFor(panel);
+      const loading = (this.state.iaRemote || {})[panel]?.status === 'loading';
+      const cor = { critico: '#EF4444', atencao: '#F59E0B', info: '#94A3B8', positivo: '#43B997' };
+      if (remote) {
+        return {
+          title: r.title, subtitle: `Gerada por IA (${remote.modelo}) sobre os dados do período.`,
+          items: remote.items.map(i => ({
+            label: i.label, text: i.text, action: '',
+            onAction: () => this.setState({ iaPanel: null }),
+            style: 'padding:12px;border-radius:9px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1',
+            dotStyle: `width:7px;height:7px;border-radius:50%;background:${cor[i.nivel] || '#94A3B8'};flex:none`,
+          })),
+        };
+      }
       return {
-        title: r.title, subtitle: r.subtitle,
+        title: r.title, subtitle: loading ? 'Consultando o modelo de IA… enquanto isso, a análise por regras:' : r.subtitle,
         items: r.items.map(i => ({
           label: i.label, text: i.text, action: i.action || '',
           onAction: i.go || (() => this.setState({ iaPanel: null })),
@@ -338,8 +450,9 @@ export class AppLogic extends Component<any, any> {
   };
 
   seedDepts() {
+    if (this.live) return [];
     if (this._deptSeed) return this._deptSeed;
-    this._deptSeed = this.uDepts.map((name, i) => ({ id: 'd' + (i + 1), name, desc: this.dSeedDescs[name] || '', active: true }));
+    this._deptSeed = this.demoDepts.map((name, i) => ({ id: 'd' + (i + 1), name, desc: this.dSeedDescs[name] || '', active: true }));
     return this._deptSeed;
   }
 
@@ -414,6 +527,7 @@ export class AppLogic extends Component<any, any> {
   }
 
   seedPerfis() {
+    if (this.live) return [];
     if (this._perfilSeed) return this._perfilSeed;
     const all = this.permPaths();
     this._perfilSeed = [
@@ -508,19 +622,16 @@ export class AppLogic extends Component<any, any> {
     return this._lcSeed;
   }
 
+  /** Demo mode only: live entries go through cadastrosApi (see vals/lancamentos.ts). */
   setLc(fn) {
-    this.setState(st => {
-      const rows = fn(st.lcRowsData || (this.live ? [] : this.lcSeed()));
-      if (this.live) this.writeLanc(rows);
-      return { lcRowsData: rows };
-    });
+    this.setState(st => ({ lcRowsData: fn(st.lcRowsData || this.lcSeed()) }));
   }
 
   exportLancCsv(rows: any[]) {
     const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
     const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
-    const head = ['data', 'cd_empresa', 'empresa', 'descricao', 'categoria', 'tipo', 'valor', 'recorrencia', 'parcelas', 'situacao'];
-    const lines = [head.join(';')].concat(rows.map(r => [r.date, r.cd, r.emp, r.desc, r.cat, r.tipo, f2(r.value), r.rec, r.parc, r.sit].map(esc).join(';')));
+    const head = ['data', 'cd_empresa', 'empresa', 'descricao', 'categoria', 'tipo', 'valor', 'recorrencia', 'parcela', 'total_parcelas', 'situacao'];
+    const lines = [head.join(';')].concat(rows.map(r => [r.date, r.cd, r.emp, r.desc, r.cat, r.tipo, f2(r.value), r.rec, r.parc, r.parcTotal ?? r.parc, r.sit].map(esc).join(';')));
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
     a.download = 'lancamentos.csv';
@@ -552,13 +663,6 @@ export class AppLogic extends Component<any, any> {
       ]},
     ];
     return this._pgSeed;
-  }
-
-  pgAdtSeed() {
-    return [
-      { cd: 190, credor: 'Construtora Delta', doc: 'NF 4488 · ADT', val: '32.400,00' },
-      { cd: 217, credor: 'Materiais Rio Verde', doc: 'NF 2201 · ADT', val: '11.850,00' },
-    ];
   }
 
   setPg(fn) { this.setState(st => ({ pgGroups: fn(st.pgGroups || this.pgSeed()) })); }
@@ -595,7 +699,9 @@ export class AppLogic extends Component<any, any> {
   }
 
   emptyForm() {
-    return { name: '', email: '', phone: '', role: this.uRoles[2], dept: this.uDepts[0], empresas: [], centros: [], active: true };
+    const roles = this.uRoles;
+    const role = roles.includes('Analista Financeiro') ? 'Analista Financeiro' : (roles[2] || roles[0] || '');
+    return { name: '', email: '', phone: '', role, dept: this.uDepts[0] || '', empresas: [], centros: [], active: true };
   }
 
   patchForm(patch) {
@@ -737,12 +843,18 @@ export class AppLogic extends Component<any, any> {
     this.loadIndicators();
     if (this.live) {
       if (this.props.session) this.loadCatalogs();
-      this.setState({ lcRowsData: this.readLanc(), pgDateFrom: todayIso(), pgDateTo: todayIso(), sbDate: todayIso(), lcFrom: todayIso(), lcTo: addDays(todayIso(), 12) });
+      this.setState({ lcRowsData: [], pgDateFrom: todayIso(), pgDateTo: todayIso(), sbDate: todayIso(), lcFrom: todayIso(), lcTo: addDays(todayIso(), 12) });
     }
   }
 
   componentDidUpdate() {
     this.ensureRanges();
+    // Page the profile cannot open (menus are hidden, but a tile or old state may lead here).
+    const need = this.pagePerm[this.state.page];
+    if (this.live && this.state.view === 'app' && need && !this.pode(need)) {
+      this.setState({ page: 'dashboard', module: 'Painel' });
+      this.toast('Seu perfil não tem acesso a esta tela.');
+    }
   }
 
   componentWillUnmount() {
@@ -757,22 +869,31 @@ export class AppLogic extends Component<any, any> {
     if (supabase) supabase.auth.signOut();
   }
 
-  // Banco Central SGS series (no key needed). Values stay as "—" if the API is unreachable.
+  // Banco Central SGS series (no key needed): SELIC meta e CDI em % a.a.; IPCA, IGP-M e
+  // INCC-M em % no mês. Read through the app-indicadores edge function (server side, no
+  // CORS); if it is unavailable, straight from api.bcb.gov.br. "—" if both fail.
   indicatorSeries: Record<string, number> = { SELIC: 432, CDI: 4389, IPCA: 433, 'IGP-M': 189, 'INCC-M': 7456 };
 
   async loadIndicators() {
     if (!this.live) return;
-    const entries = await Promise.all(Object.entries(this.indicatorSeries).map(async ([label, code]) => {
+    const pct = (n: number | null | undefined) => (n == null || isNaN(n) ? '—' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
+    let values: Record<string, number | null> = {};
+    try {
+      if (!this.props.session) throw new Error('sem sessão');
+      const { indicadores } = await apoioApi.indicadores();
+      values = Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, indicadores?.[k]?.valor ?? null]));
+    } catch { /* fall back to the browser */ }
+    const missing = Object.entries(this.indicatorSeries).filter(([k]) => values[k] == null);
+    await Promise.all(missing.map(async ([label, code]) => {
       try {
         const r = await fetch(`https://api.bcb.gov.br/dados/serie/bcdata.sgs.${code}/dados/ultimos/1?formato=json`);
         const [last] = await r.json();
-        const n = parseFloat(String(last.valor).replace(',', '.'));
-        return [label, isNaN(n) ? '—' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%'];
+        values[label] = parseFloat(String(last.valor).replace(',', '.'));
       } catch {
-        return [label, '—'];
+        values[label] = null;
       }
     }));
-    this.setState({ econValues: Object.fromEntries(entries) });
+    this.setState({ econValues: Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])])) });
   }
 
   saveBg(patch) {
@@ -868,10 +989,9 @@ export class AppLogic extends Component<any, any> {
   empresaById(): any { return empresaById.call(this); }
   empresaNome(id: number, fallback?: string): string { return empresaNome.call(this, id, fallback); }
   readSaldos(): any { return readSaldos.call(this); }
-  writeSaldos(date: string, patch: any): void { writeSaldos.call(this, date, patch); }
+  writeSaldos(date: string, patch: any): Promise<boolean> { return writeSaldos.call(this, date, patch); }
   saldoPorEmpresa(date: string): Record<number, number> { return saldoPorEmpresa.call(this, date); }
-  readLanc(): any[] { return readLanc.call(this); }
-  writeLanc(rows: any[]): void { writeLanc.call(this, rows); }
+  loadLanc(): Promise<void> { return loadLanc.call(this); }
 
   usersVals(subItemStyle: string): any { return usersVals.call(this, subItemStyle); }
   deptsVals(): any { return deptsVals.call(this); }

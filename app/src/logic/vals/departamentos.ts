@@ -1,4 +1,5 @@
 import type { AppLogic } from '../AppLogic';
+import { cadastrosApi } from '../../lib/api';
 
 export function deptsVals(this: AppLogic) {
   const s: any = this.state;
@@ -12,6 +13,12 @@ export function deptsVals(this: AppLogic) {
     if (statusKey !== null && d.active !== statusKey) return false;
     return true;
   });
+
+  const perm = 'configuracoes.departamentos';
+  // Live writes go to app_departamentos, then perfis/departamentos and users are reloaded
+  // (renaming cascades to app_usuarios.departamento).
+  const write = (fn: () => Promise<unknown>, okMsg: string, onError?: (m: string) => void) =>
+    this.cadastroAcao(fn, okMsg, async () => { await this.loadCadastros(); await this.loadUsuarios(); }, onError);
 
   const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
 
@@ -30,6 +37,10 @@ export function deptsVals(this: AppLogic) {
       trackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${d.active ? '#43B997' : '#D8D8E0'}`,
       knobStyle: `position:absolute;top:2.5px;left:${d.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
       toggle: () => {
+        if (this.live) {
+          if (this.podeEditar(perm)) write(() => cadastrosApi.salvarDepartamento(d.id, { nome: d.name, descricao: d.desc || null, ativo: !d.active }), d.active ? `${d.name} foi inativado.` : `${d.name} foi reativado.`);
+          return;
+        }
         this.setDepts(list => list.map(x => x.id === d.id ? Object.assign({}, x, { active: !x.active }) : x));
         this.toast(d.active ? `${d.name} foi inativado.` : `${d.name} foi reativado.`);
       },
@@ -85,6 +96,12 @@ export function deptsVals(this: AppLogic) {
     removeDept: () => {
       const id = s.editingDeptId;
       const target = all.find(x => x.id === id);
+      if (this.live) {
+        if (!this.pode(perm, true)) { this.setState({ deptFormErr: 'Seu perfil não tem permissão para alterar departamentos.' }); return; }
+        write(() => cadastrosApi.excluirDepartamento(id), target ? `${target.name} excluído.` : 'Departamento excluído.', m => this.setState({ deptFormErr: m }))
+          .then(ok => ok && this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null }));
+        return;
+      }
       this.setDepts(list => list.filter(x => x.id !== id));
       this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null });
       this.toast(target ? `${target.name} excluído.` : 'Departamento excluído.');
@@ -101,6 +118,13 @@ export function deptsVals(this: AppLogic) {
         return;
       }
       const rec = { name: form.name.trim(), desc: form.desc.trim(), active: form.active };
+      if (this.live) {
+        if (!this.pode(perm, true)) { this.setState({ deptFormErr: 'Seu perfil não tem permissão para alterar departamentos.' }); return; }
+        write(() => cadastrosApi.salvarDepartamento(id || null, { nome: rec.name, descricao: rec.desc || null, ativo: rec.active }),
+          id ? 'Cadastro atualizado.' : 'Departamento cadastrado.', m => this.setState({ deptFormErr: m }))
+          .then(ok => ok && this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null, deptFormErr: '' }));
+        return;
+      }
       if (id) {
         this.setDepts(list => list.map(x => x.id === id ? Object.assign({}, x, rec) : x));
         this.toast('Cadastro atualizado.');

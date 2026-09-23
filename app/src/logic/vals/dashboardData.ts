@@ -1,6 +1,6 @@
 import type { AppLogic } from '../AppLogic';
 import { todayIso, addDays } from '../../lib/api';
-import { DASH_BACK_DAYS, DASH_AHEAD_DAYS, dashPeriodStart, sumBy, type FluxoDia, type TituloPagar, type PagarSegmento } from '../data';
+import { DASH_BACK_DAYS, DASH_AHEAD_DAYS, dashPeriodStart, sumBy, type FluxoDia, type TituloPagar, type PagarSegmento, type PagoDia } from '../data';
 
 const PALETTE = ['#4161FF', '#43B997', '#7C3AED', '#F59E0B', '#EC4899', '#0EA5E9'];
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -25,18 +25,24 @@ export function dashSource(this: AppLogic) {
   const fl: FluxoDia[] = fluxo?.rows || [];
   const pg: TituloPagar[] = pagar?.rows || [];
   const sg: PagarSegmento[] = seg?.rows || [];
-  const loading = [fluxo, pagar, seg].some(r => !r || r.status === 'loading');
+  // Pago / juros / desconto by payment date (parcelas_pagar_payments), not by due date.
+  const pagos = this.rangeData('pagos', addDays(today, -DASH_BACK_DAYS), today);
+  const pgt: PagoDia[] = pagos?.rows || [];
+  const loading = [fluxo, pagar, seg, pagos].some(r => !r || r.status === 'loading');
 
   const byDay: Record<string, DayTotals> = {};
   for (const r of fl) {
     const d = (byDay[r.dia] ||= { in: 0, out: 0, pago: 0, juros: 0, desc: 0, recAb: 0, pagAb: 0 });
     d.in += Number(r.receber_original) || 0;
     d.out += Number(r.pagar_original) || 0;
-    d.pago += Number(r.pagar_quitado) || 0;
-    d.juros += Number(r.pagar_correcao) || 0;
-    d.desc += Number(r.pagar_desconto) || 0;
     d.recAb += Number(r.receber_aberto) || 0;
     d.pagAb += Number(r.pagar_aberto) || 0;
+  }
+  for (const r of pgt) {
+    const d = (byDay[r.dia] ||= { in: 0, out: 0, pago: 0, juros: 0, desc: 0, recAb: 0, pagAb: 0 });
+    d.pago += Number(r.pago) || 0;
+    d.juros += Number(r.juros) || 0;
+    d.desc += Number(r.desconto) || 0;
   }
   const bucket = (x: string, from: string, to: string) => {
     const t = { x, in: 0, out: 0, pago: 0, juros: 0, desc: 0 };

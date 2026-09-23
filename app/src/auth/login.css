@@ -1,0 +1,16 @@
+/* Keyframes and element rules of project/SaaS Login.dc.html (prefixed: the home screen
+   already has a "gridDrift" with a different step). */
+.b2-login input::placeholder{color:rgba(245,245,247,.34)}
+.b2-login input:-webkit-autofill{-webkit-text-fill-color:#F5F5F7;transition:background-color 9999s}
+.b2-login a{color:#8AA0FF;text-decoration:none}
+.b2-login a:hover{color:#B3C1FF}
+@keyframes lgKenBurns{0%{transform:scale(1.06) translate3d(0,0,0)}50%{transform:scale(1.14) translate3d(-1.6%,-1.2%,0)}100%{transform:scale(1.06) translate3d(0,0,0)}}
+@keyframes lgOrbDrift{0%,100%{transform:translate3d(0,0,0) scale(1)}50%{transform:translate3d(6%,-7%,0) scale(1.12)}}
+@keyframes lgOrbDrift2{0%,100%{transform:translate3d(0,0,0) scale(1.05)}50%{transform:translate3d(-7%,5%,0) scale(.94)}}
+@keyframes lgGridDrift{from{background-position:0 0,0 0}to{background-position:38px 38px,38px 38px}}
+@keyframes lgSweep{0%{transform:translateX(-120%)}100%{transform:translateX(320%)}}
+@keyframes lgFadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes lgFadeIn{from{opacity:0}to{opacity:1}}
+@keyframes lgShake{0%,100%{transform:translateX(0)}18%{transform:translateX(-6px)}38%{transform:translateX(5px)}58%{transform:translateX(-3px)}78%{transform:translateX(2px)}}
+@keyframes lgCheckIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:scale(1)}}
+@keyframes lgBarGrow{from{width:0}to{width:100%}}

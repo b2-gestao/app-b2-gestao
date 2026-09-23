@@ -40,7 +40,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
   const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
   const grouped = s.sbGroup === 'empresa';
 
-  const openFor = a => this.setState({ sbModal: true, sbErr: '', ddOpen: null, sbForm: { id: a ? a.id : null, date: s.sbDate || defDate, value: a && a.saldo != null ? f2(a.saldo) : '', origem: 'Manual', obs: '' } });
+  const openFor = a => this.setState({ sbModal: true, sbErr: '', ddOpen: null, sbForm: { id: a ? a.id : null, date: s.sbDate || defDate, value: a && a.saldo != null ? f2(a.saldo) : '', origem: (a && a.origem) || 'Manual', obs: (a && a.obs) || '' } });
 
   let idx = 0;
   const mkAcct = a => {
@@ -166,6 +166,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
       if (!file) return;
       e.target.value = '';
       if (this.live) {
+        if (!this.podeEditar('financeiro.saldos')) return;
         this.setState({ sbImporting: true });
         importCsv(this, file, all, s.sbDate || defDate).finally(() => { this.setState({ sbImporting: false }); this.startSbAnim(); });
         return;
@@ -193,11 +194,17 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbOrigemTabs: ['Manual', 'Extrato bancário'].map(l => ({ label: l, style: seg(form.origem === l), onClick: () => patch({ origem: l }) })),
     sbErr: s.sbErr || '',
     sbErrStyle: `display:${s.sbErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:#FEE9E9;border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px;animation:popIn .18s ease-out both`,
-    sbSave: () => {
+    sbSave: async () => {
       const v = parseBRL(form.value);
       if (!formAcct || v == null) { this.setState({ sbErr: !formAcct ? 'Selecione a conta corrente.' : 'Informe um valor de saldo válido.' }); return; }
-      if (this.live) this.writeSaldos(form.date || s.sbDate || defDate, { [formAcct.id]: { saldo: v, upd: this.nowStamp(), origem: form.origem, obs: form.obs } });
-      else this.setSb(list => list.map(a => a.id === formAcct.id ? Object.assign({}, a, { saldo: v, status: 'ok', upd: this.nowStamp() }) : a));
+      if (this.live) {
+        if (!this.pode('financeiro.saldos', true)) { this.setState({ sbErr: 'Seu perfil não tem permissão para informar saldos.' }); return; }
+        if (s.sbSaving) return;
+        this.setState({ sbSaving: true });
+        const ok = await this.writeSaldos(form.date || s.sbDate || defDate, { [formAcct.id]: { saldo: v, upd: this.nowStamp(), origem: form.origem, obs: form.obs } });
+        this.setState({ sbSaving: false });
+        if (!ok) return;
+      } else this.setSb(list => list.map(a => a.id === formAcct.id ? Object.assign({}, a, { saldo: v, status: 'ok', upd: this.nowStamp() }) : a));
       this.setState({ sbModal: false, sbForm: null, sbErr: '' });
       this.startSbAnim();
       this.toast(`Saldo de ${short(formAcct.emp)} (${bankShort(formAcct.bank)}) salvo · R$ ${f2(v)}.`);
