@@ -88,7 +88,8 @@ função responde 503 e o painel mostra a análise por regras.
 
 1. ✅ (23/09) Migrations aplicadas, nesta ordem: `20260923190000_app_rpc_financeiro.sql`,
    `20260923190100_fechar_tabelas_anon.sql`, `20260923200000_app_usuarios.sql`,
-   `20260923210000_app_cadastros_financeiro.sql`, `20260923210100_app_endurece_triggers.sql`.
+   `20260923210000_app_cadastros_financeiro.sql`, `20260923210100_app_endurece_triggers.sql`,
+   `20260923220000_app_fluxo_diario_mv.sql`.
 2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
    **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
    para lá). Rodando local, use `http://localhost:5173`.
@@ -101,9 +102,12 @@ função responde 503 e o painel mostra a análise por regras.
 
 ### Desempenho
 
-`app_fluxo_diario` varre `parcelas_receber` (1,3 mi linhas) sem índice por data —
-cerca de 4–5 s. Um índice em `(due_date) where balance_amount > 0` resolveria, mas
-precisa ser criado dentro de `swap_parcelas_receber` (a tabela é recriada a cada sync).
+`app_fluxo_diario` lê as parcelas a receber de `mv_parcelas_receber` (índices por
+`due_date`), não mais de `parcelas_receber` (1,3 mi linhas sem índice por data, ~5 s).
+Medido em 23/09: Fluxo 10 dias 0,7 s e Painel 120 dias 0,7 s (1ª chamada 1,5–2,8 s), com
+os mesmos totais. A MV é atualizada pelo pg_cron 30–60 min depois de cada carga do receber.
+Durante o REFRESH dela (~5 min, 2x/dia) a função espera no máximo 200 ms e lê
+`parcelas_receber` direto. Nada mudou no sync, no n8n, no GitHub Actions nem no MCP.
 
 ## Testes
 
