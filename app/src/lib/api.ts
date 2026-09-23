@@ -55,6 +55,16 @@ export interface FluxoDia {
   pagar_correcao: number;
 }
 
+export interface PagoDia {
+  company_id: number;
+  dia: string;
+  pago: number;
+  /** juros + multa */
+  juros: number;
+  correcao: number;
+  desconto: number;
+}
+
 export interface PagarSegmento {
   company_id: number;
   segmento: string;
@@ -78,6 +88,7 @@ export const api = {
     rpc<FluxoDia[]>('app_fluxo_diario', { p_de: de, p_ate: ate, p_empresas: empresas && empresas.length ? empresas : null }),
   pagarSegmentos: (de: string, ate: string) => rpc<PagarSegmento[]>('app_pagar_segmentos', { p_de: de, p_ate: ate }),
   ultimoSync: () => rpc<string | null>('app_ultimo_sync'),
+  pagosDiario: (de: string, ate: string) => rpc<PagoDia[]>('app_pagos_diario', { p_de: de, p_ate: ate }),
 };
 
 /** Display name used across the app: "Nome fantasia – Empreendimento(s)". */
@@ -132,4 +143,104 @@ export const usuariosApi = {
     }
     return data as T;
   },
+};
+
+// ---- tabelas do app (RLS: leitura para membros, escrita conforme o perfil) ----
+function db() {
+  if (!supabase) throw new Error('Supabase não configurado');
+  return supabase;
+}
+/** Postgres/PostgREST errors in the words the screens show. */
+function msg(error: { message: string; code?: string; details?: string }): Error {
+  if (error.code === '42501') return new Error('Seu perfil não tem permissão para esta alteração.');
+  if (error.code === '23505') return new Error('Já existe um cadastro com esse nome.');
+  if (error.code === '23503') return new Error('Não é possível excluir: há usuários vinculados a este cadastro.');
+  return new Error(error.message);
+}
+async function run<T>(q: PromiseLike<{ data: T | null; error: any }>): Promise<T> {
+  const { data, error } = await q;
+  if (error) throw msg(error);
+  return data as T;
+}
+
+export interface Perfil {
+  id: string;
+  nome: string;
+  descricao: string | null;
+  ativo: boolean;
+  permissoes: Record<string, { view: boolean; edit: boolean }>;
+  sistema: boolean;
+}
+export interface Departamento { id: string; nome: string; descricao: string | null; ativo: boolean }
+export interface SaldoConta {
+  data: string;
+  company_id: number;
+  conta_id: string;
+  bank_number: string | null;
+  agency_number: string | null;
+  account_number: string | null;
+  saldo: number;
+  origem: 'Manual' | 'Extrato bancário' | 'Planilha';
+  obs: string | null;
+  atualizado_em?: string;
+}
+export interface Lancamento {
+  id: string;
+  data: string;
+  company_id: number;
+  descricao: string;
+  categoria: string;
+  tipo: 'entrada' | 'saida';
+  valor: number;
+  recorrencia: 'Nenhuma' | 'Mensal' | 'Semanal';
+  parcela: number;
+  total_parcelas: number;
+  grupo_id: string | null;
+  situacao: 'lancado' | 'previsto';
+}
+export type LancamentoNovo = Omit<Lancamento, 'id'>;
+
+export const cadastrosApi = {
+  perfis: () => run<Perfil[]>(db().from('app_perfis').select('id, nome, descricao, ativo, permissoes, sistema').order('nome')),
+  salvarPerfil: (id: string | null, p: Omit<Perfil, 'id' | 'sistema'>) =>
+    run(id ? db().from('app_perfis').update(p).eq('id', id) : db().from('app_perfis').insert(p)),
+  excluirPerfil: (id: string) => run(db().from('app_perfis').delete().eq('id', id)),
+
+  departamentos: () => run<Departamento[]>(db().from('app_departamentos').select('id, nome, descricao, ativo').order('nome')),
+  salvarDepartamento: (id: string | null, d: Omit<Departamento, 'id'>) =>
+    run(id ? db().from('app_departamentos').update(d).eq('id', id) : db().from('app_departamentos').insert(d)),
+  excluirDepartamento: (id: string) => run(db().from('app_departamentos').delete().eq('id', id)),
+
+  saldos: (data: string) => run<SaldoConta[]>(db().from('app_saldo_contas_manual')
+    .select('data, company_id, conta_id, bank_number, agency_number, account_number, saldo, origem, obs, atualizado_em').eq('data', data)),
+  salvarSaldos: (rows: SaldoConta[]) => run(db().from('app_saldo_contas_manual').upsert(rows, { onConflict: 'data,conta_id' })),
+
+  lancamentos: (de: string, ate: string) => run<Lancamento[]>(db().from('app_rec_financeiro_lancamento')
+    .select('id, data, company_id, descricao, categoria, tipo, valor, recorrencia, parcela, total_parcelas, grupo_id, situacao')
+    .gte('data', de).lte('data', ate).order('data').limit(5000)),
+  inserirLancamentos: (rows: LancamentoNovo[]) => run(db().from('app_rec_financeiro_lancamento').insert(rows)),
+  atualizarLancamento: (id: string, patch: Partial<LancamentoNovo>) => run(db().from('app_rec_financeiro_lancamento').update(patch).eq('id', id)),
+  excluirLancamento: (id: string) => run(db().from('app_rec_financeiro_lancamento').delete().eq('id', id)),
+};
+
+// ---- edge functions de apoio ----
+async function invoke<T>(fn: string, body?: Record<string, unknown>): Promise<T> {
+  const { data, error } = await db().functions.invoke(fn, { body: body || {} });
+  if (error) {
+    const b = await (error as any).context?.json?.().catch(() => null);
+    const e: any = new Error(b?.error || error.message);
+    e.status = (error as any).context?.status;
+    throw e;
+  }
+  return data as T;
+}
+
+export interface IaResposta { headline: string; items: { label: string; text: string; nivel: 'critico' | 'atencao' | 'info' | 'positivo' }[]; modelo: string }
+
+export const apoioApi = {
+  /** BCB/SGS via edge function app-indicadores: { SELIC: { valor, data } | null, ... } */
+  indicadores: () => invoke<{ indicadores: Record<string, { valor: number; data: string } | null> }>('app-indicadores'),
+  /** Análise com IA (edge function app-ia). 503 = IA não configurada. */
+  ia: (tela: 'prog' | 'fluxo', contexto: unknown, regras: { label: string; text: string }[]) =>
+    invoke<IaResposta>('app-ia', { tela, contexto, regras }),
 };

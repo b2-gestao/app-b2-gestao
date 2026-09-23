@@ -57,14 +57,11 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     };
   }).filter(Boolean);
 
-  // Baixas ADT: sem fonte nos dados do Sienge sincronizados (lista vazia no modo real).
-  const adtRows = live ? [] : this.pgAdtSeed();
-  const adtOpen = !!s.pgAdtOpen;
 
   const cardBase = i => `display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${100 + i * 50}ms;transition:transform .2s ease`;
   const pgCards = [
     { label: 'Saldo inicial do dia', val: f2(totSaldo), sub: `${groups.length} empresas com movimento`, style: cardBase(0), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
-    { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Sem baixa ADT', style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
+    { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Aporte necessário', val: f2(totAporte), sub: totAporte ? 'Empresas com saldo insuficiente' : 'Nenhuma empresa precisa de aporte', style: cardBase(3), valStyle: `font-size:21px;font-weight:700;color:${totAporte ? '#7C3AED' : '#111827'};font-variant-numeric:tabular-nums` },
     { label: 'Saldo após pagamentos', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do dia', style: cardBase(4), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
@@ -89,8 +86,6 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     pgNextDay: () => {},
     pgDayLabel: '',
     pgTodayPill: 'font-size:10.5px;font-weight:600;color:#258B6C;background:#E1F7EF;border-radius:20px;padding:3px 9px',
-    pgToggleAdt: () => this.setState({ pgAdtOpen: !adtOpen }),
-    pgAdtLabel: adtOpen ? 'Ocultar baixas ADT' : `Ver baixas ADT (${adtRows.length})`,
     pgExpandAll: () => this.setState(Object.fromEntries(groups.map(g => ['pgOpen_' + g.cd, true]))),
     pgCollapseAll: () => this.setState(Object.fromEntries(groups.map(g => ['pgOpen_' + g.cd, false]))),
     pgPeriods: ['Diário', 'Semanal', 'Mensal', 'Trimestral'].map(p => {
@@ -102,8 +97,6 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     pgDateTo: this.state.pgDateTo || (this.live ? todayIso() : '2026-09-23'),
     onDateFromChange: (e) => this.setState({ pgDateFrom: e.target.value }),
     onDateToChange: (e) => this.setState({ pgDateTo: e.target.value }),
-    pgAdtOpen: adtOpen,
-    pgAdtRows: adtRows.map(a => ({ cd: a.cd, credor: a.credor, doc: a.doc, val: a.val })),
     ddPgEmp,
     pgEmpEmptyStyle: `display:${groups.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:36px 20px;text-align:center`,
     pgSaveDefaultView: () => {

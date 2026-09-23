@@ -47,6 +47,47 @@ const seg = () => empresas.slice(0, 6).flatMap((e, i) => ['ADMINISTRAÇÃO', 'CO
 
 const usuarios = [{ id: '00000000-0000-0000-0000-000000000001', nome: 'Usuária Teste', email: 'teste@b2.com.br', telefone: null, funcao: 'Administrador', departamento: 'Financeiro', empresas: [2, 3], centros_custo: [100], status: 'ativo' }];
 
+// In-memory PostgREST for the app_* tables (eq/gte/lte filters, insert, upsert, update, delete).
+const perms = paths => Object.fromEntries(paths.map(p => [p, { view: true, edit: true }]));
+const tables = {
+  app_perfis: [
+    { id: 'p-adm', nome: 'Administrador', descricao: 'Acesso total', ativo: true, sistema: true, permissoes: {} },
+    { id: 'p-fin', nome: 'Analista Financeiro', descricao: 'Financeiro', ativo: true, sistema: false, permissoes: perms(['financeiro.saldos', 'financeiro.lancamentos', 'financeiro.programacao', 'financeiro.fluxo']) },
+  ],
+  app_departamentos: [{ id: 'd-fin', nome: 'Financeiro', descricao: 'Caixa', ativo: true }, { id: 'd-ti', nome: 'TI', descricao: null, ativo: true }],
+  app_saldo_contas_manual: [],
+  app_rec_financeiro_lancamento: [],
+};
+let seq = 1;
+function rest(route, name) {
+  const req = route.request();
+  const url = new URL(req.url());
+  const rows = tables[name];
+  const filters = [...url.searchParams].filter(([k]) => !['select', 'order', 'limit', 'on_conflict', 'columns'].includes(k));
+  const match = r => filters.every(([k, v]) => {
+    const [op, ...rest] = v.split('.'); const val = rest.join('.');
+    return op === 'eq' ? String(r[k]) === val : op === 'gte' ? String(r[k]) >= val : op === 'lte' ? String(r[k]) <= val : true;
+  });
+  const json = (status, body) => route.fulfill({ status, contentType: 'application/json', body: body === undefined ? '' : JSON.stringify(body) });
+  const m = req.method();
+  calls.push(`${m} ${name}`);
+  if (m === 'GET') return json(200, rows.filter(match));
+  if (m === 'POST') {
+    const body = [].concat(req.postDataJSON());
+    const conflict = url.searchParams.get('on_conflict');
+    for (const b of body) {
+      const keys = conflict ? conflict.split(',') : null;
+      const cur = keys && rows.find(r => keys.every(k => String(r[k]) === String(b[k])));
+      if (cur) Object.assign(cur, b, { atualizado_em: new Date().toISOString() });
+      else rows.push({ id: b.id || `id${seq++}`, atualizado_em: new Date().toISOString(), ...b });
+    }
+    return json(201);
+  }
+  if (m === 'PATCH') { rows.filter(match).forEach(r => Object.assign(r, req.postDataJSON())); return json(204); }
+  if (m === 'DELETE') { tables[name] = rows.filter(r => !match(r)); return json(204); }
+  return json(405, {});
+}
+
 const b64 = o => Buffer.from(JSON.stringify(o)).toString('base64url');
 const exp = Math.floor(Date.now() / 1000) + 3600;
 const user = { id: '00000000-0000-0000-0000-000000000001', aud: 'authenticated', role: 'authenticated', email: 'teste@b2.com.br', user_metadata: { full_name: 'Usuária Teste' }, app_metadata: {} };
@@ -66,6 +107,16 @@ await page.route('https://fake-project.supabase.co/**', async route => {
     calls.push('select app_usuarios');
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(usuarios) });
   }
+  const table = url.pathname.match(/^\/rest\/v1\/(app_perfis|app_departamentos|app_saldo_contas_manual|app_rec_financeiro_lancamento)$/);
+  if (table) return rest(route, table[1]);
+  if (url.pathname === '/functions/v1/app-indicadores') {
+    calls.push('fn app-indicadores');
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ indicadores: { SELIC: { valor: 15, data: '01/09/2026' }, CDI: { valor: 14.9, data: '22/09/2026' }, IPCA: { valor: 0.31, data: '01/08/2026' }, 'IGP-M': null, 'INCC-M': { valor: 0.42, data: '01/08/2026' } } }) });
+  }
+  if (url.pathname === '/functions/v1/app-ia') {
+    calls.push('fn app-ia');
+    return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'IA não configurada' }) });
+  }
   if (url.pathname === '/functions/v1/app-usuarios') {
     const b = route.request().postDataJSON();
     calls.push('fn app-usuarios:' + b.acao);
@@ -78,6 +129,7 @@ await page.route('https://fake-project.supabase.co/**', async route => {
   const data = fn === 'app_empresas' ? empresas : fn === 'app_centros_custo' ? centros : fn === 'app_contas_correntes' ? contas
     : fn === 'app_fluxo_diario' ? fluxo(body.p_de, body.p_ate) : fn === 'app_pagar_periodo' ? pagar(body.p_de, body.p_ate)
       : fn === 'app_pagar_segmentos' ? seg() : fn === 'app_ultimo_sync' ? new Date().toISOString()
+        : fn === 'app_pagos_diario' ? days(body.p_de, body.p_ate).map(dia => ({ company_id: 190, dia, pago: 50000, juros: 750, correcao: 0, desconto: 300 }))
         : fn === 'app_is_member' || fn === 'app_is_admin' ? true : null;
   if (!fn) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(user) });
   await route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(data) });
@@ -101,6 +153,23 @@ await page.getByPlaceholder('0,00').fill('150.000,00');
 await page.getByText('Salvar saldo', { exact: true }).click();
 await page.waitForTimeout(600);
 await page.screenshot({ path: `${out}/06-saldo-salvo.png` });
+if (tables.app_saldo_contas_manual.length !== 1 || Number(tables.app_saldo_contas_manual[0].saldo) !== 150000) errors.push('Saldo não foi gravado em app_saldo_contas_manual: ' + JSON.stringify(tables.app_saldo_contas_manual));
+// A monthly recurrence of 3 installments becomes 3 rows with the same grupo_id.
+await clickText('Lançamentos manuais');
+await clickText('Novo lançamento');
+await page.getByPlaceholder('Ex.: VMD – unidade 1803').fill('Aluguel escritório');
+await page.locator('input[placeholder="0,00"]:visible').fill('1.234,56');
+await page.locator('button:visible', { hasText: /^Nenhuma$/ }).first().click();
+await page.waitForTimeout(200);
+await page.locator('div:visible > span', { hasText: /^Mensal$/ }).last().click();
+await page.waitForTimeout(200);
+await page.screenshot({ path: `${out}/06a-rec.png` });
+await page.locator('input[type="number"]:visible').fill('3');
+await page.locator('button:visible', { hasText: /Salvar lançamento/ }).first().click();
+await page.waitForTimeout(800);
+await page.screenshot({ path: `${out}/06b-lancamento-recorrente.png` });
+const lanc = tables.app_rec_financeiro_lancamento;
+if (lanc.length !== 3 || new Set(lanc.map(l => l.grupo_id)).size !== 1 || lanc.map(l => l.parcela).join() !== '1,2,3') errors.push('Recorrência não gerou 3 parcelas: ' + JSON.stringify(lanc));
 await clickText('Programação do dia');
 await page.getByText('Ver análise', { exact: true }).first().click();
 await page.waitForTimeout(500);
@@ -117,6 +186,22 @@ await page.getByText('Cadastrar usuário', { exact: true }).click();
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${out}/08-usuario-convidado.png` });
 if (!(await page.getByText('convidada@b2.com.br').count())) errors.push('Convidado não apareceu na lista');
+// Login screen (no session).
+const login = await browser.newPage({ viewport: { width: 1440, height: 900 } });
+login.on('pageerror', e => errors.push(String(e)));
+await login.route(/images\.unsplash/, r => r.abort());
+await login.route('https://fake-project.supabase.co/**', r => r.fulfill({ status: 400, contentType: 'application/json', body: JSON.stringify({ error: 'invalid_grant', error_description: 'Invalid login credentials', msg: 'Invalid login credentials' }) }));
+await login.goto(base, { waitUntil: 'networkidle' });
+await login.waitForTimeout(500);
+await login.screenshot({ path: `${out}/09a-login.png` });
+await login.locator('input[type=email]').click();
+await login.keyboard.type('pessoa@empresa.com.br');
+await login.locator('input[type=password]').click();
+await login.keyboard.type('errada123');
+await login.keyboard.press('Enter');
+await login.waitForTimeout(900);
+await login.screenshot({ path: `${out}/09-login.png` });
+if (!(await login.getByText('E-mail ou senha incorretos.').count())) errors.push('Login: mensagem de erro não apareceu');
 await browser.close();
 console.log('RPCs called:', [...new Set(calls)].join(', '));
 if (errors.length) { console.error('Console errors:\n' + errors.join('\n')); process.exit(1); }

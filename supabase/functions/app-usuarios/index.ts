@@ -2,7 +2,8 @@
 //
 // Gestão de usuários do B2 Gestão e Operações no Supabase Auth. Chamada pela tela
 // Configurações › Usuários com o token do usuário logado (verify_jwt = true).
-// Só quem tem funcao = 'Administrador' em public.app_usuarios pode usar.
+// Só quem tem permissão de edição em Configurações › Usuários (perfil em app_perfis;
+// o perfil de sistema "Administrador" tem tudo) pode usar.
 //
 // Ações (POST { acao, ... }):
 //   convidar        { nome, email, telefone?, funcao, departamento?, empresas[], centros_custo[], ativo }
@@ -23,7 +24,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const APP_URL = Deno.env.get("APP_URL") ?? "";
 
-const FUNCOES = ["Administrador", "Gestor Financeiro", "Analista Financeiro", "Analista de RH", "Comercial", "Jurídico", "Controladoria", "Suporte"];
+const PERM_USUARIOS = "configuracoes.usuarios";
 const BAN_INATIVO = "876000h"; // ~100 anos
 
 const cors = {
@@ -48,16 +49,22 @@ function texto(v: unknown, max = 200): string {
 function ids(v: unknown): number[] {
   return Array.isArray(v) ? [...new Set(v.map(Number).filter(n => Number.isInteger(n) && n > 0))] : [];
 }
-function perfil(b: Record<string, unknown>) {
+async function perfil(b: Record<string, unknown>) {
   const nome = texto(b.nome);
   if (!nome) throw new Erro("Informe o nome completo.");
   const funcao = texto(b.funcao);
-  if (!FUNCOES.includes(funcao)) throw new Erro("Função inválida.");
+  const { data: p } = await admin.from("app_perfis").select("nome").eq("nome", funcao).eq("ativo", true).maybeSingle();
+  if (!p) throw new Erro("Função inválida: escolha um perfil ativo.");
+  const departamento = texto(b.departamento, 80);
+  if (departamento) {
+    const { data: d } = await admin.from("app_departamentos").select("nome").eq("nome", departamento).maybeSingle();
+    if (!d) throw new Erro("Departamento não cadastrado.");
+  }
   return {
     nome,
     telefone: texto(b.telefone, 40) || null,
     funcao,
-    departamento: texto(b.departamento, 80) || null,
+    departamento: departamento || null,
     empresas: ids(b.empresas),
     centros_custo: ids(b.centros_custo),
   };
@@ -68,6 +75,12 @@ async function carregar(id: string) {
   if (error) throw new Erro(error.message, 500);
   if (!data) throw new Erro("Usuário não encontrado.", 404);
   return data;
+}
+
+async function pode(userId: string, path: string) {
+  const { data, error } = await admin.rpc("app_pode_usuario", { p_user: userId, p_path: path, p_editar: true });
+  if (error) throw new Erro(error.message, 500);
+  return data === true;
 }
 
 async function bloquear(id: string, bloqueado: boolean) {
@@ -95,9 +108,8 @@ Deno.serve(async (req) => {
     const token = (req.headers.get("Authorization") || "").replace(/^Bearer\s+/i, "");
     const { data: quem, error: authErr } = await admin.auth.getUser(token);
     if (authErr || !quem?.user) throw new Erro("Sessão inválida.", 401);
-    const { data: eu } = await admin.from("app_usuarios").select("id, funcao, status").eq("id", quem.user.id).maybeSingle();
-    if (!eu || eu.status === "inativo" || eu.funcao !== "Administrador") {
-      throw new Erro("Apenas administradores podem gerenciar usuários.", 403);
+    if (!(await pode(quem.user.id, PERM_USUARIOS))) {
+      throw new Erro("Seu perfil não tem permissão para gerenciar usuários.", 403);
     }
 
     const b = await req.json().catch(() => ({})) as Record<string, unknown>;
@@ -107,7 +119,7 @@ Deno.serve(async (req) => {
     if (acao === "convidar") {
       const email = texto(b.email, 200).toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) throw new Erro("Informe um e-mail válido.");
-      const dados = perfil(b);
+      const dados = await perfil(b);
       const { data: existe } = await admin.from("app_usuarios").select("id").eq("email", email).maybeSingle();
       if (existe) throw new Erro("Já existe um usuário com esse e-mail.");
 
@@ -133,10 +145,15 @@ Deno.serve(async (req) => {
     const atual = await carregar(id);
 
     if (acao === "atualizar") {
-      const dados = perfil(b);
+      const dados = await perfil(b);
       const novoEmail = texto(b.email, 200).toLowerCase();
       if (novoEmail && novoEmail !== atual.email) throw new Erro("O e-mail não pode ser alterado. Exclua o usuário e convide o novo e-mail.");
-      if (id === quem.user.id && dados.funcao !== "Administrador") throw new Erro("Você não pode remover sua própria função de administrador.");
+      if (id === quem.user.id && dados.funcao !== atual.funcao) {
+        const { data: novo } = await admin.from("app_perfis").select("sistema, permissoes").eq("nome", dados.funcao).single();
+        if (!novo?.sistema && novo?.permissoes?.[PERM_USUARIOS]?.edit !== true) {
+          throw new Erro("Você não pode trocar sua própria função por uma sem permissão de gerenciar usuários.");
+        }
+      }
       const ativo = b.ativo !== false;
       if (id === quem.user.id && !ativo) throw new Erro("Você não pode inativar a si mesmo.");
       const status = ativo ? (atual.status === "inativo" ? "ativo" : atual.status) : "inativo";

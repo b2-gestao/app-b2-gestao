@@ -2,8 +2,8 @@ import type { AppLogic } from './AppLogic';
 import type { ContaCorrente } from '../lib/api';
 
 // Saldos bancários in live mode: accounts come from contas_correntes (Sienge);
-// opening balances are typed in or imported from the CSV template and kept in this
-// browser (see data.ts) until a table for them exists.
+// opening balances are typed in or imported from the CSV template and saved in
+// app_saldo_contas_manual (see data.ts).
 
 const BANKS: Record<string, { name: string; c: string; s: string }> = {
   '001': { name: 'Banco do Brasil', c: '#B38B00', s: 'BB' },
@@ -51,6 +51,7 @@ export function sbLive(app: AppLogic, date: string) {
       ag: c.agency_number || '—', cc: c.account_number || '—',
       uso: [], saldo: inf ? inf.saldo : null, upd: inf ? inf.upd : '—',
       status: inf ? 'ok' : 'missing',
+      origem: inf?.origem, obs: inf?.obs,
     };
   });
 }
@@ -122,6 +123,6 @@ export async function importCsv(app: AppLogic, file: File, rows: any[], date: st
     patch[r.id] = { saldo, upd: app.nowStamp(), origem: 'Planilha' };
   }
   const n = Object.keys(patch).length;
-  if (n) app.writeSaldos(date, patch);
+  if (n && !(await app.writeSaldos(date, patch))) return;
   app.toast(`${file.name} importada · ${n} ${n === 1 ? 'conta atualizada' : 'contas atualizadas'}${skipped ? ` · ${skipped} linha(s) sem conta correspondente` : ''}.`);
 }

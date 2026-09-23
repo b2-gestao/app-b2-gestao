@@ -23,7 +23,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                 </span>
               </div>
               <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
-                O que realmente sai hoje: parcelas a pagar do Sienge (sem as de baixa ADT) + lançamentos manuais, confrontados com o saldo inicial de cada empresa.
+                O que realmente sai hoje: parcelas a pagar do Sienge + lançamentos manuais, confrontados com o saldo inicial de cada empresa.
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
@@ -111,13 +111,6 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               </svg>
               {v.pgSaveViewLabel}
             </button>
-            <button onClick={v.pgToggleAdt} style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "30px", "padding": "0 11px", "borderRadius": "20px", "border": "1px solid #EEEEF1", "background": "#FAFAFB", "color": "#64748B", "fontSize": "12px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#CBD5E1;color:#374151", undefined, undefined)}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M3 12s3.5-6 9-6 9 6 9 6-3.5 6-9 6-9-6-9-6z" stroke="currentColor" strokeWidth="1.7"></path>
-                <circle cx="12" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.7"></circle>
-              </svg>
-              {v.pgAdtLabel}
-            </button>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px" }}>
               <div style={{ "display": "flex", "gap": "4px" }}>
                 {(v.pgPeriods || []).map((p: any, _i0: number) => (
@@ -139,33 +132,6 @@ export default function ProgramacaoPage({ v }: { v: any }) {
             <div style={{ "flex": "1" }}></div>
           </div>
           <div style={css(v.ddOverlayStyle)} onClick={v.closeDropdowns}></div>
-          {v.pgAdtOpen ? (
-            <>
-              <div style={{ "borderRadius": "10px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1", "padding": "12px 16px", "display": "flex", "flexDirection": "column", "gap": "6px", "animation": "popIn .2s ease-out both" }}>
-                <div style={{ "fontSize": "12px", "fontWeight": "600", "color": "#374151" }}>
-                  Parcelas com baixa ADT (adiantamento) — não entram na programação
-                </div>
-                {(v.pgAdtRows || []).map((a: any, _i0: number) => (
-                  <Fragment key={_i0}>
-                    <div style={{ "display": "grid", "gridTemplateColumns": "60px minmax(0,1fr) minmax(0,1fr) 120px", "gap": "12px", "fontSize": "12px", "color": "#64748B", "padding": "4px 0" }}>
-                      <span style={{ "fontWeight": "600", "color": "#94A3B8", "fontVariantNumeric": "tabular-nums" }}>
-                        {a.cd}
-                      </span>
-                      <span style={{ "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
-                        {a.credor}
-                      </span>
-                      <span style={{ "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
-                        {a.doc}
-                      </span>
-                      <span style={{ "textAlign": "right", "fontVariantNumeric": "tabular-nums", "textDecoration": "line-through" }}>
-                        {a.val}
-                      </span>
-                    </div>
-                  </Fragment>
-                ))}
-              </div>
-            </>
-          ) : null}
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(190px,1fr))", "gap": "12px" }}>
             {(v.pgCards || []).map((c: any, _i0: number) => (
               <Fragment key={_i0}>
