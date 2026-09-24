@@ -64,7 +64,7 @@ Supabase
 - [ ] **Primeiro administrador:** convidar seu e-mail em Authentication › Users › Invite e rodar o
       `insert` do topo de `supabase/migrations/20260923200000_app_usuarios.sql`, ou pedir ao Claude.
 - [ ] **`app/.env`:** preencher `VITE_SUPABASE_PUBLISHABLE_KEY` (Settings › API Keys).
-- [ ] **Seção BI:** aplicar `supabase/migrations/20260924100000_app_bi_paineis.sql`; depois cadastrar os
+- [ ] **Seção BI:** migration `20260924100000_app_bi_paineis.sql` já aplicada (24/09); falta cadastrar os
       painéis em BI › Gerenciar painéis e liberar cada um nos perfis (Configurações › Perfis, seção BI).
 
 ### Validar no primeiro uso real

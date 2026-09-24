@@ -96,7 +96,7 @@ função responde 503 e o painel mostra a análise por regras.
    `20260923210000_app_cadastros_financeiro.sql`, `20260923210100_app_endurece_triggers.sql`,
    `20260923220000_app_fluxo_diario_mv.sql`.
    ✅ (24/09) `20260924090000_app_fluxo_empresas_sem_receber.sql` (engrenagem do Fluxo de caixa).
-   **Falta** aplicar `20260924100000_app_bi_paineis.sql` (seção BI).
+   ✅ (24/09) `20260924100000_app_bi_paineis.sql` (seção BI).
 2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
    **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
    para lá). Rodando local, use `http://localhost:5173`.
