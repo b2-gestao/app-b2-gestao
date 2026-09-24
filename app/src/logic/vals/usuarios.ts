@@ -115,7 +115,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     ddOverlayStyle: `display:${s.ddOpen ? 'block' : 'none'};position:fixed;inset:0;z-index:75;background:transparent`,
     closeDropdowns: () => this.setState({ ddOpen: null }),
     isUsuarios: s.page === 'usuarios',
-    isDashboard: !['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo', 'bi'].includes(s.page),
+    isDashboard: !['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo', 'bi', 'categorias'].includes(s.page),
     goUsuarios: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'usuarios', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
     usuariosItemStyle: s.page === 'usuarios'
       ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'

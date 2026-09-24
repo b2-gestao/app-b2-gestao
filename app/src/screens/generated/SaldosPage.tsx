@@ -407,7 +407,12 @@ export default function SaldosPage({ v }: { v: any }) {
                                 <path d="M14.5 5.5l4 4" stroke="currentColor" strokeWidth="1.6"></path>
                               </svg>
                             </button>
-                            <button onClick={r.sync} title="Sincronizar com o Sienge" style={css(r.actStyle)} className={hv("border-color:#43B997;background:#E1F7EF;color:#35AD88", undefined, undefined)}>
+                            <button onClick={r.remove} title="Remover da listagem" style={css(r.removeStyle)} className={hv("border-color:#EF4444;background:#FEE9E9;color:#EF4444", undefined, undefined)}>
+                              <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
+                                <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10.5 11v5M13.5 11v5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
+                              </svg>
+                            </button>
+                            <button onClick={r.sync} title="Sincronizar com o Sienge" style={css(r.syncBtnStyle)} className={hv("border-color:#43B997;background:#E1F7EF;color:#35AD88", undefined, undefined)}>
                               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={css(r.syncIconStyle)}>
                                 <path d="M20 11A8 8 0 105.5 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"></path>
                                 <path d="M20 5v6h-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -428,7 +433,7 @@ export default function SaldosPage({ v }: { v: any }) {
                     Nenhuma conta encontrada
                   </div>
                   <div style={{ "fontSize": "12px", "color": "#64748B" }}>
-                    Ajuste os filtros ou a busca.
+                    {v.sbEmptyHint}
                   </div>
                 </div>
                 <div style={{ "display": "grid", "gridTemplateColumns": "60px minmax(250px,1fr) 118px 160px 104px 176px 68px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>

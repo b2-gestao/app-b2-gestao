@@ -926,7 +926,10 @@
                     <button onClick="{{ r.edit }}" title="Informar / editar saldo" style="{{ r.actStyle }}" style-hover="border-color:#4161FF;background:#EAF1FF;color:#4161FF">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M14.5 5.5l4 4" stroke="currentColor" stroke-width="1.6"/></svg>
                     </button>
-                    <button onClick="{{ r.sync }}" title="Sincronizar com o Sienge" style="{{ r.actStyle }}" style-hover="border-color:#43B997;background:#E1F7EF;color:#35AD88">
+                    <button onClick="{{ r.remove }}" title="Remover da listagem" style="{{ r.removeStyle }}" style-hover="border-color:#EF4444;background:#FEE9E9;color:#EF4444">
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10.5 11v5M13.5 11v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                    </button>
+                    <button onClick="{{ r.sync }}" title="Sincronizar com o Sienge" style="{{ r.syncBtnStyle }}" style-hover="border-color:#43B997;background:#E1F7EF;color:#35AD88">
                       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style="{{ r.syncIconStyle }}"><path d="M20 11A8 8 0 105.5 16" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/><path d="M20 5v6h-6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>
                     </button>
                   </div>
@@ -937,7 +940,7 @@
             <div style="{{ sbEmptyStyle }}">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round"/></svg>
               <div style="font-size:13.5px;font-weight:600;color:#111827">Nenhuma conta encontrada</div>
-              <div style="font-size:12px;color:#64748B">Ajuste os filtros ou a busca.</div>
+              <div style="font-size:12px;color:#64748B">{{ sbEmptyHint }}</div>
             </div>
 
             <div style="display:grid;grid-template-columns:60px minmax(250px,1fr) 118px 160px 104px 176px 68px;gap:12px;align-items:center;padding:13px 18px;background:#FAFAFB;box-shadow:inset 0 1px 0 #EEEEF1">
@@ -1542,7 +1545,11 @@
       <div style="position:relative;z-index:10;display:flex;align-items:flex-end;gap:10px;flex-wrap:wrap;padding:14px 16px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:60ms">
         <div style="display:flex;flex-direction:column;gap:6px">
           <span style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;font-weight:600">Período</span>
-          <div style="font-size:13px;font-weight:600;color:#111827;height:36px;display:flex;align-items:center;padding:0 12px;border-radius:8px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1;font-variant-numeric:tabular-nums">{{ fxPeriodLabel }}</div>
+          <div title="{{ fxPeriodLabel }}" style="display:flex;align-items:center;gap:6px;height:36px;padding:0 10px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF">
+            <input type="date" aria-label="Data inicial" value="{{ fxDateFrom }}" onChange="{{ onFxDateFrom }}" style="border:none;background:transparent;font-size:13px;font-weight:600;font-family:inherit;color:#111827;cursor:pointer;font-variant-numeric:tabular-nums"/>
+            <span style="color:#94A3B8;font-size:12px">a</span>
+            <input type="date" aria-label="Data final" value="{{ fxDateTo }}" min="{{ fxDateFrom }}" onChange="{{ onFxDateTo }}" style="border:none;background:transparent;font-size:13px;font-weight:600;font-family:inherit;color:#111827;cursor:pointer;font-variant-numeric:tabular-nums"/>
+          </div>
         </div>
         <div style="display:flex;flex-direction:column;gap:6px">
           <span style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;font-weight:600">Visão</span>
@@ -1586,8 +1593,8 @@
 
       <div style="border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025);overflow:hidden;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:250ms">
         <div style="overflow-x:auto">
-          <div style="min-width:1280px">
-            <div style="display:grid;grid-template-columns:220px repeat(10,104px);gap:0;padding:11px 18px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1">
+          <div style="{{ fxTableStyle }}">
+            <div style="{{ fxGridStyle }}">
               <div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;font-weight:600">{{ fxScopeLabel }}</div>
               <sc-for list="{{ fxDayHeaders }}" as="d" hint-placeholder-count="10">
                 <div style="{{ d.style }}">
@@ -2917,7 +2924,7 @@ class Component extends DCLogic {
     };
   }
 
-  lcCats = ['VMD', 'Fator recompra', 'Juros P.E', 'RET', 'Tarifas bancárias', 'Reembolso', 'Outros'];
+  lcCats = ['VMD', 'Fator recompra', 'Juros P.E', 'RET', 'Tarifas bancárias', 'Reembolso', 'Taxa Administração', 'Taxa Engenharia', 'Outros'];
 
   lcSeed() {
     if (this._lcSeed) return this._lcSeed;

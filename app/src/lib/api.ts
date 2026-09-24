@@ -154,6 +154,12 @@ function db() {
 function msg(error: { message: string; code?: string; details?: string }): Error {
   if (error.code === '42501') return new Error('Seu perfil não tem permissão para esta alteração.');
   if (error.code === '23505') return new Error('Já existe um cadastro com esse nome.');
+  if (error.code === '23503' && /app_rec_financeiro_lancamento/.test(error.details || '')) {
+    return new Error('Não é possível excluir: há lançamentos com esta categoria. Inative-a para tirá-la do formulário.');
+  }
+  if (error.code === '23503' && /app_lancamento_categorias/.test(error.details || '')) {
+    return new Error('Categoria não cadastrada. Cadastre-a em Cadastros › Financeiro › Categorias.');
+  }
   if (error.code === '23503') return new Error('Não é possível excluir: há usuários vinculados a este cadastro.');
   return new Error(error.message);
 }
@@ -172,6 +178,7 @@ export interface Perfil {
   sistema: boolean;
 }
 export interface Departamento { id: string; nome: string; descricao: string | null; ativo: boolean }
+export interface Categoria { id: string; nome: string; descricao: string | null; ativo: boolean }
 export interface SaldoConta {
   data: string;
   company_id: number;
@@ -183,6 +190,13 @@ export interface SaldoConta {
   origem: 'Manual' | 'Extrato bancário' | 'Planilha';
   obs: string | null;
   atualizado_em?: string;
+}
+export interface ContaSelecionada {
+  conta_id: string;
+  company_id: number;
+  bank_number: string | null;
+  agency_number: string | null;
+  account_number: string | null;
 }
 export interface Lancamento {
   id: string;
@@ -216,9 +230,20 @@ export const cadastrosApi = {
     run(id ? db().from('app_departamentos').update(d).eq('id', id) : db().from('app_departamentos').insert(d)),
   excluirDepartamento: (id: string) => run(db().from('app_departamentos').delete().eq('id', id)),
 
+  categorias: () => run<Categoria[]>(db().from('app_lancamento_categorias').select('id, nome, descricao, ativo').order('nome')),
+  salvarCategoria: (id: string | null, c: Omit<Categoria, 'id'>) =>
+    run(id ? db().from('app_lancamento_categorias').update(c).eq('id', id) : db().from('app_lancamento_categorias').insert(c)),
+  excluirCategoria: (id: string) => run(db().from('app_lancamento_categorias').delete().eq('id', id)),
+
   saldos: (data: string) => run<SaldoConta[]>(db().from('app_saldo_contas_manual')
     .select('data, company_id, conta_id, bank_number, agency_number, account_number, saldo, origem, obs, atualizado_em').eq('data', data)),
   salvarSaldos: (rows: SaldoConta[]) => run(db().from('app_saldo_contas_manual').upsert(rows, { onConflict: 'data,conta_id' })),
+
+  /** Contas que aparecem na tela Saldos bancários (só as adicionadas). */
+  contasSelecionadas: () => run<{ conta_id: string }[]>(db().from('app_saldo_contas_selecionadas').select('conta_id')),
+  adicionarContaSelecionada: (c: ContaSelecionada | ContaSelecionada[]) =>
+    run(db().from('app_saldo_contas_selecionadas').upsert(c, { onConflict: 'conta_id', ignoreDuplicates: true })),
+  removerContaSelecionada: (contaId: string) => run(db().from('app_saldo_contas_selecionadas').delete().eq('conta_id', contaId)),
 
   lancamentos: (de: string, ate: string) => run<Lancamento[]>(db().from('app_rec_financeiro_lancamento')
     .select('id, data, company_id, descricao, categoria, tipo, valor, recorrencia, parcela, total_parcelas, grupo_id, situacao')
@@ -266,4 +291,6 @@ export const apoioApi = {
   /** Análise com IA (edge function app-ia). 503 = IA não configurada. */
   ia: (tela: 'prog' | 'fluxo', contexto: unknown, regras: { label: string; text: string }[]) =>
     invoke<IaResposta>('app-ia', { tela, contexto, regras }),
+  /** Só o id do modelo configurado em IA_MODEL. */
+  iaModelo: () => invoke<{ modelo: string }>('app-ia', { tela: 'modelo' }),
 };

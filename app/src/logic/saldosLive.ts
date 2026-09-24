@@ -38,8 +38,10 @@ export function bankMeta(number: string | null, name: string | null) {
 export const accountId = (c: ContaCorrente) => `${c.company_id}|${c.bank_number || ''}|${c.agency_number || ''}|${c.account_number || ''}`;
 
 /** Rows in the shape the prototype's Saldos screen expects. */
-export function sbLive(app: AppLogic, date: string) {
-  const contas: ContaCorrente[] = app.state.dbContas || [];
+export function sbLive(app: AppLogic, date: string, onlySelected = true) {
+  const sel = new Set<string>(app.state.dbContasSel || []);
+  // dbContas already holds only ENABLED accounts (app_contas_correntes); the listing keeps just the added ones.
+  const contas: ContaCorrente[] = (app.state.dbContas || []).filter((c: ContaCorrente) => !onlySelected || sel.has(accountId(c)));
   const day = app.readSaldos()[date] || {};
   return contas.map(c => {
     const id = accountId(c);
@@ -48,7 +50,7 @@ export function sbLive(app: AppLogic, date: string) {
     return {
       id, cd: c.company_id, emp: app.empresaNome(c.company_id, c.company_name),
       bank: bk.name, bankColor: bk.c, bankShort: bk.s,
-      ag: c.agency_number || '—', cc: c.account_number || '—',
+      ag: c.agency_number || '—', cc: c.account_number || '—', tipo: c.account_type || '',
       uso: [], saldo: inf ? inf.saldo : null, upd: inf ? inf.upd : '—',
       status: inf ? 'ok' : 'missing',
       origem: inf?.origem, obs: inf?.obs,
@@ -56,12 +58,15 @@ export function sbLive(app: AppLogic, date: string) {
   });
 }
 
-const CSV_HEAD = ['cd_empresa', 'empresa', 'banco', 'agencia', 'conta', 'saldo'];
+// Same names as contas_correntes, so every line maps back to an account there.
+const CSV_HEAD = ['company_id', 'account_number', 'account_type_description', 'saldo'];
 
+/** Template pre-filled with every ENABLED conta corrente (rows = sbLive(..., false)); the user only fills "saldo". */
 export function downloadTemplate(app: AppLogic, rows: any[], date: string) {
   const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
-  const lines = [CSV_HEAD.join(';')].concat(rows.map(r => [r.cd, r.emp, r.bank, r.ag, r.cc, r.saldo != null ? f2(r.saldo) : ''].map(esc).join(';')));
+  // ="0000088420" keeps Excel from dropping leading zeros / turning the number into 8,8E+04.
+  const lines = [CSV_HEAD.join(';')].concat(rows.map(r => [esc(r.cd), `="${String(r.cc).replace(/"/g, '')}"`, esc(r.tipo), esc(r.saldo != null ? f2(r.saldo) : '')].join(';')));
   // BOM so Excel opens UTF-8 correctly; ";" is Excel's separator in pt-BR.
   const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a');
@@ -98,7 +103,16 @@ const parseBRL = (v: string) => {
   return isNaN(n) ? null : n;
 };
 
-/** Imports the CSV template (cd_empresa;empresa;banco;agencia;conta;saldo). */
+const norm = (v: unknown) => String(v ?? '').normalize('NFD').replace(/[̀-ͯ]/g, '').trim().toLowerCase();
+// Excel may save ="0001" as-is or strip it to 0001; either way keep just the value.
+const cell = (v: string | undefined) => String(v ?? '').trim().replace(/^="?|"$/g, '').trim();
+const digits = (v: string) => v.replace(/\D/g, '').replace(/^0+/, '');
+
+/**
+ * Imports the CSV template (company_id;account_number;account_type_description;saldo).
+ * rows = every ENABLED conta corrente; a line only counts if it matches one of them
+ * (company_id + account_number, and the type when filled). Matched accounts join the listing.
+ */
 export async function importCsv(app: AppLogic, file: File, rows: any[], date: string) {
   if (!/\.csv$/i.test(file.name)) {
     app.toast('Use a planilha-modelo em CSV (botão "Baixar modelo").');
@@ -112,17 +126,35 @@ export async function importCsv(app: AppLogic, file: File, rows: any[], date: st
     app.toast('Cabeçalho inválido. Esperado: ' + CSV_HEAD.join(';'));
     return;
   }
-  const byKey = new Map(rows.map(r => [`${r.cd}|${String(r.ag).trim()}|${String(r.cc).trim()}`, r]));
+  // (company_id, account_number) is unique among ENABLED accounts.
+  const exact = new Map(rows.map(r => [`${r.cd}|${String(r.cc).trim()}`, r]));
+  // Fallback when Excel mangled the number (lost zeros): digits only, used only if unambiguous.
+  const loose = new Map<string, any[]>();
+  rows.forEach(r => {
+    const k = `${r.cd}|${digits(String(r.cc))}`;
+    loose.set(k, (loose.get(k) || []).concat(r));
+  });
   const patch: Record<string, any> = {};
-  let skipped = 0;
+  const unmatched: string[] = [];
   for (const line of table) {
     const saldo = parseBRL(line[col('saldo')] || '');
     if (saldo == null) continue;
-    const r = byKey.get(`${line[col('cd_empresa')].trim()}|${line[col('agencia')].trim()}|${line[col('conta')].trim()}`);
-    if (!r) { skipped++; continue; }
+    const cd = cell(line[col('company_id')]).replace(/\D/g, ''), cc = cell(line[col('account_number')]), tipo = norm(cell(line[col('account_type_description')]));
+    const okTipo = (r: any) => !tipo || norm(r.tipo) === tipo;
+    let r = exact.get(`${cd}|${cc}`);
+    if (r && !okTipo(r)) r = undefined;
+    if (!r) {
+      const cands = (loose.get(`${cd}|${digits(cc)}`) || []).filter(okTipo);
+      if (cands.length === 1) r = cands[0];
+    }
+    if (!r) { unmatched.push(`${cd} · ${cc}`); continue; }
     patch[r.id] = { saldo, upd: app.nowStamp(), origem: 'Planilha' };
   }
   const n = Object.keys(patch).length;
+  if (n && !(await app.addContasSel(Object.keys(patch)))) return;
   if (n && !(await app.writeSaldos(date, patch))) return;
-  app.toast(`${file.name} importada · ${n} ${n === 1 ? 'conta atualizada' : 'contas atualizadas'}${skipped ? ` · ${skipped} linha(s) sem conta correspondente` : ''}.`);
+  const miss = unmatched.length
+    ? ` · ${unmatched.length} linha(s) sem conta ativa correspondente em contas_correntes (${unmatched.slice(0, 3).join('; ')}${unmatched.length > 3 ? '…' : ''})`
+    : '';
+  app.toast(`${file.name} importada · ${n} ${n === 1 ? 'conta atualizada' : 'contas atualizadas'}${miss}.`);
 }

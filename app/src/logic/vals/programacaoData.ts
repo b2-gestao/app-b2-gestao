@@ -21,6 +21,9 @@ export function progLiveGroups(this: AppLogic) {
   const byCd: Record<number, any> = {};
   const group = (cd: number, fallback?: string) =>
     (byCd[cd] ||= { cd, emp: this.empresaNome(cd, fallback), saldo: saldos[cd] || 0, items: [] as any[] });
+  // Every company with an opening balance counts, even with nothing to pay in the period,
+  // so the total matches Saldos bancários.
+  for (const cd of Object.keys(saldos)) if (saldos[Number(cd)]) group(Number(cd));
 
   for (const t of titles) {
     const key = `t:${t.bill_id}:${t.installment_id}:${t.due_date}`;

@@ -94,8 +94,12 @@ export default function FluxoPage({ v }: { v: any }) {
               <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
                 Período
               </span>
-              <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "height": "36px", "display": "flex", "alignItems": "center", "padding": "0 12px", "borderRadius": "8px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1", "fontVariantNumeric": "tabular-nums" }}>
-                {v.fxPeriodLabel}
+              <div title={v.fxPeriodLabel} style={{ "display": "flex", "alignItems": "center", "gap": "6px", "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF" }}>
+                <input type="date" aria-label="Data inicial" value={v.fxDateFrom} onChange={v.onFxDateFrom} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
+                <span style={{ "color": "#94A3B8", "fontSize": "12px" }}>
+                  a
+                </span>
+                <input type="date" aria-label="Data final" value={v.fxDateTo} min={v.fxDateFrom} onChange={v.onFxDateTo} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
               </div>
             </div>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
@@ -173,8 +177,8 @@ export default function FluxoPage({ v }: { v: any }) {
           </div>
           <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
-              <div style={{ "minWidth": "1280px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "220px repeat(10,104px)", "gap": "0", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
+              <div style={css(v.fxTableStyle)}>
+                <div style={css(v.fxGridStyle)}>
                   <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
                     {v.fxScopeLabel}
                   </div>

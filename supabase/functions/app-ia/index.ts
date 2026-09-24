@@ -14,6 +14,7 @@
 // Sem IA_API_KEY ou IA_MODEL a função responde 503 e o app mostra a análise por regras.
 //
 // Entrada:  { tela: "prog" | "fluxo", contexto: {...}, regras: [{ label, text }] }
+//           { tela: "modelo" } devolve só { modelo }
 // Saída:    { headline, items: [{ label, text, nivel: "critico" | "atencao" | "info" | "positivo" }], modelo }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
@@ -61,6 +62,8 @@ Deno.serve(async (req) => {
     if (!API_KEY || !MODEL) return json({ error: "IA não configurada (defina IA_API_KEY e IA_MODEL)." }, 503);
 
     const b = await req.json().catch(() => ({})) as Record<string, unknown>;
+    // Só o nome do modelo, para o app mostrar "A IA está pensando… (modelo)" antes da resposta.
+    if (b.tela === "modelo") return json({ modelo: MODEL });
     const tela = String(b.tela || "");
     if (!TELAS[tela]) return json({ error: "Tela inválida." }, 400);
     const contexto = JSON.stringify(b.contexto ?? {});

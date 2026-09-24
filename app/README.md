@@ -37,12 +37,13 @@ direto, protegidas por RLS: leitura para membros, escrita conforme o perfil.
 | --- | --- |
 | Empresas (filtros, seletores) | `empresas` LEFT JOIN `de_para_sharepoint` (nome do empreendimento; várias linhas no De Para viram uma lista, sem duplicar a empresa) |
 | Centros de custo | `centros_custo` |
-| Saldos bancários | contas de `contas_correntes` (status ENABLED); o saldo digitado ou importado pelo CSV-modelo vai para `app_saldo_contas_manual` (um registro por conta e dia) |
+| Saldos bancários | só as contas adicionadas em `app_saldo_contas_selecionadas` (escolhidas entre as de `contas_correntes` com status ENABLED, via "Informar saldo"; o botão de lixeira remove); o saldo digitado ou importado pelo CSV-modelo vai para `app_saldo_contas_manual` (um registro por conta e dia) |
 | Programação do dia | títulos em aberto de `parcelas_pagar_raw` no período + lançamentos manuais, contra o saldo informado do primeiro dia |
-| Fluxo de caixa | `parcelas_receber` (receitas) e `parcelas_pagar_raw` (pagamentos) em aberto, 10 dias, por empresa; aportes calculados para a holding (`VITE_HOLDING_EMPRESA_ID`). Empresas em `app_fluxo_empresas_sem_receber` (engrenagem da tela, com motivo) ficam com receitas zeradas — recebíveis já comprometidos |
+| Fluxo de caixa | `parcelas_receber` (receitas) e `parcelas_pagar_raw` (pagamentos) em aberto, no período escolhido na tela (padrão: 10 dias a partir de hoje; até 62), por empresa; visão Consolidado (soma das empresas do filtro, aportes se anulam) ou Por SPE; aportes calculados para a holding (`VITE_HOLDING_EMPRESA_ID`). Empresas em `app_fluxo_empresas_sem_receber` (engrenagem da tela, com motivo) ficam com receitas zeradas — recebíveis já comprometidos |
 | Painel (Visão Geral) | totais diários de receber/pagar, próximos vencimentos, ranking por empresa e por segmento (`business_area_name`); pago, juros (juros + multa) e descontos por data de pagamento em `parcelas_pagar_payments` (`app_pagos_diario`) |
 | Lançamentos manuais | `app_rec_financeiro_lancamento`. Uma recorrência ("Mensal · 6x") grava 6 linhas com o mesmo `grupo_id` (parcela 1/6 … 6/6); cada parcela é editada/excluída sozinha |
 | Usuários | tabela `app_usuarios` + Supabase Auth, pela edge function `app-usuarios` (convite, status, links de senha, exclusão) |
+| Categorias (Cadastros › Financeiro) | `app_lancamento_categorias`. As ativas aparecem no campo Categoria dos lançamentos manuais; `app_rec_financeiro_lancamento.categoria` é FK para o nome (`on update cascade`), então renomear atualiza os lançamentos e categoria em uso não pode ser excluída, só inativada |
 | Departamentos, Perfis | `app_departamentos` e `app_perfis`. A "Função" do usuário é o nome do perfil (FK com `on update cascade`) |
 | BI | `app_bi_paineis` (nome, link público do Power BI, ordem, ativo, ocultar rodapé). Cada painel ativo vira um item do menu BI e abre o relatório num iframe (`src/screens/BiPage.tsx`); "Gerenciar painéis" (`BiCfgModal.tsx`) cadastra pelo link ou pelo código `<iframe>` do *Publicar na Web*. Não há back-end: o app lê e grava a tabela direto |
 | Indicadores (tela inicial) | API SGS do Banco Central pela edge function `app-indicadores` (cache de 1 h); se ela falhar, direto do navegador |
@@ -77,6 +78,12 @@ ligar, defina os segredos em *Edge Functions › Secrets* (sem mudar código):
 | `IA_API_URL` | opcional; padrão `https://api.openai.com/v1` (troque para usar outro provedor compatível) |
 | `IA_JSON_MODE` | opcional; `false` se o provedor não aceitar `response_format: json_object` |
 
+Modelo escolhido (24/09): `gpt-5.6-luna` (OpenAI, aceita `/chat/completions` e JSON mode).
+
+A faixa de análise da Programação do dia e do Fluxo de caixa chama a IA sozinha quando os dados
+terminam de carregar (e de novo ~1s depois de cada mudança nos dados). Enquanto espera, mostra
+"A IA está pensando…" com o nome do modelo. Sem IA ou com erro, mostra "Análise por regras".
+
 Trocar de modelo ou provedor = trocar os segredos. Enquanto não houver chave e modelo, a
 função responde 503 e o painel mostra a análise por regras.
 
@@ -97,6 +104,8 @@ função responde 503 e o painel mostra a análise por regras.
    `20260923220000_app_fluxo_diario_mv.sql`.
    ✅ (24/09) `20260924090000_app_fluxo_empresas_sem_receber.sql` (engrenagem do Fluxo de caixa).
    ✅ (24/09) `20260924100000_app_bi_paineis.sql` (seção BI).
+   ✅ (24/09) `20260924110000_app_saldo_contas_selecionadas.sql` (contas listadas em Saldos bancários).
+   ✅ (24/09) `20260924120000_app_lancamento_categorias.sql` (Cadastros › Financeiro › Categorias).
 2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
    **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
    para lá). Rodando local, use `http://localhost:5173`.

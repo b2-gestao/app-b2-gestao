@@ -290,14 +290,30 @@ export default function Sidebar({ v }: { v: any }) {
         <div style={css(v.sectionLabelStyle)}>
           Cadastros
         </div>
-        <div style={css(v.navItemStyle)} title="Clientes" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
-            <circle cx="9" cy="8" r="3" stroke="#A1A1AA" strokeWidth="1.5"></circle>
-            <path d="M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
-          </svg>
-          <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
-            Clientes
-          </span>
+        <div style={css(v.cadFinGroupStyle)}>
+          <div onClick={v.toggleCadFin} style={css(v.navItemStyle)} title="Financeiro" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
+              <rect x="2.5" y="6" width="19" height="12" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
+              <circle cx="12" cy="12" r="2.6" stroke="#A1A1AA" strokeWidth="1.5"></circle>
+            </svg>
+            <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
+              Financeiro
+            </span>
+            {!v.collapsed ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={css(`margin-left:auto;flex:none;transform:${v.cadFinChevron};transition:transform .15s`)}>
+                  <path d="M6 9l6 6 6-6" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </>
+            ) : null}
+          </div>
+          <div style={css(v.cadFinContentStyle)}>
+            <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
+              <a href="#" onClick={v.goCategorias} style={css(v.categoriasItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+                Categorias
+              </a>
+            </div>
+          </div>
         </div>
         <div style={css(v.navItemStyle)} title="Fornecedores" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>

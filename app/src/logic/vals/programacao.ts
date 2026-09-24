@@ -61,14 +61,14 @@ export function progVals(this: AppLogic, subItemStyle: string) {
 
   const cardBase = i => `display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${100 + i * 50}ms;transition:transform .2s ease`;
   const pgCards = [
-    { label: 'Saldo inicial do dia', val: f2(totSaldo), sub: `${groups.length} empresas com movimento`, style: cardBase(0), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
+    { label: 'Saldo inicial do dia', val: f2(totSaldo), sub: `${groups.length} empresas · ${groups.filter(g => g.items.length).length} com movimento`, style: cardBase(0), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
     { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Aporte necessário', val: f2(totAporte), sub: totAporte ? 'Empresas com saldo insuficiente' : 'Nenhuma empresa precisa de aporte', style: cardBase(3), valStyle: `font-size:21px;font-weight:700;color:${totAporte ? '#7C3AED' : '#111827'};font-variant-numeric:tabular-nums` },
     { label: 'Saldo após pagamentos', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do dia', style: cardBase(4), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
   ];
 
-  const ia = this.live && s.page === 'programacao' ? progInsights(this) : null;
+  const ia = this.live && s.page === 'programacao' ? this.iaBanner('prog', progInsights(this)) : null;
   return {
     iaProgHeadline: ia ? ia.headline : 'Saldo insuficiente na conta Itaú · Obras Ltda para cobrir os pagamentos de hoje — faltam R$ 18.400',
     iaProgSub: ia ? ia.sub : 'Análise com IA · 3 pontos de atenção na programação de hoje',

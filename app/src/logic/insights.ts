@@ -60,6 +60,7 @@ export function progInsights(app: AppLogic) {
     subtitle: 'Baseada nos pagamentos e no saldo inicial do período.',
     items,
     headline,
+    loading,
     sub: `Análise com IA · ${items.length} ${items.length === 1 ? 'ponto de atenção' : 'pontos de atenção'} na programação`,
   };
 }
@@ -111,6 +112,7 @@ export function fluxoInsights(app: AppLogic) {
     subtitle: `Projeção para os próximos ${L.days.length} dias, por empresa.`,
     items,
     headline,
+    loading: L.loading,
     sub: `Análise com IA · projeção dos próximos ${L.days.length} dias`,
   };
 }

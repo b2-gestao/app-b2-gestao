@@ -1,6 +1,7 @@
 import { Component } from 'react';
 import { usersVals } from './vals/usuarios';
 import { deptsVals } from './vals/departamentos';
+import { categoriasVals } from './vals/categorias';
 import { perfisVals } from './vals/perfis';
 import { saldosVals } from './vals/saldos';
 import { lancVals } from './vals/lancamentos';
@@ -12,9 +13,10 @@ import { isLive, supabase } from '../lib/supabase';
 import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
-  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi,
+  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
 } from './data';
 import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
+import { hashFromState, stateFromHash } from './route';
 
 // Home screen data (indicators, weather, background URL) is shown from localStorage right away
 // and refetched only once it is older than this.
@@ -59,6 +61,7 @@ export class AppLogic extends Component<any, any> {
     permutasOpen: false,
     vendasOpen: false,
     configOpen: false,
+    cadFinOpen: false,
     userMenuOpen: false,
     pickerOpen: null,
     pickerQuery: '',
@@ -95,10 +98,21 @@ export class AppLogic extends Component<any, any> {
     pForm: null,
     pFormErr: '',
     deptFormErr: '',
+    // Cadastros › Financeiro › Categorias (app_lancamento_categorias).
+    categorias: null,
+    cSearch: '',
+    cStatus: 'Todos',
+    catModalOpen: false,
+    editingCatId: null,
+    cForm: null,
+    catFormErr: '',
     toastMsg: '',
     iaPanel: null,
+    iaModelo: (() => { try { return localStorage.getItem('he_ia_modelo') || ''; } catch { return ''; } })(),
     // Fluxo de caixa: empresas sem recebíveis ({ cd, motivo }) e a modal da engrenagem.
     fxSemRec: [],
+    // Saldos bancários: ids das contas adicionadas à listagem.
+    dbContasSel: [],
     fxCfgOpen: false,
     fxCfgDraft: null,
     fxCfgQuery: '',
@@ -111,6 +125,8 @@ export class AppLogic extends Component<any, any> {
     biId: null,
     biCfgOpen: false,
     biCfgDraft: null,
+    // Screen from the URL hash (F5 / shared link reopens the same screen).
+    ...stateFromHash(window.location.hash),
   };
 
   uFirst = ['Camila','Rafael','Juliana','Bruno','Patrícia','Diego','Fernanda','Marcelo','Aline','Thiago','Luciana','Gustavo','Renata','Eduardo','Mariana','Felipe','Tatiane','André','Priscila','Vinícius','Carolina'];
@@ -145,6 +161,17 @@ export class AppLogic extends Component<any, any> {
       });
     } catch (e: any) {
       this.toast('Não foi possível carregar perfis e departamentos: ' + e.message);
+    }
+    await this.loadCategorias();
+  }
+
+  /** Loads app_lancamento_categorias (Categorias screen and the Lançamentos form). */
+  async loadCategorias() {
+    try {
+      const rows = await cadastrosApi.categorias();
+      this.setState({ categorias: rows.map(c => ({ id: c.id, name: c.nome, desc: c.descricao || '', active: c.ativo })) });
+    } catch (e: any) {
+      this.toast('Não foi possível carregar as categorias: ' + e.message);
     }
   }
 
@@ -183,6 +210,7 @@ export class AppLogic extends Component<any, any> {
   pagePerm: Record<string, string> = {
     saldos: 'financeiro.saldos', lancamentos: 'financeiro.lancamentos', programacao: 'financeiro.programacao', fluxo: 'financeiro.fluxo',
     usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
+    categorias: 'cadastros.categorias',
   };
 
   /** Toast + false when the profile cannot edit this menu (the database enforces it too). */
@@ -391,22 +419,66 @@ export class AppLogic extends Component<any, any> {
    * Asks the app-ia edge function (LLM) for the panel's analysis. Until it answers, or when
    * the model is not configured (503), the panel shows the rule-based analysis.
    */
-  async askIa(panel: 'prog' | 'fluxo') {
+  async askIa(panel: 'prog' | 'fluxo', auto = false) {
     if (!this.live || this.state.iaOff) return;
     const rules = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
     const contexto = panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this);
     const key = JSON.stringify(contexto);
     const cur = (this.state.iaRemote || {})[panel];
-    if (cur && cur.key === key && cur.status !== 'error') return;
+    // The automatic call never retries an error for the same data; "Ver análise" does.
+    if (cur && cur.key === key && (auto || cur.status !== 'error')) return;
     const put = (v: any) => this.setState(st => ({ iaRemote: { ...(st.iaRemote || {}), [panel]: v } }));
     put({ key, status: 'loading' });
+    if (!this.state.iaModelo) this.loadIaModelo();
     try {
       const data = await apoioApi.ia(panel, contexto, rules.items.map(i => ({ label: i.label, text: i.text })));
       put({ key, status: 'ready', data });
+      this.saveIaModelo(data.modelo);
     } catch (e: any) {
       if (e.status === 503) this.setState({ iaOff: true });
       put({ key, status: 'error', error: e.message });
     }
+  }
+
+  /** Model id (IA_MODEL), shown while the LLM is thinking; cached from the last answer. */
+  async loadIaModelo() {
+    try { this.saveIaModelo((await apoioApi.iaModelo()).modelo); } catch { /* shown without the name */ }
+  }
+
+  saveIaModelo(modelo?: string) {
+    if (!modelo || modelo === this.state.iaModelo) return;
+    this.setState({ iaModelo: modelo });
+    try { localStorage.setItem('he_ia_modelo', modelo); } catch { /* storage blocked */ }
+  }
+
+  /**
+   * Programação/Fluxo open with data loaded: ask the LLM for the banner on its own, once the
+   * data has been stable for a moment (unchecking several items in a row = one call).
+   */
+  autoIa() {
+    const s = this.state;
+    const panel = s.view === 'app' && s.page === 'programacao' ? 'prog' : s.view === 'app' && s.page === 'fluxo' ? 'fluxo' : null;
+    if (!this.live || s.iaOff || !panel || !this.props.session) return;
+    const loading = panel === 'prog' ? progInsights(this).loading : fluxoInsights(this).loading;
+    if (loading) return;
+    const key = panel + JSON.stringify(panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this));
+    if (key === this._iaAutoKey) return;
+    this._iaAutoKey = key;
+    clearTimeout(this._iaAutoT);
+    this._iaAutoT = setTimeout(() => this.askIa(panel, true), 1200);
+  }
+
+  /** Banner line of Programação/Fluxo: the LLM's headline, "thinking", or the rules. */
+  iaBanner(panel: 'prog' | 'fluxo', rules: { headline: string; sub: string; items: any[]; loading?: boolean }) {
+    const remote = this.iaRemoteFor(panel);
+    const st = (this.state.iaRemote || {})[panel]?.status;
+    const modelo = remote?.modelo || this.state.iaModelo;
+    const pontos = (n: number) => `${n} ${n === 1 ? 'ponto de atenção' : 'pontos de atenção'}`;
+    if (remote) return { headline: remote.headline, sub: `Análise com IA · ${modelo} · ${pontos(remote.items.length)}` };
+    if (st === 'loading' || (!rules.loading && !this.state.iaOff && this.props.session && st !== 'error')) {
+      return { headline: 'A IA está pensando…', sub: `Analisando os dados${modelo ? ` com ${modelo}` : ''}` };
+    }
+    return { headline: rules.headline, sub: rules.loading ? rules.sub : `Análise por regras · ${pontos(rules.items.length)}` };
   }
 
   /** LLM answer for the panel when it matches the current data, else null. */
@@ -433,7 +505,8 @@ export class AppLogic extends Component<any, any> {
         };
       }
       return {
-        title: r.title, subtitle: loading ? 'Consultando o modelo de IA… enquanto isso, a análise por regras:' : r.subtitle,
+        title: r.title,
+        subtitle: loading ? `A IA está pensando${this.state.iaModelo ? ` (${this.state.iaModelo})` : ''}… enquanto isso, a análise por regras:` : r.subtitle,
         items: r.items.map(i => ({
           label: i.label, text: i.text, action: i.action || '',
           onAction: i.go || (() => this.setState({ iaPanel: null })),
@@ -544,7 +617,7 @@ export class AppLogic extends Component<any, any> {
       { key: 'auditoria', label: 'Auditoria' },
     ] },
     { key: 'cadastros', label: 'Cadastros', subs: [
-      { key: 'clientes', label: 'Clientes' },
+      { key: 'categorias', label: 'Financeiro › Categorias' },
       { key: 'fornecedores', label: 'Fornecedores' },
       { key: 'imoveis', label: 'Imóveis' },
       { key: 'contratos', label: 'Contratos' },
@@ -648,7 +721,24 @@ export class AppLogic extends Component<any, any> {
     return `${p(d.getDate())}/${p(d.getMonth() + 1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
   }
 
-  lcCats = ['VMD', 'Fator recompra', 'Juros P.E', 'RET', 'Tarifas bancárias', 'Reembolso', 'Outros'];
+  demoCats = ['VMD', 'Fator recompra', 'Juros P.E', 'RET', 'Tarifas bancárias', 'Reembolso', 'Taxa Administração', 'Taxa Engenharia', 'Outros'];
+
+  /** Categorias offered in the Lançamentos form: active rows of app_lancamento_categorias, "Outros" last. */
+  get lcCats(): string[] {
+    const names = (this.state.categorias || this.seedCategorias()).filter(c => c.active).map(c => c.name);
+    return names.filter(n => n !== 'Outros').concat(names.includes('Outros') ? ['Outros'] : []);
+  }
+
+  seedCategorias() {
+    if (this.live) return [];
+    if (this._catSeed) return this._catSeed;
+    this._catSeed = this.demoCats.map((name, i) => ({ id: 'c' + (i + 1), name, desc: '', active: true }));
+    return this._catSeed;
+  }
+
+  setCategorias(fn) {
+    this.setState(st => ({ categorias: fn((st.categorias || this.seedCategorias()).slice()) }));
+  }
 
   lcSeed() {
     if (this._lcSeed) return this._lcSeed;
@@ -867,6 +957,8 @@ export class AppLogic extends Component<any, any> {
 
   componentDidMount() {
     setTimeout(() => this.setState({ chartMounted: true }), 60);
+    history.replaceState(history.state, '', hashFromState(this.state));
+    window.addEventListener('popstate', this.onPopState);
     try {
       const saved = JSON.parse(localStorage.getItem('he_home_bg') || 'null');
       if (saved && saved.bgMode) {
@@ -894,8 +986,18 @@ export class AppLogic extends Component<any, any> {
     }
   }
 
+  /** Back / forward, or a hash typed in the address bar: open that screen. */
+  onPopState = () => {
+    const patch = stateFromHash(window.location.hash);
+    if (patch) this.setState(patch);
+  };
+
   componentDidUpdate() {
     this.ensureRanges();
+    this.autoIa();
+    // Each screen change becomes a history entry, so the URL always names the open screen.
+    const hash = hashFromState(this.state);
+    if (hash !== window.location.hash) history.pushState(null, '', hash);
     // Page the profile cannot open (menus are hidden, but a tile or old state may lead here).
     const need = this.pagePerm[this.state.page];
     if (this.live && this.state.view === 'app' && need && !this.pode(need)) {
@@ -905,7 +1007,9 @@ export class AppLogic extends Component<any, any> {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('popstate', this.onPopState);
     clearTimeout(this._toastT);
+    clearTimeout(this._iaAutoT);
     cancelAnimationFrame(this._sbRaf);
   }
 
@@ -1147,9 +1251,13 @@ export class AppLogic extends Component<any, any> {
   loadLanc(): Promise<void> { return loadLanc.call(this); }
   loadFxSemRec(): Promise<void> { return loadFxSemRec.call(this); }
   loadBi(): Promise<void> { return loadBi.call(this); }
+  loadContasSel(): Promise<void> { return loadContasSel.call(this); }
+  setContaSel(c: any, add: boolean): Promise<boolean> { return setContaSel.call(this, c, add); }
+  addContasSel(ids: string[]): Promise<boolean> { return addContasSel.call(this, ids); }
 
   usersVals(subItemStyle: string): any { return usersVals.call(this, subItemStyle); }
   deptsVals(): any { return deptsVals.call(this); }
+  categoriasVals(): any { return categoriasVals.call(this); }
   perfisVals(subItemStyle: string): any { return perfisVals.call(this, subItemStyle); }
   saldosVals(subItemStyle: string): any { return saldosVals.call(this, subItemStyle); }
   lancVals(subItemStyle: string): any { return lancVals.call(this, subItemStyle); }
