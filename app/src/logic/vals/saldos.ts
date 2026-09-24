@@ -146,7 +146,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbSearch: s.sbSearch || '',
     onSbSearch: e => this.setState({ sbSearch: e.target.value }),
     ddSbEmp, ddSbBank, ddSbStatus, ddSbConta,
-    finPageOverlayStyle: `display:${s.ddOpen && !s.sbModal && !s.lcModal && !['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : (s.ddOpen && ['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : 'none')};position:fixed;inset:0;z-index:75;background:transparent`,
+    finPageOverlayStyle: `display:${s.ddOpen && !s.sbModal && !s.lcModal && !['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : (s.ddOpen && ['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : 'none')};position:fixed;inset:0;z-index:${s.page === 'fluxo' ? 5 : 75};background:transparent`,
     sbGroupTabs: [['conta', 'Conta'], ['empresa', 'Empresa']].map(([k, l]) => ({
       label: l, style: seg((s.sbGroup || 'conta') === k), onClick: () => this.setState({ sbGroup: k }),
     })),

@@ -97,7 +97,8 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const ddFxEmp = { toggle: () => this.setState({ ddOpen: s.ddOpen === 'fxEmp' ? null : 'fxEmp' }), isOpen: s.ddOpen === 'fxEmp', label: `${fxEmpSel.length} selecionadas`, btnStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxEmp' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).panelStyle };
   const ddFxRec = { toggle: () => this.setState({ ddOpen: s.ddOpen === 'fxRec' ? null : 'fxRec' }), isOpen: s.ddOpen === 'fxRec', label: fxRecSel.length === recAll.length ? 'Todas' : `${fxRecSel.length} selecionadas`, btnStyle: this.mkDropdown('fxRec', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxRec' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxRec', s, '', [], () => {}).panelStyle };
   const chkItem = (sel, label, on, toggle) => ({
-    onClick: toggle,
+    // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button and close the panel.
+    onClick: e => { if (e) { e.stopPropagation?.(); e.preventDefault?.(); } toggle(); },
     style: 'display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:12.5px;color:#374151;cursor:pointer;transition:background .12s',
     hoverStyle: 'background:#F4F4F6',
     boxStyle: `width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;background:${on ? '#4161FF' : '#FFFFFF'};box-shadow:0 0 0 1.5px ${on ? '#4161FF' : '#D8D8E0'};transition:all .15s`,

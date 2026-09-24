@@ -10,6 +10,9 @@ const DOWS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
  */
 export const HOLDING_ID = Number(import.meta.env.VITE_HOLDING_EMPRESA_ID || 2);
 
+/** The holding is linked to every SPE's empreendimento in De Para; show only its own name. */
+const holdingNome = (e: any, fallback: string) => (e && (e.nome_fantasia || e.nome || '').trim()) || fallback;
+
 /**
  * Fluxo de caixa (live), 10 days from today, per company:
  *   caixa inicial  = opening balance typed in Saldos bancários for today
@@ -57,7 +60,7 @@ export function fluxoLive(this: AppLogic) {
 
   const emps = Object.values(byCd)
     .sort((a: any, b: any) => (a.cd === HOLDING_ID ? -1 : b.cd === HOLDING_ID ? 1 : a.cd - b.cd))
-    .map((e: any) => ({ cd: e.cd, name: this.empresaNome(e.cd), kind: e.cd === HOLDING_ID ? 'holding' : 'spe', data: e }));
+    .map((e: any) => ({ cd: e.cd, name: e.cd === HOLDING_ID ? holdingNome(this.empresaById()[e.cd], this.empresaNome(e.cd)) : this.empresaNome(e.cd), kind: e.cd === HOLDING_ID ? 'holding' : 'spe', data: e }));
 
   const fxEmpSel: number[] = s.fxEmpSel || emps.map(e => e.cd);
   const selected = emps.filter(e => fxEmpSel.includes(e.cd));
