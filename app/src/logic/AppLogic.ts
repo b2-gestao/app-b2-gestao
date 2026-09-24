@@ -15,6 +15,26 @@ import {
 } from './data';
 import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
 
+// Home screen data (indicators, weather, background URL) is shown from localStorage right away
+// and refetched only once it is older than this.
+const HOME_CACHE_TTL = 4 * 3600 * 1000;
+const LS_BG_URL = 'he_home_bg_url';
+
+function readCache(key: string): { value: any; fresh: boolean } | null {
+  try {
+    const c = JSON.parse(localStorage.getItem(key) || 'null');
+    return c && c.value != null ? { value: c.value, fresh: Date.now() - c.at < HOME_CACHE_TTL } : null;
+  } catch { return null; }
+}
+
+function writeCache(key: string, value: any) {
+  try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), value })); } catch { /* storage blocked */ }
+}
+
+function dropCache(key: string) {
+  try { localStorage.removeItem(key); } catch { /* storage blocked */ }
+}
+
 export class AppLogic extends Component<any, any> {
   // Memoized seeds and timers are attached as ad-hoc fields, as in the prototype.
   [key: string]: any;
@@ -879,6 +899,7 @@ export class AppLogic extends Component<any, any> {
   live = isLive;
 
   signOut() {
+    dropCache(LS_BG_URL);
     if (supabase) supabase.auth.signOut();
   }
 
@@ -889,6 +910,11 @@ export class AppLogic extends Component<any, any> {
 
   async loadIndicators() {
     if (!this.live) return;
+    const cached = readCache('he_home_indicadores');
+    if (cached) {
+      this.setState({ econValues: cached.value });
+      if (cached.fresh) return;
+    }
     const pct = (n: number | null | undefined) => (n == null || isNaN(n) ? '—' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
     let values: Record<string, number | null> = {};
     try {
@@ -906,7 +932,11 @@ export class AppLogic extends Component<any, any> {
         values[label] = null;
       }
     }));
-    this.setState({ econValues: Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])])) });
+    // Nothing came back (offline): keep showing the cached values, if any.
+    if (Object.values(values).every(n => n == null || isNaN(n)) && cached) return;
+    const econValues = Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])]));
+    this.setState({ econValues });
+    if (Object.values(values).some(n => n != null && !isNaN(n))) writeCache('he_home_indicadores', econValues);
   }
 
   saveBg(patch) {
@@ -920,14 +950,40 @@ export class AppLogic extends Component<any, any> {
 
   static BG_DEFAULT = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2200&q=70';
   static BG_MAX_BYTES = 5 * 1024 * 1024;
+  static BG_URL_SECS = 7 * 24 * 3600;
   static BG_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
   /** Loads the signed-in user's saved background from the private "app-fundos" bucket. */
   async loadBg() {
     const uid = this.props.session?.user?.id;
     if (!supabase || !uid) return;
-    const { data } = await supabase.storage.from('app-fundos').createSignedUrl(`${uid}/fundo`, 7 * 24 * 3600);
-    if (data?.signedUrl) this.setState({ bgUrl: data.signedUrl, bgCustom: true });
+    // Reusing the same signed URL lets the browser serve the image from its cache. After
+    // HOME_CACHE_TTL the file's updated_at is checked (a change made on another computer) and
+    // it is only re-signed when the file changed or the URL has less than a day left.
+    const cached = readCache(LS_BG_URL);
+    const c = cached?.value;
+    const usable = c && c.uid === uid && c.exp - Date.now() > 24 * 3600 * 1000;
+    if (usable) this.setState({ bgUrl: c.url, bgCustom: true });
+    if (usable && cached.fresh) return;
+    const { data: files, error } = await supabase.storage.from('app-fundos').list(uid, { search: 'fundo' });
+    if (error) return;
+    const file = (files || []).find(f => f.name === 'fundo');
+    if (!file) {
+      dropCache(LS_BG_URL);
+      if (usable) this.setState({ bgUrl: AppLogic.BG_DEFAULT, bgCustom: false });
+      return;
+    }
+    const ver = file.updated_at || '';
+    // No ver yet = URL signed right after this browser's own upload.
+    if (usable && (c.ver === ver || !c.ver)) return writeCache(LS_BG_URL, { ...c, ver });
+    const { data } = await supabase.storage.from('app-fundos').createSignedUrl(`${uid}/fundo`, AppLogic.BG_URL_SECS);
+    if (!data?.signedUrl) return;
+    this.rememberBgUrl(uid, data.signedUrl, ver);
+    this.setState({ bgUrl: data.signedUrl, bgCustom: true });
+  }
+
+  rememberBgUrl(uid: string, url: string, ver: string) {
+    writeCache(LS_BG_URL, { uid, url, ver, exp: Date.now() + AppLogic.BG_URL_SECS * 1000 });
   }
 
   /** Deletes the user's uploaded background and goes back to the app's default image. */
@@ -938,6 +994,7 @@ export class AppLogic extends Component<any, any> {
       const { error } = await supabase.storage.from('app-fundos').remove([`${uid}/fundo`]);
       if (error) return this.toast('Não foi possível restaurar o fundo: ' + error.message);
     }
+    dropCache(LS_BG_URL);
     this.setState({ bgCustom: false });
     this.saveBg({ bgUrl: AppLogic.BG_DEFAULT, bgMode: 'image' });
     this.toast('Fundo padrão restaurado.');
@@ -968,11 +1025,13 @@ export class AppLogic extends Component<any, any> {
       return;
     }
     const path = `${uid}/fundo`;
-    const { error } = await supabase.storage.from('app-fundos').upload(path, file, { upsert: true, contentType: file.type, cacheControl: '3600' });
+    const { error } = await supabase.storage.from('app-fundos').upload(path, file, { upsert: true, contentType: file.type, cacheControl: String(AppLogic.BG_URL_SECS) });
     if (error) return this.toast('Não foi possível enviar a imagem: ' + error.message);
-    const { data, error: e2 } = await supabase.storage.from('app-fundos').createSignedUrl(path, 7 * 24 * 3600);
+    const { data, error: e2 } = await supabase.storage.from('app-fundos').createSignedUrl(path, AppLogic.BG_URL_SECS);
     if (e2 || !data?.signedUrl) return this.toast('Imagem enviada, mas não foi possível exibi-la: ' + (e2?.message || ''));
-    this.saveBg({ bgUrl: data.signedUrl + '&t=' + Date.now(), bgMode: 'image', bgCustom: true });
+    // A fresh signature is a new URL, so the browser fetches the new image.
+    this.rememberBgUrl(uid, data.signedUrl, '');
+    this.saveBg({ bgUrl: data.signedUrl, bgMode: 'image', bgCustom: true });
     this.toast(small ? `Fundo salvo, mas a imagem (${dims.w}×${dims.h}) é pequena e pode ficar borrada. O ideal é 1920×1080.` : 'Fundo salvo.');
   }
 
@@ -984,16 +1043,23 @@ export class AppLogic extends Component<any, any> {
   }
 
   async loadWeather() {
+    const cached = readCache('he_home_clima');
+    if (cached) {
+      this.setState(cached.value);
+      if (cached.fresh) return;
+    }
     try {
       const g = await (await fetch('https://ipapi.co/json/')).json();
-      const place = [g.city, g.region_code || g.region].filter(Boolean).join(', ');
-      this.setState({ place: place || 'Sua região' });
+      const place = [g.city, g.region_code || g.region].filter(Boolean).join(', ') || 'Sua região';
+      if (!cached) this.setState({ place });
       const w = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&current=temperature_2m,weather_code&timezone=auto`)).json();
       const temp = Math.round(w.current.temperature_2m);
       const kind = this.kindFor(w.current.weather_code, temp);
-      this.setState({ temp, wkind: kind.k, wlabel: kind.l });
+      const clima = { place, temp, wkind: kind.k, wlabel: kind.l };
+      this.setState(clima);
+      writeCache('he_home_clima', clima);
     } catch {
-      this.setState({ place: 'Sua região', temp: null, wkind: 'cloud', wlabel: '' });
+      if (!cached) this.setState({ place: 'Sua região', temp: null, wkind: 'cloud', wlabel: '' });
     }
   }
 
