@@ -87,6 +87,46 @@ export default function Sidebar({ v }: { v: any }) {
             </div>
           </div>
         </div>
+        <div style={css(v.biGroupStyle)}>
+          <div onClick={v.toggleBi} style={css(v.navItemStyle)} title="BI" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
+              <path d="M5 20v-7M10 20V8M15 20v-5M20 20V4" stroke="#A1A1AA" strokeWidth="1.7" strokeLinecap="round"></path>
+              <path d="M3 20.5h18" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
+            </svg>
+            <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
+              BI
+            </span>
+            {!v.collapsed ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={css(`margin-left:auto;flex:none;transform:${v.biChevron};transition:transform .15s`)}>
+                  <path d="M6 9l6 6 6-6" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </>
+            ) : null}
+          </div>
+          <div style={css(v.biContentStyle)}>
+            <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
+              {(v.biItems || []).map((it: any) => (
+                <a key={it.id} href="#" onClick={it.onClick} title={it.nome} style={css(it.style)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
+                  {it.nome}
+                </a>
+              ))}
+              {v.biMenuEmpty ? (
+                <span style={css(v.subItemStyle + ';color:#52525B;cursor:default')}>
+                  Nenhum painel
+                </span>
+              ) : null}
+              {v.canManageBi ? (
+                <a href="#" onClick={v.openBiCfgMenu} style={css(v.biManageItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
+                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
+                  </svg>
+                  Gerenciar painéis
+                </a>
+              ) : null}
+            </div>
+          </div>
+        </div>
         <div>
           <div onClick={v.toggleRh} style={css(v.navItemStyle)} title="RH" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>

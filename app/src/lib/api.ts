@@ -202,6 +202,9 @@ export type LancamentoNovo = Omit<Lancamento, 'id'>;
 /** Empresa whose parcelas a receber are left out of the Fluxo de caixa (already committed). */
 export interface EmpresaSemReceber { company_id: number; motivo: string }
 
+/** Power BI report published to the web (app_bi_paineis). */
+export interface BiPainel { id: string; nome: string; url: string; ordem: number; ativo: boolean; ocultar_rodape: boolean }
+
 export const cadastrosApi = {
   perfis: () => run<Perfil[]>(db().from('app_perfis').select('id, nome, descricao, ativo, permissoes, sistema').order('nome')),
   salvarPerfil: (id: string | null, p: Omit<Perfil, 'id' | 'sistema'>) =>
@@ -229,6 +232,17 @@ export const cadastrosApi = {
   salvarFluxoSemReceber: async (rows: EmpresaSemReceber[], remover: number[]) => {
     if (remover.length) await run(db().from('app_fluxo_empresas_sem_receber').delete().in('company_id', remover));
     if (rows.length) await run(db().from('app_fluxo_empresas_sem_receber').upsert(rows, { onConflict: 'company_id' }));
+  },
+
+  /** Painéis the profile can see (RLS: bi.<id> to view, bi.gerenciar sees all). */
+  biPaineis: () => run<BiPainel[]>(db().from('app_bi_paineis').select('id, nome, url, ordem, ativo, ocultar_rodape').order('ordem').order('nome')),
+  /** Replaces the list: updates rows with id, inserts rows without, deletes the ids in `remover`. */
+  salvarBiPaineis: async (rows: (Omit<BiPainel, 'id'> & { id?: string })[], remover: string[]) => {
+    if (remover.length) await run(db().from('app_bi_paineis').delete().in('id', remover));
+    const antigos = rows.filter(r => r.id);
+    const novos = rows.filter(r => !r.id).map(({ id: _id, ...r }) => r);
+    if (antigos.length) await run(db().from('app_bi_paineis').upsert(antigos, { onConflict: 'id' }));
+    if (novos.length) await run(db().from('app_bi_paineis').insert(novos));
   },
 };
 

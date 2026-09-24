@@ -2,8 +2,8 @@
 
 Implementação em React + Vite + TypeScript do design `project/SaaS Home.dc.html`
 (Claude Design): tela inicial, painel, Configurações (Usuários, Departamentos,
-Perfis) e Financeiro (Saldos bancários, Lançamentos manuais, Programação do dia,
-Fluxo de caixa).
+Perfis), Financeiro (Saldos bancários, Lançamentos manuais, Programação do dia,
+Fluxo de caixa) e BI (painéis do Power BI publicados na web).
 
 ```bash
 cd app
@@ -44,6 +44,7 @@ direto, protegidas por RLS: leitura para membros, escrita conforme o perfil.
 | Lançamentos manuais | `app_rec_financeiro_lancamento`. Uma recorrência ("Mensal · 6x") grava 6 linhas com o mesmo `grupo_id` (parcela 1/6 … 6/6); cada parcela é editada/excluída sozinha |
 | Usuários | tabela `app_usuarios` + Supabase Auth, pela edge function `app-usuarios` (convite, status, links de senha, exclusão) |
 | Departamentos, Perfis | `app_departamentos` e `app_perfis`. A "Função" do usuário é o nome do perfil (FK com `on update cascade`) |
+| BI | `app_bi_paineis` (nome, link público do Power BI, ordem, ativo, ocultar rodapé). Cada painel ativo vira um item do menu BI e abre o relatório num iframe (`src/screens/BiPage.tsx`); "Gerenciar painéis" (`BiCfgModal.tsx`) cadastra pelo link ou pelo código `<iframe>` do *Publicar na Web*. Não há back-end: o app lê e grava a tabela direto |
 | Indicadores (tela inicial) | API SGS do Banco Central pela edge function `app-indicadores` (cache de 1 h); se ela falhar, direto do navegador |
 | Análise com IA | edge function `app-ia` (modelo configurável, ver abaixo); sem modelo configurado, regras fixas sobre os dados |
 
@@ -54,6 +55,10 @@ enviados ao banco automaticamente no primeiro acesso com permissão de edição.
 
 - Cada perfil tem permissões de **ver** e **editar** por menu (`app_perfis.permissoes`).
   Menus sem "ver" somem da barra lateral; a tela também é bloqueada se aberta por outro caminho.
+- BI: cada painel é um item da matriz (`bi.<id do painel>`), então a liberação é por painel.
+  `bi.gerenciar` com "editar" cadastra/altera os painéis e vê todos. A RLS de `app_bi_paineis`
+  só devolve os painéis liberados, então o link de um painel não chega a quem não tem acesso
+  (mas o link do *Publicar na Web* em si é público).
 - As gravações em saldos, lançamentos, departamentos e perfis passam por `app_pode()` na RLS,
   então a regra vale mesmo fora do app.
 - Gerenciar usuários exige "editar" em Configurações › Usuários (edge function `app-usuarios`).
@@ -91,6 +96,7 @@ função responde 503 e o painel mostra a análise por regras.
    `20260923210000_app_cadastros_financeiro.sql`, `20260923210100_app_endurece_triggers.sql`,
    `20260923220000_app_fluxo_diario_mv.sql`.
    ✅ (24/09) `20260924090000_app_fluxo_empresas_sem_receber.sql` (engrenagem do Fluxo de caixa).
+   **Falta** aplicar `20260924100000_app_bi_paineis.sql` (seção BI).
 2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
    **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
    para lá). Rodando local, use `http://localhost:5173`.

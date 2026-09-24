@@ -18,6 +18,8 @@ import DeptModal from './DeptModal';
 import PerfilModal from './PerfilModal';
 import IaPanel from './IaPanel';
 import FluxoCfgModal from '../FluxoCfgModal';
+import BiPage from '../BiPage';
+import BiCfgModal from '../BiCfgModal';
 import Toast from './Toast';
 
 export default function AppRoot({ v }: { v: any }) {
@@ -37,11 +39,13 @@ export default function AppRoot({ v }: { v: any }) {
           <ProgramacaoPage v={v} />
           <FluxoPage v={v} />
           <DashboardPage v={v} />
+          <BiPage v={v} />
         </div>
         <UserModal v={v} />
         <DeptModal v={v} />
         <PerfilModal v={v} />
         <FluxoCfgModal v={v} />
+        <BiCfgModal v={v} />
         <IaPanel v={v} />
         <Toast v={v} />
       </div>

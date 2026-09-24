@@ -30,7 +30,7 @@ export async function loadCatalogs(this: AppLogic) {
       api.empresas(), api.centrosCusto(), api.contasCorrentes(), api.ultimoSync().catch(() => null),
     ]);
     this.setState({ dbEmpresas: empresas, dbCentros: centros, dbContas: contas, dbSync: sync, dbError: '' });
-    await Promise.all([this.loadUsuarios(), this.loadCadastros(), this.loadLanc(), this.loadFxSemRec()]);
+    await Promise.all([this.loadUsuarios(), this.loadCadastros(), this.loadLanc(), this.loadFxSemRec(), this.loadBi()]);
     await migrateLocalData(this);
   } catch (e: any) {
     this.setState({ dbError: e.message || String(e) });
@@ -209,6 +209,17 @@ export async function loadFxSemRec(this: AppLogic) {
   } catch (e: any) {
     this.setState({ fxSemRec: [] });
     this.toast('Não foi possível carregar as empresas sem recebíveis do fluxo: ' + e.message);
+  }
+}
+
+/** Power BI painéis the profile can see (state.biPaineis); RLS filters by bi.<id>. */
+export async function loadBi(this: AppLogic) {
+  try {
+    const rows = await cadastrosApi.biPaineis();
+    this.setState({ biPaineis: Array.isArray(rows) ? rows : [] });
+  } catch (e: any) {
+    this.setState({ biPaineis: [] });
+    this.toast('Não foi possível carregar os painéis de BI: ' + e.message);
   }
 }
 

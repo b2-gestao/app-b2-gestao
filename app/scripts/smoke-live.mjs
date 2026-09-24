@@ -47,7 +47,7 @@ const seg = () => empresas.slice(0, 6).flatMap((e, i) => ['ADMINISTRAÇÃO', 'CO
 
 const usuarios = [{ id: '00000000-0000-0000-0000-000000000001', nome: 'Usuária Teste', email: 'teste@b2.com.br', telefone: null, funcao: 'Administrador', departamento: 'Financeiro', empresas: [2, 3], centros_custo: [100], status: 'ativo' }];
 
-// In-memory PostgREST for the app_* tables (eq/gte/lte filters, insert, upsert, update, delete).
+// In-memory PostgREST for the app_* tables (eq/in/gte/lte filters, insert, upsert, update, delete).
 const perms = paths => Object.fromEntries(paths.map(p => [p, { view: true, edit: true }]));
 const tables = {
   app_perfis: [
@@ -57,6 +57,8 @@ const tables = {
   app_departamentos: [{ id: 'd-fin', nome: 'Financeiro', descricao: 'Caixa', ativo: true }, { id: 'd-ti', nome: 'TI', descricao: null, ativo: true }],
   app_saldo_contas_manual: [],
   app_rec_financeiro_lancamento: [],
+  app_fluxo_empresas_sem_receber: [],
+  app_bi_paineis: [],
 };
 let seq = 1;
 function rest(route, name) {
@@ -66,7 +68,7 @@ function rest(route, name) {
   const filters = [...url.searchParams].filter(([k]) => !['select', 'order', 'limit', 'on_conflict', 'columns'].includes(k));
   const match = r => filters.every(([k, v]) => {
     const [op, ...rest] = v.split('.'); const val = rest.join('.');
-    return op === 'eq' ? String(r[k]) === val : op === 'gte' ? String(r[k]) >= val : op === 'lte' ? String(r[k]) <= val : true;
+    return op === 'eq' ? String(r[k]) === val : op === 'in' ? val.replace(/^\(|\)$/g, '').split(',').map(x => x.replace(/"/g, '')).includes(String(r[k])) : op === 'gte' ? String(r[k]) >= val : op === 'lte' ? String(r[k]) <= val : true;
   });
   const json = (status, body) => route.fulfill({ status, contentType: 'application/json', body: body === undefined ? '' : JSON.stringify(body) });
   const m = req.method();
@@ -107,8 +109,10 @@ await page.route('https://fake-project.supabase.co/**', async route => {
     calls.push('select app_usuarios');
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(usuarios) });
   }
-  const table = url.pathname.match(/^\/rest\/v1\/(app_perfis|app_departamentos|app_saldo_contas_manual|app_rec_financeiro_lancamento)$/);
+  const table = url.pathname.match(/^\/rest\/v1\/(app_perfis|app_departamentos|app_saldo_contas_manual|app_rec_financeiro_lancamento|app_fluxo_empresas_sem_receber|app_bi_paineis)$/);
   if (table) return rest(route, table[1]);
+  // Storage (fundo da tela inicial): nenhuma imagem enviada.
+  if (url.pathname.startsWith('/storage/v1/object/list/')) return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
   if (url.pathname === '/functions/v1/app-indicadores') {
     calls.push('fn app-indicadores');
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ indicadores: { SELIC: { valor: 15, data: '01/09/2026' }, CDI: { valor: 14.9, data: '22/09/2026' }, IPCA: { valor: 0.31, data: '01/08/2026' }, 'IGP-M': null, 'INCC-M': { valor: 0.42, data: '01/08/2026' } } }) });
@@ -186,6 +190,19 @@ await page.getByText('Cadastrar usuário', { exact: true }).click();
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${out}/08-usuario-convidado.png` });
 if (!(await page.getByText('convidada@b2.com.br').count())) errors.push('Convidado não apareceu na lista');
+// BI: cadastra um painel pela modal; grava em app_bi_paineis e abre no iframe.
+await page.route(/app\.powerbi\.com/, r => r.fulfill({ contentType: 'text/html; charset=utf-8', body: '<body>Relatório (stub)</body>' }));
+await clickText('Gerenciar painéis');
+await page.getByPlaceholder('Ex.: Vendas por empreendimento').fill('Vendas');
+await page.getByPlaceholder('https://app.powerbi.com/view?r=…').first().fill('https://app.powerbi.com/view?r=vendas');
+await clickText('Adicionar painel');
+await clickText('Salvar');
+await page.waitForTimeout(800);
+const bi = tables.app_bi_paineis;
+if (bi.length !== 1 || bi[0].nome !== 'Vendas' || bi[0].ordem !== 1 || bi[0].ocultar_rodape !== true) errors.push('Painel não foi gravado em app_bi_paineis: ' + JSON.stringify(bi));
+await clickText('Vendas');
+await page.screenshot({ path: `${out}/08c-bi.png` });
+if (!(await page.locator('iframe[src="https://app.powerbi.com/view?r=vendas"]').count())) errors.push('BI: iframe do painel não abriu');
 // Login screen (no session).
 const login = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 login.on('pageerror', e => errors.push(String(e)));

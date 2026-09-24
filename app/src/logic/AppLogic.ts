@@ -6,12 +6,13 @@ import { saldosVals } from './vals/saldos';
 import { lancVals } from './vals/lancamentos';
 import { progVals } from './vals/programacao';
 import { fluxoVals } from './vals/fluxo';
+import { biVals } from './vals/bi';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
-  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec,
+  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi,
 } from './data';
 import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
 
@@ -53,6 +54,7 @@ export class AppLogic extends Component<any, any> {
     wlabel: '',
     collapsed: false,
     financeiroOpen: true,
+    biOpen: true,
     rhOpen: false,
     permutasOpen: false,
     vendasOpen: false,
@@ -104,6 +106,11 @@ export class AppLogic extends Component<any, any> {
     fxCfgMotivo: '',
     fxCfgErr: '',
     fxCfgSaving: false,
+    // BI: painéis do Power BI (app_bi_paineis), painel aberto e a modal "Gerenciar painéis".
+    biPaineis: null,
+    biId: null,
+    biCfgOpen: false,
+    biCfgDraft: null,
   };
 
   uFirst = ['Camila','Rafael','Juliana','Bruno','Patrícia','Diego','Fernanda','Marcelo','Aline','Thiago','Luciana','Gustavo','Renata','Eduardo','Mariana','Felipe','Tatiane','André','Priscila','Vinícius','Carolina'];
@@ -501,7 +508,13 @@ export class AppLogic extends Component<any, any> {
     this.setState(st => ({ depts: fn((st.depts || this.seedDepts()).slice()) }));
   }
 
-  permModules = [
+  /** Menus in the profile's permission matrix; BI lists one item per painel (bi.<id>). */
+  get permModules() {
+    const bi = { key: 'bi', label: 'BI', subs: [{ key: 'gerenciar', label: 'Gerenciar painéis' }].concat((this.state.biPaineis || []).map(p => ({ key: p.id, label: p.nome }))) };
+    return this.permModulesBase.slice(0, 1).concat(bi, this.permModulesBase.slice(1));
+  }
+
+  permModulesBase = [
     { key: 'financeiro', label: 'Financeiro', subs: [
       { key: 'saldos', label: 'Saldos bancários' },
       { key: 'lancamentos', label: 'Lançamentos manuais' },
@@ -817,6 +830,7 @@ export class AppLogic extends Component<any, any> {
   homeModules = {
     operacao: [
       { name:'Financeiro', sub:'Contas, tesouraria e fluxo', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
+      { name:'BI', sub:'Painéis do Power BI', c:'#F2C811', d:'M5 20V13M10 20V8M15 20v-5M20 20V4M3 20h18' },
       { name:'RH', sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
       { name:'Veículos', sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
       { name:'Permutas', sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
@@ -1132,6 +1146,7 @@ export class AppLogic extends Component<any, any> {
   saldoPorEmpresa(date: string): Record<number, number> { return saldoPorEmpresa.call(this, date); }
   loadLanc(): Promise<void> { return loadLanc.call(this); }
   loadFxSemRec(): Promise<void> { return loadFxSemRec.call(this); }
+  loadBi(): Promise<void> { return loadBi.call(this); }
 
   usersVals(subItemStyle: string): any { return usersVals.call(this, subItemStyle); }
   deptsVals(): any { return deptsVals.call(this); }
@@ -1140,5 +1155,6 @@ export class AppLogic extends Component<any, any> {
   lancVals(subItemStyle: string): any { return lancVals.call(this, subItemStyle); }
   progVals(subItemStyle: string): any { return progVals.call(this, subItemStyle); }
   fluxoVals(subItemStyle: string): any { return fluxoVals.call(this, subItemStyle); }
+  biVals(subItemStyle: string): any { return biVals.call(this, subItemStyle); }
   renderVals(): any { return renderVals.call(this); }
 }
