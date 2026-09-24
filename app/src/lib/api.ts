@@ -199,6 +199,8 @@ export interface Lancamento {
   situacao: 'lancado' | 'previsto';
 }
 export type LancamentoNovo = Omit<Lancamento, 'id'>;
+/** Empresa whose parcelas a receber are left out of the Fluxo de caixa (already committed). */
+export interface EmpresaSemReceber { company_id: number; motivo: string }
 
 export const cadastrosApi = {
   perfis: () => run<Perfil[]>(db().from('app_perfis').select('id, nome, descricao, ativo, permissoes, sistema').order('nome')),
@@ -221,6 +223,13 @@ export const cadastrosApi = {
   inserirLancamentos: (rows: LancamentoNovo[]) => run(db().from('app_rec_financeiro_lancamento').insert(rows)),
   atualizarLancamento: (id: string, patch: Partial<LancamentoNovo>) => run(db().from('app_rec_financeiro_lancamento').update(patch).eq('id', id)),
   excluirLancamento: (id: string) => run(db().from('app_rec_financeiro_lancamento').delete().eq('id', id)),
+
+  fluxoSemReceber: () => run<EmpresaSemReceber[]>(db().from('app_fluxo_empresas_sem_receber').select('company_id, motivo').order('company_id')),
+  /** Replaces the list: upserts `rows`, deletes the companies in `remover`. */
+  salvarFluxoSemReceber: async (rows: EmpresaSemReceber[], remover: number[]) => {
+    if (remover.length) await run(db().from('app_fluxo_empresas_sem_receber').delete().in('company_id', remover));
+    if (rows.length) await run(db().from('app_fluxo_empresas_sem_receber').upsert(rows, { onConflict: 'company_id' }));
+  },
 };
 
 // ---- edge functions de apoio ----

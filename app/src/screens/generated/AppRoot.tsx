@@ -17,6 +17,7 @@ import UserModal from './UserModal';
 import DeptModal from './DeptModal';
 import PerfilModal from './PerfilModal';
 import IaPanel from './IaPanel';
+import FluxoCfgModal from '../FluxoCfgModal';
 import Toast from './Toast';
 
 export default function AppRoot({ v }: { v: any }) {
@@ -40,6 +41,7 @@ export default function AppRoot({ v }: { v: any }) {
         <UserModal v={v} />
         <DeptModal v={v} />
         <PerfilModal v={v} />
+        <FluxoCfgModal v={v} />
         <IaPanel v={v} />
         <Toast v={v} />
       </div>

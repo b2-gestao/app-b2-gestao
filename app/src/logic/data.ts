@@ -30,7 +30,7 @@ export async function loadCatalogs(this: AppLogic) {
       api.empresas(), api.centrosCusto(), api.contasCorrentes(), api.ultimoSync().catch(() => null),
     ]);
     this.setState({ dbEmpresas: empresas, dbCentros: centros, dbContas: contas, dbSync: sync, dbError: '' });
-    await Promise.all([this.loadUsuarios(), this.loadCadastros(), this.loadLanc()]);
+    await Promise.all([this.loadUsuarios(), this.loadCadastros(), this.loadLanc(), this.loadFxSemRec()]);
     await migrateLocalData(this);
   } catch (e: any) {
     this.setState({ dbError: e.message || String(e) });
@@ -198,6 +198,17 @@ export async function loadLanc(this: AppLogic) {
     this.setState({ lcDb: rows, lcRowsData: rows.map(r => lancToRow.call(this, r)) });
   } catch (e: any) {
     this.toast('Não foi possível carregar os lançamentos manuais: ' + e.message);
+  }
+}
+
+/** Empresas whose parcelas a receber the Fluxo de caixa ignores (state.fxSemRec). */
+export async function loadFxSemRec(this: AppLogic) {
+  try {
+    const rows = await cadastrosApi.fluxoSemReceber();
+    this.setState({ fxSemRec: rows.map(r => ({ cd: r.company_id, motivo: r.motivo })) });
+  } catch (e: any) {
+    this.setState({ fxSemRec: [] });
+    this.toast('Não foi possível carregar as empresas sem recebíveis do fluxo: ' + e.message);
   }
 }
 

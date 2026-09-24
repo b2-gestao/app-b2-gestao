@@ -13,7 +13,8 @@ export const HOLDING_ID = Number(import.meta.env.VITE_HOLDING_EMPRESA_ID || 2);
 /**
  * Fluxo de caixa (live), 10 days from today, per company:
  *   caixa inicial  = opening balance typed in Saldos bancários for today
- *   receitas       = parcelas_receber open balance due each day
+ *   receitas       = parcelas_receber open balance due each day (zero for the companies
+ *                    in app_fluxo_empresas_sem_receber, state.fxSemRec)
  *   pagamentos     = parcelas_pagar_raw open balance due each day
  *   input          = manual entries (entrada +, saída −)
  * An SPE whose running balance goes negative needs an aporte; the holding sends the
@@ -29,13 +30,16 @@ export function fluxoLive(this: AppLogic) {
   const idx: Record<string, number> = Object.fromEntries(dates.map((d, i) => [d, i]));
   const zeros = () => new Array(FLUXO_DAYS).fill(0);
 
+  // Empresas configured on the gear modal: their receivables are already committed.
+  const semRec = new Set<number>((s.fxSemRec || []).map((x: any) => Number(x.cd)));
+
   const byCd: Record<number, any> = {};
   const get = (cd: number) => (byCd[cd] ||= { cd, caixa: saldos[cd] || 0, receitas: zeros(), pagamentos: zeros(), inputs: zeros(), recTypes: new Array(FLUXO_DAYS).fill(null) });
   for (const r of rows) {
     const i = idx[r.dia];
     if (i == null) continue;
     const e = get(r.company_id);
-    e.receitas[i] += Number(r.receber_aberto) || 0;
+    if (!semRec.has(Number(r.company_id))) e.receitas[i] += Number(r.receber_aberto) || 0;
     e.pagamentos[i] += Number(r.pagar_aberto) || 0;
   }
   for (const l of s.lcRowsData || []) {

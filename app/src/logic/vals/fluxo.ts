@@ -1,6 +1,7 @@
 import type { AppLogic } from '../AppLogic';
 import { fluxoLive } from './fluxoData';
 import { fluxoInsights } from '../insights';
+import { fluxoCfgVals } from './fluxoCfg';
 
 export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -29,7 +30,10 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
 
   const applyRecFilter = e => e.receitas.map((v, i) => (fxRecSel.includes(e.recTypes[i] || 'Contas a receber') ? v : 0));
 
-  const buildLines = (label, e0, aportes) => {
+  // Empresas sem recebíveis (engrenagem). Live data already comes zeroed from fluxoLive.
+  const semRec: Record<number, string> = Object.fromEntries((s.fxSemRec || []).map(x => [x.cd, x.motivo]));
+
+  const buildLines = (semReceitas, e0, aportes) => {
     const e = Object.assign({}, e0, { receitas: applyRecFilter(e0) });
     const saldoCells = seriesFor(e.caixa, e.receitas, e.pagamentos, e.inputs, aportes);
     const caixaRow = [e.caixa].concat(saldoCells.slice(0, 9));
@@ -42,7 +46,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     });
     const lines = [
       mk('(=)', 'Caixa inicial', caixaRow, '#111827', 600),
-      mk('(+)', 'Receitas', e.receitas.map(v => v || null), '#258B6C'),
+      mk('(+)', semReceitas ? 'Receitas (desconsideradas)' : 'Receitas', e.receitas.map(v => v || null), '#258B6C'),
       mk('(−)', 'Pagamentos (títulos)', e.pagamentos.map(v => v ? -v : null), '#DC2626'),
       mk('(+/−)', 'Input (lançamentos manuais)', e.inputs.map(v => v || null), '#7C3AED'),
     ];
@@ -56,7 +60,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     { cd: 238, name: 'SPE Rio Verde VII – Zoe', tag: 'SPE', open: s.fxOpen_238 !== false, key: 238, badge: 'Recebe aporte em 5 dias', data: zoe, aportes: null },
     { cd: 191, name: 'SPE Rio Verde I – Laguna', tag: 'SPE', open: s.fxOpen_191 !== false, key: 191, badge: 'Recebe aporte em 1 dia', data: laguna, aportes: null },
   ];
-  const fxGroups = baseGroups.filter(g => fxEmpSel.includes(g.cd)).map(g => ({
+  const fxGroups = baseGroups.filter(g => fxEmpSel.includes(g.cd)).map(g => (semRec[g.cd] != null && !L
+    ? { ...g, data: { ...g.data, receitas: g.data.receitas.map(() => 0) } }
+    : g)).map(g => ({
     ...g,
     toggle: () => this.setState({ ['fxOpen_' + g.key]: !g.open }),
     chevStyle: `transition:transform .18s;transform:rotate(${g.open ? 90 : 0}deg)`,
@@ -64,7 +70,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     headHover: 'background:#F4F4F6',
     tagStyle: `font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${g.tag === 'Holding · origem dos aportes' ? '#F1E9FF' : '#EAF1FF'};color:${g.tag === 'Holding · origem dos aportes' ? '#7C3AED' : '#2445E8'};white-space:nowrap`,
     badgeStyle: `display:${g.badge ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:#FFF0DD;border-radius:20px;padding:3px 9px;white-space:nowrap`,
-    lines: buildLines(g.cd, g.data, g.aportes),
+    semRecStyle: `display:${semRec[g.cd] != null ? 'inline-flex' : 'none'};font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:#F1F1F3;color:#64748B;white-space:nowrap;cursor:help`,
+    semRecTitle: semRec[g.cd] != null ? `Parcelas a receber desconsideradas · ${semRec[g.cd]}` : '',
+    lines: buildLines(semRec[g.cd] != null, g.data, g.aportes),
   }));
 
   let sumCaixa = 0, sumRec = 0, sumPag = 0, sumInputs = 0, sumFinal = 0;
@@ -99,6 +107,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
 
   const ia = this.live && s.page === 'fluxo' ? fluxoInsights(this) : null;
   return {
+    ...fluxoCfgVals.call(this),
     iaFluxoHeadline: ia ? ia.headline : 'Saldo projetado fica negativo em 28/09 · R$ 142 mil abaixo do necessário',
     iaFluxoSub: ia ? ia.sub : 'Análise com IA · projeção dos próximos 10 dias',
     isFluxo: s.page === 'fluxo',

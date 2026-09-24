@@ -11,7 +11,7 @@ import { isLive, supabase } from '../lib/supabase';
 import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
-  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc,
+  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec,
 } from './data';
 import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
 
@@ -75,6 +75,15 @@ export class AppLogic extends Component<any, any> {
     deptFormErr: '',
     toastMsg: '',
     iaPanel: null,
+    // Fluxo de caixa: empresas sem recebíveis ({ cd, motivo }) e a modal da engrenagem.
+    fxSemRec: [],
+    fxCfgOpen: false,
+    fxCfgDraft: null,
+    fxCfgQuery: '',
+    fxCfgPick: null,
+    fxCfgMotivo: '',
+    fxCfgErr: '',
+    fxCfgSaving: false,
   };
 
   uFirst = ['Camila','Rafael','Juliana','Bruno','Patrícia','Diego','Fernanda','Marcelo','Aline','Thiago','Luciana','Gustavo','Renata','Eduardo','Mariana','Felipe','Tatiane','André','Priscila','Vinícius','Carolina'];
@@ -1056,6 +1065,7 @@ export class AppLogic extends Component<any, any> {
   writeSaldos(date: string, patch: any): Promise<boolean> { return writeSaldos.call(this, date, patch); }
   saldoPorEmpresa(date: string): Record<number, number> { return saldoPorEmpresa.call(this, date); }
   loadLanc(): Promise<void> { return loadLanc.call(this); }
+  loadFxSemRec(): Promise<void> { return loadFxSemRec.call(this); }
 
   usersVals(subItemStyle: string): any { return usersVals.call(this, subItemStyle); }
   deptsVals(): any { return deptsVals.call(this); }

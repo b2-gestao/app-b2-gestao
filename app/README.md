@@ -39,7 +39,7 @@ direto, protegidas por RLS: leitura para membros, escrita conforme o perfil.
 | Centros de custo | `centros_custo` |
 | Saldos bancários | contas de `contas_correntes` (status ENABLED); o saldo digitado ou importado pelo CSV-modelo vai para `app_saldo_contas_manual` (um registro por conta e dia) |
 | Programação do dia | títulos em aberto de `parcelas_pagar_raw` no período + lançamentos manuais, contra o saldo informado do primeiro dia |
-| Fluxo de caixa | `parcelas_receber` (receitas) e `parcelas_pagar_raw` (pagamentos) em aberto, 10 dias, por empresa; aportes calculados para a holding (`VITE_HOLDING_EMPRESA_ID`) |
+| Fluxo de caixa | `parcelas_receber` (receitas) e `parcelas_pagar_raw` (pagamentos) em aberto, 10 dias, por empresa; aportes calculados para a holding (`VITE_HOLDING_EMPRESA_ID`). Empresas em `app_fluxo_empresas_sem_receber` (engrenagem da tela, com motivo) ficam com receitas zeradas — recebíveis já comprometidos |
 | Painel (Visão Geral) | totais diários de receber/pagar, próximos vencimentos, ranking por empresa e por segmento (`business_area_name`); pago, juros (juros + multa) e descontos por data de pagamento em `parcelas_pagar_payments` (`app_pagos_diario`) |
 | Lançamentos manuais | `app_rec_financeiro_lancamento`. Uma recorrência ("Mensal · 6x") grava 6 linhas com o mesmo `grupo_id` (parcela 1/6 … 6/6); cada parcela é editada/excluída sozinha |
 | Usuários | tabela `app_usuarios` + Supabase Auth, pela edge function `app-usuarios` (convite, status, links de senha, exclusão) |
@@ -90,6 +90,7 @@ função responde 503 e o painel mostra a análise por regras.
    `20260923190100_fechar_tabelas_anon.sql`, `20260923200000_app_usuarios.sql`,
    `20260923210000_app_cadastros_financeiro.sql`, `20260923210100_app_endurece_triggers.sql`,
    `20260923220000_app_fluxo_diario_mv.sql`.
+   **Falta** aplicar `20260924090000_app_fluxo_empresas_sem_receber.sql` (engrenagem do Fluxo de caixa).
 2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
    **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
    para lá). Rodando local, use `http://localhost:5173`.
