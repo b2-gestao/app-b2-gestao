@@ -44,19 +44,22 @@ export function dashSource(this: AppLogic) {
     d.juros += Number(r.juros) || 0;
     d.desc += Number(r.desconto) || 0;
   }
-  const bucket = (x: string, from: string, to: string) => {
+  // skipTodayIn: in the per-day views (Diário, Semanal) today's parcelas a receber are
+  // already in today's bank balance (Saldos bancários); counting them again duplicates them.
+  const bucket = (x: string, from: string, to: string, skipTodayIn = false) => {
     const t = { x, in: 0, out: 0, pago: 0, juros: 0, desc: 0 };
     for (let d = from; d <= to; d = addDays(d, 1)) {
       const v = byDay[d];
       if (!v) continue;
-      t.in += v.in; t.out += v.out; t.pago += v.pago; t.juros += v.juros; t.desc += v.desc;
+      if (!(skipTodayIn && d === today)) t.in += v.in;
+      t.out += v.out; t.pago += v.pago; t.juros += v.juros; t.desc += v.desc;
     }
     return t;
   };
   const last7 = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
   const periodsData: any = {
-    D: { label: 'Diário', sub: 'Entradas vs. saídas por vencimento · hoje', data: [bucket('Hoje', today, today)] },
-    '7D': { label: 'Semanal', sub: 'Entradas vs. saídas por vencimento · últimos 7 dias', data: last7.map(d => bucket(WEEKDAYS[dateOf(d).getDay()], d, d)) },
+    D: { label: 'Diário', sub: 'Entradas vs. saídas por vencimento · hoje', data: [bucket('Hoje', today, today, true)] },
+    '7D': { label: 'Semanal', sub: 'Entradas vs. saídas por vencimento · últimos 7 dias', data: last7.map(d => bucket(WEEKDAYS[dateOf(d).getDay()], d, d, true)) },
     '30D': { label: 'Mensal', sub: 'Entradas vs. saídas por vencimento · últimas 5 semanas', data: Array.from({ length: 5 }, (_, i) => { const end = addDays(today, -7 * (4 - i)); return bucket(`Sem ${i + 1}`, addDays(end, -6), end); }) },
     '90D': { label: 'Trimestral', sub: 'Entradas vs. saídas por vencimento · últimos 3 meses', data: ['Mês -2', 'Mês -1', 'Mês atual'].map((x, i) => { const end = addDays(today, -30 * (2 - i)); return bucket(x, addDays(end, -29), end); }) },
   };
