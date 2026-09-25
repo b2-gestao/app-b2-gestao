@@ -51,6 +51,8 @@ export interface FluxoDia {
   dia: string;
   receber_aberto: number;
   receber_original: number;
+  /** By due date: original amount with the still-open part replaced by its corrected balance (correctedBalanceAmount). */
+  receber_corrigido?: number;
   /** Corrected open balance, due date + 2, without Bens/Permuta/Financiamento or companies in app_fluxo_empresas_sem_receber. */
   receber_caixa: number;
   pagar_aberto: number;

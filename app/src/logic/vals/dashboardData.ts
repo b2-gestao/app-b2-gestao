@@ -35,7 +35,7 @@ export function dashSource(this: AppLogic) {
   const byDay: Record<string, DayTotals> = {};
   for (const r of fl) {
     const d = (byDay[r.dia] ||= { in: 0, out: 0, pago: 0, juros: 0, desc: 0, recAb: 0, pagAb: 0 });
-    d.in += Number(r.receber_original) || 0;
+    d.in += Number(r.receber_corrigido ?? r.receber_original) || 0;
     d.out += Number(r.pagar_liquido ?? r.pagar_original) || 0;
     d.recAb += Number(r.receber_aberto) || 0;
     d.pagAb += Number(r.pagar_aberto) || 0;
