@@ -16,7 +16,7 @@ export const HOLDING_ID = Number(import.meta.env.VITE_HOLDING_EMPRESA_ID || 2);
  *   receitas       = receber_caixa (corrected balance, D+2, see app_fluxo_diario),
  *                    except today: today's bank balance already includes what came in
  *                    today, so counting those parcelas again would duplicate them
- *   pagamentos     = parcelas_pagar_raw open balance due each day
+ *   pagamentos     = parcelas_pagar_raw net open balance due each day (minus withheld taxes/discount)
  *   input          = manual entries (entrada +, saída −)
  * An SPE whose running balance goes negative needs an aporte; the holding sends the
  * new shortfall of each day as an outflow ("Aportes enviados às SPEs").

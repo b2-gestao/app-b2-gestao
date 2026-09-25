@@ -39,7 +39,10 @@ export interface TituloPagar {
   document_id: string | null;
   document_number: string | null;
   business_area: string | null;
+  /** Gross open balance (balance_amount). */
   balance: number;
+  /** Net open balance: what will actually be paid (minus withheld taxes and discount). */
+  liquido?: number;
   authorized: boolean;
 }
 
