@@ -55,6 +55,8 @@ export interface FluxoDia {
   receber_caixa: number;
   pagar_aberto: number;
   pagar_original: number;
+  /** Net amount due that day: original − withheld taxes − discount. */
+  pagar_liquido?: number;
   pagar_quitado: number;
   pagar_desconto: number;
   pagar_correcao: number;

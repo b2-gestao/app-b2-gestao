@@ -1,11 +1,15 @@
--- Parcelas a pagar pelo valor LÍQUIDO no Fluxo de caixa e na Programação do dia.
+-- Parcelas a pagar pelo valor LÍQUIDO no Fluxo de caixa, na Programação do dia e no Painel.
 -- balance_amount é o saldo bruto: nos títulos com imposto retido (tax_amount) ou desconto,
 -- o Sienge paga original − impostos − desconto (conferido em parcelas_pagar_payments:
 -- net_amount bate com essa conta). Líquido em aberto = saldo × (1 − (impostos + desconto) / original),
 -- o que dá exatamente original − impostos − desconto quando a parcela está toda em aberto
 -- e proporcionaliza quando já houve pagamento parcial.
 --   app_fluxo_diario.pagar_aberto  -> líquido (Fluxo de caixa, previsão 7 dias do Painel)
---   app_pagar_periodo.liquido      -> campo novo (Programação do dia); 'balance' segue bruto
+--   app_fluxo_diario.pagar_liquido -> campo novo: original − impostos − desconto por vencimento
+--                                     (saídas do gráfico e card "A pagar" do Painel)
+--   app_pagar_periodo.liquido      -> campo novo (Programação do dia, linha do tempo do Painel);
+--                                     'balance' segue bruto
+--   app_pagar_segmentos.total      -> líquido (ranking por empresa / diluição por segmento)
 -- O resto de cada função fica idêntico a 20260925140000.
 
 create or replace function public.app_fluxo_diario(p_de date, p_ate date, p_empresas int[] default null)
@@ -46,6 +50,7 @@ declare
            sum(greatest(p.balance_amount - coalesce(p.balance_amount * (coalesce(p.tax_amount, 0) + coalesce(p.discount_amount, 0)) / nullif(p.original_amount, 0), 0), 0))
              filter (where p.balance_amount > 0) as pagar_aberto,
            sum(p.original_amount) as pagar_original,
+           sum(greatest(p.original_amount - coalesce(p.tax_amount, 0) - coalesce(p.discount_amount, 0), 0)) as pagar_liquido,
            sum(p.original_amount - coalesce(p.balance_amount, 0)) as pagar_quitado,
            sum(coalesce(p.discount_amount, 0)) as pagar_desconto,
            sum(greatest(coalesce(p.corrected_balance_amount, 0) - coalesce(p.balance_amount, 0), 0)) as pagar_correcao
@@ -68,6 +73,7 @@ declare
            'receber_caixa', coalesce(caixa.receber_caixa, 0),
            'pagar_aberto', coalesce(pag.pagar_aberto, 0),
            'pagar_original', coalesce(pag.pagar_original, 0),
+           'pagar_liquido', coalesce(pag.pagar_liquido, 0),
            'pagar_quitado', coalesce(pag.pagar_quitado, 0),
            'pagar_desconto', coalesce(pag.pagar_desconto, 0),
            'pagar_correcao', coalesce(pag.pagar_correcao, 0)
@@ -137,6 +143,37 @@ begin
     and p.forecast_document is distinct from 'S'
     and p.due_date between p_de and p_ate
     and (p_empresas is null or p.company_id = any(p_empresas));
+  return result;
+end;
+$function$;
+
+create or replace function public.app_pagar_segmentos(p_de date, p_ate date)
+returns jsonb
+language plpgsql
+stable security definer
+set search_path to 'public'
+as $function$
+declare
+  result jsonb;
+begin
+  perform app_require_auth();
+  if p_ate < p_de or p_ate - p_de > 400 then
+    raise exception 'periodo invalido';
+  end if;
+  select coalesce(jsonb_agg(jsonb_build_object(
+           'company_id', t.company_id,
+           'segmento', t.segmento,
+           'total', t.total
+         )), '[]'::jsonb)
+    into result
+  from (
+    select p.company_id, coalesce(nullif(trim(p.business_area_name), ''), 'Sem segmento') as segmento,
+           sum(greatest(p.original_amount - coalesce(p.tax_amount, 0) - coalesce(p.discount_amount, 0), 0)) as total
+    from parcelas_pagar_raw p
+    where p.due_date between p_de and p_ate
+      and p.forecast_document is distinct from 'S'
+    group by 1, 2
+  ) t;
   return result;
 end;
 $function$;
