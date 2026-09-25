@@ -13,7 +13,7 @@ export const HOLDING_ID = Number(import.meta.env.VITE_HOLDING_EMPRESA_ID || 2);
 /**
  * Fluxo de caixa (live), 10 days from today, per company:
  *   caixa inicial  = opening balance typed in Saldos bancários for today
- *   receitas       = parcelas_receber open balance due each day
+ *   receitas       = receber_caixa (corrected balance, D+2, see app_fluxo_diario)
  *   pagamentos     = parcelas_pagar_raw open balance due each day
  *   input          = manual entries (entrada +, saída −)
  * An SPE whose running balance goes negative needs an aporte; the holding sends the
@@ -35,7 +35,7 @@ export function fluxoLive(this: AppLogic) {
     const i = idx[r.dia];
     if (i == null) continue;
     const e = get(r.company_id);
-    e.receitas[i] += Number(r.receber_aberto) || 0;
+    e.receitas[i] += Number(r.receber_caixa) || 0;
     e.pagamentos[i] += Number(r.pagar_aberto) || 0;
   }
   for (const l of s.lcRowsData || []) {
