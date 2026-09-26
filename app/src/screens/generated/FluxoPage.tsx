@@ -10,7 +10,7 @@ export default function FluxoPage({ v }: { v: any }) {
     <>
     {v.isFluxo ? (
       <>
-        <main style={{ "flex": "1", "overflowY": "auto", "padding": "24px 32px 32px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
+        <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "24px 32px 32px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div style={{ "flex": "1 1 420px", "minWidth": "0" }}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
@@ -47,6 +47,12 @@ export default function FluxoPage({ v }: { v: any }) {
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
+              <button onClick={v.openFxCfg} title="Configurações do fluxo · empresas sem recebíveis" aria-label="Configurações do fluxo de caixa" style={{ "width": "38px", "height": "38px", "flex": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7"></circle>
+                  <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </button>
               <button onClick={v.fxExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -80,7 +86,7 @@ export default function FluxoPage({ v }: { v: any }) {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"></path>
               </svg>
-              Ver análise
+              {v.iaFluxoBtnLabel}
             </button>
           </div>
           <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
@@ -88,8 +94,12 @@ export default function FluxoPage({ v }: { v: any }) {
               <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
                 Período
               </span>
-              <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "height": "36px", "display": "flex", "alignItems": "center", "padding": "0 12px", "borderRadius": "8px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1", "fontVariantNumeric": "tabular-nums" }}>
-                {v.fxPeriodLabel}
+              <div title={v.fxPeriodLabel} style={{ "display": "flex", "alignItems": "center", "gap": "6px", "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF" }}>
+                <input type="date" aria-label="Data inicial" value={v.fxDateFrom} onChange={v.onFxDateFrom} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
+                <span style={{ "color": "#94A3B8", "fontSize": "12px" }}>
+                  a
+                </span>
+                <input type="date" aria-label="Data final" value={v.fxDateTo} min={v.fxDateFrom} onChange={v.onFxDateTo} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
               </div>
             </div>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
@@ -167,8 +177,8 @@ export default function FluxoPage({ v }: { v: any }) {
           </div>
           <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
-              <div style={{ "minWidth": "1280px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "220px repeat(10,104px)", "gap": "0", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
+              <div style={css(v.fxTableStyle)}>
+                <div style={css(v.fxGridStyle)}>
                   <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
                     {v.fxScopeLabel}
                   </div>
@@ -200,6 +210,9 @@ export default function FluxoPage({ v }: { v: any }) {
                         </span>
                         <span style={css(grp.tagStyle)}>
                           {grp.tag}
+                        </span>
+                        <span title={grp.semRecTitle} style={css(grp.semRecStyle)}>
+                          Sem recebíveis
                         </span>
                         <span style={{ "flex": "1" }}></span>
                         <span style={css(grp.badgeStyle)}>

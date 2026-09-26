@@ -1,13 +1,15 @@
 import type { AppLogic } from './AppLogic';
 import {
   api, cadastrosApi, empresaLabel, todayIso, addDays,
-  type Empresa, type FluxoDia, type TituloPagar, type PagarSegmento, type PagoDia, type SaldoConta, type Lancamento, type LancamentoNovo,
+  type Empresa, type FluxoDia, type TituloPagar, type PagarSegmento, type PagoDia, type SaldoConta, type Lancamento, type LancamentoNovo, type ContaCorrente,
 } from '../lib/api';
+import { accountId } from './saldosLive';
+import { fluxoPeriodo } from './vals/fluxoData';
 
 // Live-data layer for the screens. In demo mode (no Supabase env) none of this runs
 // and the screens keep the prototype's sample data.
 
-export type RangeKind = 'fluxo' | 'pagar' | 'seg' | 'pagos' | 'saldo';
+export type RangeKind = 'fluxo' | 'pagar' | 'receber' | 'seg' | 'pagos' | 'saldo';
 export interface RangeEntry<T> {
   status: 'loading' | 'ready' | 'error';
   rows: T[];
@@ -30,7 +32,7 @@ export async function loadCatalogs(this: AppLogic) {
       api.empresas(), api.centrosCusto(), api.contasCorrentes(), api.ultimoSync().catch(() => null),
     ]);
     this.setState({ dbEmpresas: empresas, dbCentros: centros, dbContas: contas, dbSync: sync, dbError: '' });
-    await Promise.all([this.loadUsuarios(), this.loadCadastros(), this.loadLanc()]);
+    await Promise.all([this.loadUsuarios(), this.loadCadastros(), this.loadLanc(), this.loadFxSemRec(), this.loadBi(), this.loadContasSel()]);
     await migrateLocalData(this);
   } catch (e: any) {
     this.setState({ dbError: e.message || String(e) });
@@ -56,6 +58,7 @@ async function fetchRange(app: AppLogic, kind: RangeKind, from: string, to: stri
   try {
     const rows: unknown[] = kind === 'fluxo' ? await api.fluxoDiario(from, to)
       : kind === 'pagar' ? await api.pagarPeriodo(from, to)
+        : kind === 'receber' ? await api.receberPeriodo(from, to)
         : kind === 'pagos' ? await api.pagosDiario(from, to)
           : kind === 'saldo' ? await cadastrosApi.saldos(from)
             : await api.pagarSegmentos(from, to);
@@ -76,8 +79,12 @@ export function neededRanges(this: AppLogic): [RangeKind, string, string][] {
   if (s.view !== 'app') return out;
   const saldo = (d: string) => out.push(['saldo', d, d]);
   if (s.page === 'saldos') saldo(s.sbDate || today);
-  if (s.page === 'programacao') { out.push(['pagar', s.pgDateFrom || today, s.pgDateTo || today]); saldo(s.pgDateFrom || today); }
-  if (s.page === 'fluxo') { out.push(['fluxo', today, addDays(today, FLUXO_DAYS - 1)]); saldo(today); }
+  if (s.page === 'programacao') {
+    const from = s.pgDateFrom || today, to = s.pgDateTo || from;
+    out.push(['pagar', from, to], ['receber', from, to]);
+    saldo(from);
+  }
+  if (s.page === 'fluxo') { const p = fluxoPeriodo(s); out.push(['fluxo', p.anchor, p.to]); saldo(p.anchor); }
   const pages = ['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo'];
   if (!pages.includes(s.page)) {
     out.push(['fluxo', addDays(today, -DASH_BACK_DAYS), addDays(today, DASH_AHEAD_DAYS)]);
@@ -198,6 +205,72 @@ export async function loadLanc(this: AppLogic) {
     this.setState({ lcDb: rows, lcRowsData: rows.map(r => lancToRow.call(this, r)) });
   } catch (e: any) {
     this.toast('Não foi possível carregar os lançamentos manuais: ' + e.message);
+  }
+}
+
+/** Empresas whose parcelas a receber the Fluxo de caixa ignores (state.fxSemRec). */
+export async function loadFxSemRec(this: AppLogic) {
+  try {
+    const rows = await cadastrosApi.fluxoSemReceber();
+    this.setState({ fxSemRec: rows.map(r => ({ cd: r.company_id, motivo: r.motivo })) });
+  } catch (e: any) {
+    this.setState({ fxSemRec: [] });
+    this.toast('Não foi possível carregar as empresas sem recebíveis do fluxo: ' + e.message);
+  }
+}
+
+/** Ids of the contas listed in Saldos bancários (state.dbContasSel); only added accounts show up. */
+export async function loadContasSel(this: AppLogic) {
+  try {
+    const rows = await cadastrosApi.contasSelecionadas();
+    this.setState({ dbContasSel: rows.map(r => r.conta_id) });
+  } catch (e: any) {
+    this.setState({ dbContasSel: [] });
+    this.toast('Não foi possível carregar as contas de saldos bancários: ' + e.message);
+  }
+}
+
+/** Adds (add=true) or removes a conta from the Saldos bancários listing. */
+export async function setContaSel(this: AppLogic, c: { id: string; company_id: number; bank_number: string | null; agency_number: string | null; account_number: string | null }, add: boolean): Promise<boolean> {
+  try {
+    if (add) await cadastrosApi.adicionarContaSelecionada({ conta_id: c.id, company_id: c.company_id, bank_number: c.bank_number, agency_number: c.agency_number, account_number: c.account_number });
+    else await cadastrosApi.removerContaSelecionada(c.id);
+  } catch (e: any) {
+    this.toast('Não foi possível atualizar a lista de contas: ' + e.message);
+    return false;
+  }
+  this.setState((st: any) => {
+    const rest = (st.dbContasSel || []).filter((x: string) => x !== c.id);
+    return { dbContasSel: add ? [...rest, c.id] : rest };
+  });
+  return true;
+}
+
+/** Adds several contas (ids from accountId) to the Saldos bancários listing in one upsert. */
+export async function addContasSel(this: AppLogic, ids: string[]): Promise<boolean> {
+  const have = new Set<string>(this.state.dbContasSel || []);
+  const novas = (this.state.dbContas || []).filter((c: ContaCorrente) => ids.includes(accountId(c)) && !have.has(accountId(c)));
+  if (!novas.length) return true;
+  try {
+    await cadastrosApi.adicionarContaSelecionada(novas.map((c: ContaCorrente) => ({
+      conta_id: accountId(c), company_id: c.company_id, bank_number: c.bank_number, agency_number: c.agency_number, account_number: c.account_number,
+    })));
+  } catch (e: any) {
+    this.toast('Não foi possível adicionar as contas à listagem: ' + e.message);
+    return false;
+  }
+  this.setState((st: any) => ({ dbContasSel: Array.from(new Set([...(st.dbContasSel || []), ...novas.map(accountId)])) }));
+  return true;
+}
+
+/** Power BI painéis the profile can see (state.biPaineis); RLS filters by bi.<id>. */
+export async function loadBi(this: AppLogic) {
+  try {
+    const rows = await cadastrosApi.biPaineis();
+    this.setState({ biPaineis: Array.isArray(rows) ? rows : [] });
+  } catch (e: any) {
+    this.setState({ biPaineis: [] });
+    this.toast('Não foi possível carregar os painéis de BI: ' + e.message);
   }
 }
 

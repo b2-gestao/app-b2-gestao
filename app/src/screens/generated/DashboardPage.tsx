@@ -10,7 +10,7 @@ export default function DashboardPage({ v }: { v: any }) {
     <>
     {v.isDashboard ? (
       <>
-        <main style={{ "flex": "1", "overflowY": "auto", "padding": "28px 32px", "display": "flex", "flexDirection": "column", "gap": "24px" }}>
+        <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "28px 32px", "display": "flex", "flexDirection": "column", "gap": "24px" }}>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(4,1fr)", "gap": "16px" }}>
             <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "0ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(65,97,255,.1)", undefined, undefined)}>
               <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "#EAF1FF", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>

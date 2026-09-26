@@ -1,0 +1,29 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "app", "run", "dev", "--", "--port", "5173"],
+      "port": 5173
+    },
+    {
+      "name": "app-demo",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "app", "run", "dev", "--", "--port", "5175", "--mode", "demo"],
+      "port": 5175
+    },
+    {
+      "name": "smoke-demo",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "app", "vite", "preview", "app", "--outDir", "dist-demo", "--port", "4173", "--strictPort"],
+      "port": 4173
+    },
+    {
+      "name": "smoke-live",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--prefix", "app", "vite", "preview", "app", "--outDir", "dist-live", "--port", "4174", "--strictPort"],
+      "port": 4174
+    }
+  ]
+}

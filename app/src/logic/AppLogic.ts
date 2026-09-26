@@ -1,19 +1,44 @@
 import { Component } from 'react';
 import { usersVals } from './vals/usuarios';
 import { deptsVals } from './vals/departamentos';
+import { categoriasVals } from './vals/categorias';
 import { perfisVals } from './vals/perfis';
 import { saldosVals } from './vals/saldos';
 import { lancVals } from './vals/lancamentos';
 import { progVals } from './vals/programacao';
 import { fluxoVals } from './vals/fluxo';
+import { biVals } from './vals/bi';
+import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
+import { nfApi } from '../lib/nf';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
-  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc,
+  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
 } from './data';
-import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
+import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg } from './insights';
+import { hashFromState, stateFromHash } from './route';
+
+// Home screen data (indicators, weather, background URL) is shown from localStorage right away
+// and refetched only once it is older than this.
+const HOME_CACHE_TTL = 4 * 3600 * 1000;
+const LS_BG_URL = 'he_home_bg_url';
+
+function readCache(key: string): { value: any; fresh: boolean } | null {
+  try {
+    const c = JSON.parse(localStorage.getItem(key) || 'null');
+    return c && c.value != null ? { value: c.value, fresh: Date.now() - c.at < HOME_CACHE_TTL } : null;
+  } catch { return null; }
+}
+
+function writeCache(key: string, value: any) {
+  try { localStorage.setItem(key, JSON.stringify({ at: Date.now(), value })); } catch { /* storage blocked */ }
+}
+
+function dropCache(key: string) {
+  try { localStorage.removeItem(key); } catch { /* storage blocked */ }
+}
 
 export class AppLogic extends Component<any, any> {
   // Memoized seeds and timers are attached as ad-hoc fields, as in the prototype.
@@ -24,6 +49,8 @@ export class AppLogic extends Component<any, any> {
     module: 'Painel',
     bgMode: 'image',
     bgUrl: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2200&q=70',
+    bgCustom: false,
+    bgOpen: false,
     bgColor: '#161826',
     place: 'Localizando…',
     temp: null,
@@ -31,10 +58,12 @@ export class AppLogic extends Component<any, any> {
     wlabel: '',
     collapsed: false,
     financeiroOpen: true,
+    biOpen: true,
     rhOpen: false,
     permutasOpen: false,
     vendasOpen: false,
     configOpen: false,
+    cadFinOpen: false,
     userMenuOpen: false,
     pickerOpen: null,
     pickerQuery: '',
@@ -71,8 +100,41 @@ export class AppLogic extends Component<any, any> {
     pForm: null,
     pFormErr: '',
     deptFormErr: '',
+    // Cadastros › Financeiro › Categorias (app_lancamento_categorias).
+    categorias: null,
+    cSearch: '',
+    cStatus: 'Todos',
+    catModalOpen: false,
+    editingCatId: null,
+    cForm: null,
+    catFormErr: '',
     toastMsg: '',
     iaPanel: null,
+    iaModelo: (() => { try { return localStorage.getItem('he_ia_modelo') || ''; } catch { return ''; } })(),
+    // Fluxo de caixa: empresas sem recebíveis ({ cd, motivo }) e a modal da engrenagem.
+    fxSemRec: [],
+    // Saldos bancários: ids das contas adicionadas à listagem.
+    dbContasSel: [],
+    fxCfgOpen: false,
+    fxCfgDraft: null,
+    fxCfgQuery: '',
+    fxCfgPick: null,
+    fxCfgMotivo: '',
+    fxCfgErr: '',
+    fxCfgSaving: false,
+    // BI: painéis do Power BI (app_bi_paineis), painel aberto e a modal "Gerenciar painéis".
+    biPaineis: null,
+    biId: null,
+    biCfgOpen: false,
+    biCfgDraft: null,
+    // Notas Fiscais › Cadastros: histórico (app_nf_cadastros) e o assistente de cadastro (vals/notasCadastros.ts).
+    nfOpen: false,
+    nfLista: null,
+    nfBusca: '',
+    nfSituacao: 'Todas',
+    ...NF_INICIAL,
+    // Screen from the URL hash (F5 / shared link reopens the same screen).
+    ...stateFromHash(window.location.hash),
   };
 
   uFirst = ['Camila','Rafael','Juliana','Bruno','Patrícia','Diego','Fernanda','Marcelo','Aline','Thiago','Luciana','Gustavo','Renata','Eduardo','Mariana','Felipe','Tatiane','André','Priscila','Vinícius','Carolina'];
@@ -107,6 +169,33 @@ export class AppLogic extends Component<any, any> {
       });
     } catch (e: any) {
       this.toast('Não foi possível carregar perfis e departamentos: ' + e.message);
+    }
+    await this.loadCategorias();
+  }
+
+  /** Loads the Notas Fiscais history (app_nf_cadastros). `aviso` toasts when done (Recarregar button). */
+  async loadNfHistorico(aviso = false) {
+    if (this._nfLoading) return;
+    this._nfLoading = true;
+    try {
+      const rows = await nfApi.historico();
+      this.setState({ nfLista: rows });
+      if (aviso) this.toast('Histórico atualizado.');
+    } catch (e: any) {
+      if (this.state.nfLista == null) this.setState({ nfLista: [] });
+      this.toast('Não foi possível carregar as notas cadastradas: ' + e.message);
+    } finally {
+      this._nfLoading = false;
+    }
+  }
+
+  /** Loads app_lancamento_categorias (Categorias screen and the Lançamentos form). */
+  async loadCategorias() {
+    try {
+      const rows = await cadastrosApi.categorias();
+      this.setState({ categorias: rows.map(c => ({ id: c.id, name: c.nome, desc: c.descricao || '', active: c.ativo })) });
+    } catch (e: any) {
+      this.toast('Não foi possível carregar as categorias: ' + e.message);
     }
   }
 
@@ -145,6 +234,8 @@ export class AppLogic extends Component<any, any> {
   pagePerm: Record<string, string> = {
     saldos: 'financeiro.saldos', lancamentos: 'financeiro.lancamentos', programacao: 'financeiro.programacao', fluxo: 'financeiro.fluxo',
     usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
+    categorias: 'cadastros.categorias',
+    nfCadastros: 'notas.cadastros',
   };
 
   /** Toast + false when the profile cannot edit this menu (the database enforces it too). */
@@ -265,7 +356,7 @@ export class AppLogic extends Component<any, any> {
   }
 
   // Multi-select company filter: searchable + scrollable checkbox list, for use with a large (Supabase-backed) company catalog.
-  mkMultiDropdown(key, s, selected, catalog, onToggle) {
+  mkMultiDropdown(key, s, selected, catalog, onToggle, onSetMany?) {
     const open = s.ddOpen === key;
     const hasSearch = catalog.length > 6;
     const query = (s.ddQuery || '').trim().toLowerCase();
@@ -288,7 +379,9 @@ export class AppLogic extends Component<any, any> {
         e.stopPropagation();
         const names = filtered.map(c => c.name);
         const allVisOn = names.every(n => selected.indexOf(n) >= 0);
-        if (allVisOn) names.forEach(n => onToggle(n));
+        // Batch update: calling onToggle in a loop reuses the same stale `selected`, so only the last toggle would stick.
+        if (onSetMany) onSetMany(allVisOn ? selected.filter(n => names.indexOf(n) < 0) : selected.concat(names.filter(n => selected.indexOf(n) < 0)));
+        else if (allVisOn) names.forEach(n => onToggle(n));
         else names.forEach(n => { if (selected.indexOf(n) < 0) onToggle(n); });
       },
       items: filtered.map(c => {
@@ -347,43 +440,132 @@ export class AppLogic extends Component<any, any> {
     this.startSbAnim();
   }
 
+  /** Analyses received in this session, by data: going back to a date already analysed doesn't call again. */
+  _iaMemo = new Map<string, any>();
+
+  /** Identifies the data the panel would send to the LLM (same data = same analysis). */
+  iaKey(panel: 'prog' | 'fluxo') {
+    // Same state object = same data: computed once per render, not once per caller.
+    const m = this._iaKeyMemo;
+    if (m && m.state === this.state && m.panel === panel) return m.key;
+    const key = panel + JSON.stringify(panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this));
+    this._iaKeyMemo = { state: this.state, panel, key };
+    return key;
+  }
+
   /**
-   * Asks the app-ia edge function (LLM) for the panel's analysis. Until it answers, or when
-   * the model is not configured (503), the panel shows the rule-based analysis.
+   * Asks the app-ia edge function (LLM) for the panel's analysis. Only runs when the user
+   * clicks "Analisar com IA"; until it answers, or when the model is not configured (503),
+   * the panel shows the rule-based analysis. The function also keeps a shared cache.
    */
   async askIa(panel: 'prog' | 'fluxo') {
     if (!this.live || this.state.iaOff) return;
     const rules = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
+    if (rules.loading) return;
     const contexto = panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this);
-    const key = JSON.stringify(contexto);
+    const key = panel + JSON.stringify(contexto);
+    if (this._iaMemo.has(key)) return;
     const cur = (this.state.iaRemote || {})[panel];
-    if (cur && cur.key === key && cur.status !== 'error') return;
+    if (cur && cur.key === key && cur.status === 'loading') return;
     const put = (v: any) => this.setState(st => ({ iaRemote: { ...(st.iaRemote || {}), [panel]: v } }));
     put({ key, status: 'loading' });
+    if (!this.state.iaModelo) this.loadIaModelo();
     try {
       const data = await apoioApi.ia(panel, contexto, rules.items.map(i => ({ label: i.label, text: i.text })));
-      put({ key, status: 'ready', data });
+      this._iaMemo.set(key, data);
+      if (this._iaMemo.size > 30) this._iaMemo.delete(this._iaMemo.keys().next().value!);
+      put({ key, status: 'ready' });
+      this.saveIaModelo(data.modelo);
     } catch (e: any) {
       if (e.status === 503) this.setState({ iaOff: true });
       put({ key, status: 'error', error: e.message });
     }
   }
 
-  /** LLM answer for the panel when it matches the current data, else null. */
+  /** State of the LLM analysis for the data on screen right now. */
+  iaStatus(panel: 'prog' | 'fluxo'): 'ready' | 'loading' | 'error' | 'idle' {
+    const key = this.iaKey(panel);
+    if (this._iaMemo.has(key)) return 'ready';
+    const cur = (this.state.iaRemote || {})[panel];
+    return cur && cur.key === key && cur.status !== 'ready' ? cur.status : 'idle';
+  }
+
+  /** Downloads the Programação do dia analysis (points + companies needing aporte) as a PDF. */
+  async baixarPdfIa() {
+    if (this.state.iaPdfBusy) return;
+    this.setState({ iaPdfBusy: true });
+    try {
+      const { gerarPdfIaProg } = await import('../lib/relatorioIaPdf');
+      await gerarPdfIaProg(relatorioProg(this));
+      this.toast('PDF da análise gerado.');
+    } catch (e: any) {
+      console.error('PDF da análise:', e);
+      this.toast('Não foi possível gerar o PDF.');
+    } finally {
+      this.setState({ iaPdfBusy: false });
+    }
+  }
+
+  /** "Baixar PDF" button of the analysis panel (Programação do dia only). */
+  iaPdfVals() {
+    const s = this.state;
+    const show = this.live && s.iaPanel === 'prog';
+    // Waits for the data and for the LLM, so the PDF has the same analysis the panel shows.
+    const wait = show && (progInsights(this).loading || this.iaStatus('prog') === 'loading');
+    const off = wait || s.iaPdfBusy;
+    return {
+      iaPdfShow: show,
+      iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off) this.baixarPdfIa(); },
+      iaPdfLabel: s.iaPdfBusy ? 'Gerando…' : 'Baixar PDF',
+      iaPdfTitle: wait ? 'Aguarde a análise terminar' : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
+      iaPdfStyle: `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${off ? 'default' : 'pointer'};opacity:${off ? 0.5 : 1}`,
+    };
+  }
+
+  /** Model id (IA_MODEL), shown while the LLM is thinking; cached from the last answer. */
+  async loadIaModelo() {
+    try { this.saveIaModelo((await apoioApi.iaModelo()).modelo); } catch { /* shown without the name */ }
+  }
+
+  saveIaModelo(modelo?: string) {
+    if (!modelo || modelo === this.state.iaModelo) return;
+    this.setState({ iaModelo: modelo });
+    try { localStorage.setItem('he_ia_modelo', modelo); } catch { /* storage blocked */ }
+  }
+
+  /**
+   * Banner of Programação/Fluxo: the LLM's headline when this data was already analysed,
+   * "thinking" while it runs, else the rules and the "Analisar com IA" button.
+   */
+  iaBanner(panel: 'prog' | 'fluxo', rules: { headline: string; sub: string; items: any[]; loading?: boolean }) {
+    const st = this.iaStatus(panel);
+    const remote = st === 'ready' ? this.iaRemoteFor(panel) : null;
+    const modelo = remote?.modelo || this.state.iaModelo;
+    const pontos = (n: number) => `${n} ${n === 1 ? 'ponto de atenção' : 'pontos de atenção'}`;
+    if (remote) return { headline: remote.headline, sub: `Análise com IA · ${modelo} · ${pontos(remote.items.length)}`, btn: 'Ver análise' };
+    if (st === 'loading') return { headline: 'A IA está pensando…', sub: `Analisando os dados${modelo ? ` com ${modelo}` : ''}`, btn: 'Ver análise' };
+    const off = this.state.iaOff;
+    const sub = rules.loading ? rules.sub
+      : `Análise por regras · ${pontos(rules.items.length)}${off ? '' : st === 'error' ? ' · a IA não respondeu, tente de novo' : ''}`;
+    return { headline: rules.headline, sub, btn: off ? 'Ver análise' : 'Analisar com IA' };
+  }
+
+  /** LLM answer for the data on screen right now, else null. */
   iaRemoteFor(panel: 'prog' | 'fluxo') {
-    const r = (this.state.iaRemote || {})[panel];
-    return r && r.status === 'ready' ? r.data : null;
+    return this.live ? this._iaMemo.get(this.iaKey(panel)) || null : null;
   }
 
   iaInsights(panel) {
     if (this.live && (panel === 'prog' || panel === 'fluxo')) {
       const r = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
       const remote = this.iaRemoteFor(panel);
-      const loading = (this.state.iaRemote || {})[panel]?.status === 'loading';
+      const st = remote ? 'ready' : this.iaStatus(panel);
+      const loading = st === 'loading';
       const cor = { critico: '#EF4444', atencao: '#F59E0B', info: '#94A3B8', positivo: '#43B997' };
       if (remote) {
+        const quando = remote.gerado_em ? ` às ${new Date(remote.gerado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : '';
         return {
-          title: r.title, subtitle: `Gerada por IA (${remote.modelo}) sobre os dados do período.`,
+          title: r.title, subtitle: `Gerada por IA (${remote.modelo})${quando} sobre os dados do período${remote.cache ? ' · reaproveitada, sem nova chamada' : ''}.`,
           items: remote.items.map(i => ({
             label: i.label, text: i.text, action: '',
             onAction: () => this.setState({ iaPanel: null }),
@@ -393,7 +575,9 @@ export class AppLogic extends Component<any, any> {
         };
       }
       return {
-        title: r.title, subtitle: loading ? 'Consultando o modelo de IA… enquanto isso, a análise por regras:' : r.subtitle,
+        title: r.title,
+        subtitle: loading ? `A IA está pensando${this.state.iaModelo ? ` (${this.state.iaModelo})` : ''}… enquanto isso, a análise por regras:`
+          : st === 'error' ? 'A IA não respondeu agora; abaixo, a análise por regras. Tente de novo em instantes.' : r.subtitle,
         items: r.items.map(i => ({
           label: i.label, text: i.text, action: i.action || '',
           onAction: i.go || (() => this.setState({ iaPanel: null })),
@@ -468,12 +652,21 @@ export class AppLogic extends Component<any, any> {
     this.setState(st => ({ depts: fn((st.depts || this.seedDepts()).slice()) }));
   }
 
-  permModules = [
+  /** Menus in the profile's permission matrix; BI lists one item per painel (bi.<id>). */
+  get permModules() {
+    const bi = { key: 'bi', label: 'BI', subs: [{ key: 'gerenciar', label: 'Gerenciar painéis' }].concat((this.state.biPaineis || []).map(p => ({ key: p.id, label: p.nome }))) };
+    return this.permModulesBase.slice(0, 1).concat(bi, this.permModulesBase.slice(1));
+  }
+
+  permModulesBase = [
     { key: 'financeiro', label: 'Financeiro', subs: [
       { key: 'saldos', label: 'Saldos bancários' },
       { key: 'lancamentos', label: 'Lançamentos manuais' },
       { key: 'programacao', label: 'Programação do dia' },
       { key: 'fluxo', label: 'Fluxo de caixa' },
+    ] },
+    { key: 'notas', label: 'Notas Fiscais', subs: [
+      { key: 'cadastros', label: 'Cadastros' },
     ] },
     { key: 'rh', label: 'RH', subs: [
       { key: 'colaboradores', label: 'Colaboradores' },
@@ -498,7 +691,7 @@ export class AppLogic extends Component<any, any> {
       { key: 'auditoria', label: 'Auditoria' },
     ] },
     { key: 'cadastros', label: 'Cadastros', subs: [
-      { key: 'clientes', label: 'Clientes' },
+      { key: 'categorias', label: 'Financeiro › Categorias' },
       { key: 'fornecedores', label: 'Fornecedores' },
       { key: 'imoveis', label: 'Imóveis' },
       { key: 'contratos', label: 'Contratos' },
@@ -602,7 +795,24 @@ export class AppLogic extends Component<any, any> {
     return `${p(d.getDate())}/${p(d.getMonth() + 1)} ${p(d.getHours())}:${p(d.getMinutes())}`;
   }
 
-  lcCats = ['VMD', 'Fator recompra', 'Juros P.E', 'RET', 'Tarifas bancárias', 'Reembolso', 'Outros'];
+  demoCats = ['VMD', 'Fator recompra', 'Juros P.E', 'RET', 'Tarifas bancárias', 'Reembolso', 'Taxa Administração', 'Taxa Engenharia', 'Outros'];
+
+  /** Categorias offered in the Lançamentos form: active rows of app_lancamento_categorias, "Outros" last. */
+  get lcCats(): string[] {
+    const names = (this.state.categorias || this.seedCategorias()).filter(c => c.active).map(c => c.name);
+    return names.filter(n => n !== 'Outros').concat(names.includes('Outros') ? ['Outros'] : []);
+  }
+
+  seedCategorias() {
+    if (this.live) return [];
+    if (this._catSeed) return this._catSeed;
+    this._catSeed = this.demoCats.map((name, i) => ({ id: 'c' + (i + 1), name, desc: '', active: true }));
+    return this._catSeed;
+  }
+
+  setCategorias(fn) {
+    this.setState(st => ({ categorias: fn((st.categorias || this.seedCategorias()).slice()) }));
+  }
 
   lcSeed() {
     if (this._lcSeed) return this._lcSeed;
@@ -784,6 +994,8 @@ export class AppLogic extends Component<any, any> {
   homeModules = {
     operacao: [
       { name:'Financeiro', sub:'Contas, tesouraria e fluxo', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
+      { name:'BI', sub:'Painéis do Power BI', c:'#F2C811', d:'M5 20V13M10 20V8M15 20v-5M20 20V4M3 20h18' },
+      { name:'Notas Fiscais', sub:'Cadastro de NF no Sienge', c:'#14B8A6', d:'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5' },
       { name:'RH', sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
       { name:'Veículos', sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
       { name:'Permutas', sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
@@ -820,6 +1032,8 @@ export class AppLogic extends Component<any, any> {
 
   componentDidMount() {
     setTimeout(() => this.setState({ chartMounted: true }), 60);
+    history.replaceState(history.state, '', hashFromState(this.state));
+    window.addEventListener('popstate', this.onPopState);
     try {
       const saved = JSON.parse(localStorage.getItem('he_home_bg') || 'null');
       if (saved && saved.bgMode) {
@@ -842,13 +1056,24 @@ export class AppLogic extends Component<any, any> {
     this.loadWeather();
     this.loadIndicators();
     if (this.live) {
-      if (this.props.session) this.loadCatalogs();
+      if (this.props.session) { this.loadCatalogs(); this.loadBg(); }
       this.setState({ lcRowsData: [], pgDateFrom: todayIso(), pgDateTo: todayIso(), sbDate: todayIso(), lcFrom: todayIso(), lcTo: addDays(todayIso(), 12) });
     }
   }
 
+  /** Back / forward, or a hash typed in the address bar: open that screen. */
+  onPopState = () => {
+    const patch = stateFromHash(window.location.hash);
+    if (patch) this.setState(patch);
+  };
+
   componentDidUpdate() {
     this.ensureRanges();
+    // Each screen change becomes a history entry, so the URL always names the open screen.
+    const hash = hashFromState(this.state);
+    if (hash !== window.location.hash) history.pushState(null, '', hash);
+    // Notas Fiscais history loads on first visit (menu, tile or a reopened URL).
+    if (this.state.page === 'nfCadastros' && this.state.nfLista == null && this.pode(this.pagePerm.nfCadastros)) this.loadNfHistorico();
     // Page the profile cannot open (menus are hidden, but a tile or old state may lead here).
     const need = this.pagePerm[this.state.page];
     if (this.live && this.state.view === 'app' && need && !this.pode(need)) {
@@ -858,6 +1083,7 @@ export class AppLogic extends Component<any, any> {
   }
 
   componentWillUnmount() {
+    window.removeEventListener('popstate', this.onPopState);
     clearTimeout(this._toastT);
     cancelAnimationFrame(this._sbRaf);
   }
@@ -866,6 +1092,7 @@ export class AppLogic extends Component<any, any> {
   live = isLive;
 
   signOut() {
+    dropCache(LS_BG_URL);
     if (supabase) supabase.auth.signOut();
   }
 
@@ -876,6 +1103,11 @@ export class AppLogic extends Component<any, any> {
 
   async loadIndicators() {
     if (!this.live) return;
+    const cached = readCache('he_home_indicadores');
+    if (cached) {
+      this.setState({ econValues: cached.value });
+      if (cached.fresh) return;
+    }
     const pct = (n: number | null | undefined) => (n == null || isNaN(n) ? '—' : n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%');
     let values: Record<string, number | null> = {};
     try {
@@ -893,14 +1125,107 @@ export class AppLogic extends Component<any, any> {
         values[label] = null;
       }
     }));
-    this.setState({ econValues: Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])])) });
+    // Nothing came back (offline): keep showing the cached values, if any.
+    if (Object.values(values).every(n => n == null || isNaN(n)) && cached) return;
+    const econValues = Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])]));
+    this.setState({ econValues });
+    if (Object.values(values).some(n => n != null && !isNaN(n))) writeCache('he_home_indicadores', econValues);
   }
 
   saveBg(patch) {
     this.setState(patch, () => {
       const s = this.state;
-      try { localStorage.setItem('he_home_bg', JSON.stringify({ bgMode: s.bgMode, bgColor: s.bgColor, bgUrl: s.bgUrl.startsWith('data:') ? '' : s.bgUrl })); } catch { /* storage blocked */ }
+      // Custom images live in Storage (signed URL that expires); only the default URL is kept here.
+      const own = s.bgUrl.startsWith('data:') || s.bgUrl.includes('/storage/v1/');
+      try { localStorage.setItem('he_home_bg', JSON.stringify({ bgMode: s.bgMode, bgColor: s.bgColor, bgUrl: own ? '' : s.bgUrl })); } catch { /* storage blocked */ }
     });
+  }
+
+  static BG_DEFAULT = 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?auto=format&fit=crop&w=2200&q=70';
+  static BG_MAX_BYTES = 5 * 1024 * 1024;
+  static BG_URL_SECS = 7 * 24 * 3600;
+  static BG_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+  /** Loads the signed-in user's saved background from the private "app-fundos" bucket. */
+  async loadBg() {
+    const uid = this.props.session?.user?.id;
+    if (!supabase || !uid) return;
+    // Reusing the same signed URL lets the browser serve the image from its cache. After
+    // HOME_CACHE_TTL the file's updated_at is checked (a change made on another computer) and
+    // it is only re-signed when the file changed or the URL has less than a day left.
+    const cached = readCache(LS_BG_URL);
+    const c = cached?.value;
+    const usable = c && c.uid === uid && c.exp - Date.now() > 24 * 3600 * 1000;
+    if (usable) this.setState({ bgUrl: c.url, bgCustom: true });
+    if (usable && cached.fresh) return;
+    const { data: files, error } = await supabase.storage.from('app-fundos').list(uid, { search: 'fundo' });
+    if (error) return;
+    const file = (files || []).find(f => f.name === 'fundo');
+    if (!file) {
+      dropCache(LS_BG_URL);
+      if (usable) this.setState({ bgUrl: AppLogic.BG_DEFAULT, bgCustom: false });
+      return;
+    }
+    const ver = file.updated_at || '';
+    // No ver yet = URL signed right after this browser's own upload.
+    if (usable && (c.ver === ver || !c.ver)) return writeCache(LS_BG_URL, { ...c, ver });
+    const { data } = await supabase.storage.from('app-fundos').createSignedUrl(`${uid}/fundo`, AppLogic.BG_URL_SECS);
+    if (!data?.signedUrl) return;
+    this.rememberBgUrl(uid, data.signedUrl, ver);
+    this.setState({ bgUrl: data.signedUrl, bgCustom: true });
+  }
+
+  rememberBgUrl(uid: string, url: string, ver: string) {
+    writeCache(LS_BG_URL, { uid, url, ver, exp: Date.now() + AppLogic.BG_URL_SECS * 1000 });
+  }
+
+  /** Deletes the user's uploaded background and goes back to the app's default image. */
+  async restoreBg() {
+    const uid = this.props.session?.user?.id;
+    if (!window.confirm('Restaurar o fundo padrão? A sua imagem será apagada.')) return;
+    if (supabase && uid) {
+      const { error } = await supabase.storage.from('app-fundos').remove([`${uid}/fundo`]);
+      if (error) return this.toast('Não foi possível restaurar o fundo: ' + error.message);
+    }
+    dropCache(LS_BG_URL);
+    this.setState({ bgCustom: false });
+    this.saveBg({ bgUrl: AppLogic.BG_DEFAULT, bgMode: 'image' });
+    this.toast('Fundo padrão restaurado.');
+  }
+
+  /** Validates and uploads a background image (JPG/PNG/WebP, up to 5 MB) to the user's own folder. */
+  async uploadBg(file: File) {
+    if (!AppLogic.BG_TYPES.includes(file.type)) return this.toast('Formato não aceito. Use JPG, PNG ou WebP.');
+    if (file.size > AppLogic.BG_MAX_BYTES) {
+      return this.toast(`Imagem muito grande (${(file.size / 1048576).toFixed(1).replace('.', ',')} MB). O limite é 5 MB — o ideal é 1920×1080.`);
+    }
+    const dims = await new Promise<{ w: number; h: number } | null>(res => {
+      const img = new Image();
+      const u = URL.createObjectURL(file);
+      img.onload = () => { res({ w: img.naturalWidth, h: img.naturalHeight }); URL.revokeObjectURL(u); };
+      img.onerror = () => { res(null); URL.revokeObjectURL(u); };
+      img.src = u;
+    });
+    if (!dims) return this.toast('Não foi possível ler a imagem.');
+    const small = dims.w < 1280 || dims.h < 720;
+
+    const uid = this.props.session?.user?.id;
+    if (!supabase || !uid) {
+      // Demo mode: keep it in memory only.
+      const r = new FileReader();
+      r.onload = () => this.saveBg({ bgUrl: r.result, bgMode: 'image' });
+      r.readAsDataURL(file);
+      return;
+    }
+    const path = `${uid}/fundo`;
+    const { error } = await supabase.storage.from('app-fundos').upload(path, file, { upsert: true, contentType: file.type, cacheControl: String(AppLogic.BG_URL_SECS) });
+    if (error) return this.toast('Não foi possível enviar a imagem: ' + error.message);
+    const { data, error: e2 } = await supabase.storage.from('app-fundos').createSignedUrl(path, AppLogic.BG_URL_SECS);
+    if (e2 || !data?.signedUrl) return this.toast('Imagem enviada, mas não foi possível exibi-la: ' + (e2?.message || ''));
+    // A fresh signature is a new URL, so the browser fetches the new image.
+    this.rememberBgUrl(uid, data.signedUrl, '');
+    this.saveBg({ bgUrl: data.signedUrl, bgMode: 'image', bgCustom: true });
+    this.toast(small ? `Fundo salvo, mas a imagem (${dims.w}×${dims.h}) é pequena e pode ficar borrada. O ideal é 1920×1080.` : 'Fundo salvo.');
   }
 
   kindFor(code, temp) {
@@ -911,16 +1236,23 @@ export class AppLogic extends Component<any, any> {
   }
 
   async loadWeather() {
+    const cached = readCache('he_home_clima');
+    if (cached) {
+      this.setState(cached.value);
+      if (cached.fresh) return;
+    }
     try {
       const g = await (await fetch('https://ipapi.co/json/')).json();
-      const place = [g.city, g.region_code || g.region].filter(Boolean).join(', ');
-      this.setState({ place: place || 'Sua região' });
+      const place = [g.city, g.region_code || g.region].filter(Boolean).join(', ') || 'Sua região';
+      if (!cached) this.setState({ place });
       const w = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${g.latitude}&longitude=${g.longitude}&current=temperature_2m,weather_code&timezone=auto`)).json();
       const temp = Math.round(w.current.temperature_2m);
       const kind = this.kindFor(w.current.weather_code, temp);
-      this.setState({ temp, wkind: kind.k, wlabel: kind.l });
+      const clima = { place, temp, wkind: kind.k, wlabel: kind.l };
+      this.setState(clima);
+      writeCache('he_home_clima', clima);
     } catch {
-      this.setState({ place: 'Sua região', temp: null, wkind: 'cloud', wlabel: '' });
+      if (!cached) this.setState({ place: 'Sua região', temp: null, wkind: 'cloud', wlabel: '' });
     }
   }
 
@@ -992,13 +1324,21 @@ export class AppLogic extends Component<any, any> {
   writeSaldos(date: string, patch: any): Promise<boolean> { return writeSaldos.call(this, date, patch); }
   saldoPorEmpresa(date: string): Record<number, number> { return saldoPorEmpresa.call(this, date); }
   loadLanc(): Promise<void> { return loadLanc.call(this); }
+  loadFxSemRec(): Promise<void> { return loadFxSemRec.call(this); }
+  loadBi(): Promise<void> { return loadBi.call(this); }
+  loadContasSel(): Promise<void> { return loadContasSel.call(this); }
+  setContaSel(c: any, add: boolean): Promise<boolean> { return setContaSel.call(this, c, add); }
+  addContasSel(ids: string[]): Promise<boolean> { return addContasSel.call(this, ids); }
 
   usersVals(subItemStyle: string): any { return usersVals.call(this, subItemStyle); }
   deptsVals(): any { return deptsVals.call(this); }
+  categoriasVals(): any { return categoriasVals.call(this); }
   perfisVals(subItemStyle: string): any { return perfisVals.call(this, subItemStyle); }
   saldosVals(subItemStyle: string): any { return saldosVals.call(this, subItemStyle); }
   lancVals(subItemStyle: string): any { return lancVals.call(this, subItemStyle); }
   progVals(subItemStyle: string): any { return progVals.call(this, subItemStyle); }
   fluxoVals(subItemStyle: string): any { return fluxoVals.call(this, subItemStyle); }
+  biVals(subItemStyle: string): any { return biVals.call(this, subItemStyle); }
+  notasCadastrosVals(subItemStyle: string): any { return notasCadastrosVals.call(this, subItemStyle); }
   renderVals(): any { return renderVals.call(this); }
 }

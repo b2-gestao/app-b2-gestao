@@ -1,11 +1,13 @@
 import type { AppLogic } from '../AppLogic';
 import { todayIso } from '../../lib/api';
-import { sbLive, downloadTemplate, importCsv } from '../saldosLive';
+import { sbLive, accountId, downloadTemplate, importCsv } from '../saldosLive';
 
 export function saldosVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
   const defDate = this.live ? todayIso() : '2026-09-23';
   const all = this.live ? sbLive(this, s.sbDate || defDate) : (s.sbAccounts || this.sbSeed());
+  // Live: the listing shows only added accounts; the modal picks from every ENABLED account.
+  const pool = this.live ? sbLive(this, s.sbDate || defDate, false) : all;
   const f2 = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const empAll = 'Todas as empresas', bankAll = 'Todos os bancos', stAll = 'Todos os status';
   const sbEmp = s.sbEmp || empAll, sbBank = s.sbBank || bankAll, sbStatus = s.sbStatus || stAll;
@@ -69,6 +71,14 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
       actStyle: actBtn,
       syncIconStyle: syncing ? 'animation:spin .7s linear infinite' : '',
       inform: () => openFor(a),
+      syncBtnStyle: this.live ? actBtn + ';display:none' : actBtn,
+      removeStyle: this.live ? actBtn : actBtn + ';display:none',
+      remove: async () => {
+        if (!this.pode('financeiro.saldos', true)) { this.toast('Seu perfil não tem permissão para alterar as contas da listagem.'); return; }
+        if (!window.confirm(`Remover ${a.emp} (${a.bank} · C/C ${a.cc}) da listagem? Os saldos já informados são mantidos.`)) return;
+        const raw = (s.dbContas || []).find(c => accountId(c) === a.id);
+        if (raw && await this.setContaSel({ id: a.id, ...raw }, false)) this.toast(`${short(a.emp)} (${bankShort(a.bank)}) removida da listagem.`);
+      },
       edit: () => openFor(a),
       sync: () => {
         if (this.live) { this.toast('Integração de saldo via API ainda não configurada — informe o saldo manualmente ou pela planilha-modelo.'); return; }
@@ -104,14 +114,15 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbRows = filtered.map(mkAcct);
   }
 
-  const acctLabel = a => `${a.cd} · ${a.emp} · ${bankShort(a.bank)} ${a.cc}`;
+  // Live: company_id · account_number · account_type_description (unique among ENABLED contas_correntes).
+  const acctLabel = a => this.live ? [a.cd, a.cc, a.tipo].filter(Boolean).join(' · ') : `${a.cd} · ${a.emp} · ${bankShort(a.bank)} ${a.cc}`;
   const form = s.sbForm || { id: null, date: s.sbDate || defDate, value: '', origem: 'Manual', obs: '' };
-  const formAcct = all.find(a => a.id === form.id);
+  const formAcct = pool.find(a => a.id === form.id);
   const ddSbEmp = this.mkDropdown('sbEmp', s, sbEmp, [empAll].concat(empNames), v => this.setState({ sbEmp: v }));
   const ddSbBank = this.mkDropdown('sbBank', s, sbBank, [bankAll].concat(this.live ? Array.from(new Set<string>(all.map(a => a.bank))).sort() : Object.keys(this.sbBanks)), v => this.setState({ sbBank: v }));
   const ddSbStatus = this.mkDropdown('sbStatus', s, sbStatus, [stAll].concat(Object.keys(stKey)), v => this.setState({ sbStatus: v }));
-  const ddSbConta = this.mkDropdown('sbConta', s, formAcct ? acctLabel(formAcct) : 'Selecione a conta', all.map(acctLabel), v => {
-    const a = all.find(x => acctLabel(x) === v);
+  const ddSbConta = this.mkDropdown('sbConta', s, formAcct ? acctLabel(formAcct) : 'Selecione a conta', pool.map(acctLabel), v => {
+    const a = pool.find(x => acctLabel(x) === v);
     this.setState(st => ({ sbForm: Object.assign({}, st.sbForm, { id: a.id, value: a.saldo != null ? f2(a.saldo) : '' }), sbErr: '' }));
   });
   ddSbConta.panelStyle = ddSbConta.panelStyle.replace('max-width:260px', 'max-width:none').replace('width:max-content', 'width:100%');
@@ -146,8 +157,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbSearch: s.sbSearch || '',
     onSbSearch: e => this.setState({ sbSearch: e.target.value }),
     ddSbEmp, ddSbBank, ddSbStatus, ddSbConta,
-    // Fluxo's filter bar is its own stacking context (z-index:10): keep the overlay below it so the checkbox list stays clickable.
-    finPageOverlayStyle: `display:${s.ddOpen && !s.sbModal && !s.lcModal && !['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : (s.ddOpen && ['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : 'none')};position:fixed;inset:0;z-index:${['fxEmp', 'fxRec'].includes(s.ddOpen) ? 9 : 75};background:transparent`,
+    finPageOverlayStyle: `display:${s.ddOpen && !s.sbModal && !s.lcModal && !['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : (s.ddOpen && ['fxEmp', 'fxRec'].includes(s.ddOpen) ? 'block' : 'none')};position:fixed;inset:0;z-index:${s.page === 'fluxo' ? 5 : 75};background:transparent`,
     sbGroupTabs: [['conta', 'Conta'], ['empresa', 'Empresa']].map(([k, l]) => ({
       label: l, style: seg((s.sbGroup || 'conta') === k), onClick: () => this.setState({ sbGroup: k }),
     })),
@@ -161,7 +171,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbFilteredTotal: 'R$ ' + f2(filtered.reduce((t2, a) => t2 + (a.saldo || 0), 0)),
 
     sbImportLabel: s.sbImporting ? 'Importando…' : 'Importar planilha',
-    sbDownload: () => (this.live ? downloadTemplate(this, all, s.sbDate || defDate) : this.toast('Planilha-modelo baixada · saldos_modelo.xlsx')),
+    sbDownload: () => (this.live ? downloadTemplate(this, pool, s.sbDate || defDate) : this.toast('Planilha-modelo baixada · saldos_modelo.xlsx')),
     sbImport: e => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
@@ -169,7 +179,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
       if (this.live) {
         if (!this.podeEditar('financeiro.saldos')) return;
         this.setState({ sbImporting: true });
-        importCsv(this, file, all, s.sbDate || defDate).finally(() => { this.setState({ sbImporting: false }); this.startSbAnim(); });
+        importCsv(this, file, pool, s.sbDate || defDate).finally(() => { this.setState({ sbImporting: false }); this.startSbAnim(); });
         return;
       }
       this.setState({ sbImporting: true });
@@ -182,7 +192,8 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     },
 
     sbOverlayStyle: `display:${s.sbModal ? 'flex' : 'none'};position:fixed;inset:0;z-index:90;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both`,
-    sbOpenNew: () => openFor(missing[0] || null),
+    sbOpenNew: () => openFor(this.live ? null : (missing[0] || null)),
+    sbEmptyHint: this.live && !all.length ? 'Nenhuma conta na listagem ainda. Use "Informar saldo" para adicionar uma conta.' : 'Ajuste os filtros ou a busca.',
     sbClose: () => this.setState({ sbModal: false, sbForm: null, sbErr: '', ddOpen: null }),
     sbModalTitle: formAcct ? `Informar saldo · ${short(formAcct.emp)}` : 'Informar saldo',
     sbFDate: form.date,
@@ -202,6 +213,8 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
         if (!this.pode('financeiro.saldos', true)) { this.setState({ sbErr: 'Seu perfil não tem permissão para informar saldos.' }); return; }
         if (s.sbSaving) return;
         this.setState({ sbSaving: true });
+        const raw = (s.dbContas || []).find(c => accountId(c) === formAcct.id);
+        if (raw && !(s.dbContasSel || []).includes(formAcct.id) && !(await this.setContaSel({ id: formAcct.id, ...raw }, true))) { this.setState({ sbSaving: false }); return; }
         const ok = await this.writeSaldos(form.date || s.sbDate || defDate, { [formAcct.id]: { saldo: v, upd: this.nowStamp(), origem: form.origem, obs: form.obs } });
         this.setState({ sbSaving: false });
         if (!ok) return;

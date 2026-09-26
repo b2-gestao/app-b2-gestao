@@ -7,7 +7,8 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
   const q = (s.pSearch || '').trim().toLowerCase();
   const statusKey = { 'Todos': null, 'Ativos': true, 'Inativos': false }[s.pStatus || 'Todos'];
   const totalPaths = this.permPaths().length;
-  const grantedCount = perms => Object.keys(perms || {}).filter(k => perms[k] && perms[k].view).length;
+  const known = new Set(this.permPaths());
+  const grantedCount = perms => Object.keys(perms || {}).filter(k => known.has(k) && perms[k] && perms[k].view).length;
 
   const filtered = all.filter(p => {
     if (q && !(p.name.toLowerCase().includes(q) || (p.desc || '').toLowerCase().includes(q))) return false;

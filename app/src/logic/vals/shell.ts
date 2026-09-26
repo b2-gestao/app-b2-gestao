@@ -183,12 +183,13 @@ export function renderVals(this: AppLogic) {
 
   const ringBase = "border:1.5px solid transparent;border-radius:13.5px;cursor:pointer;backdrop-filter:blur(12px);background:linear-gradient(rgba(24,26,40,.97),rgba(24,26,40,.97)) padding-box,linear-gradient(rgba(245,245,247,.16),rgba(245,245,247,.16)) border-box;box-shadow:0 10px 30px rgba(0,0,0,.28);will-change:transform;transition:transform .45s cubic-bezier(.16,.84,.28,1),box-shadow .45s ease";
   const tileStyle = "display:flex;flex-direction:column;gap:7px;height:100%;padding:13px;opacity:0;animation:tileIn .42s ease-out both";
+  const isCadFin = it => this.homeModules.cadastros.includes(it) && it.name === 'Financeiro';
   const mkTile = (it, i) => ({
     ...it,
     ringStyle: ringBase,
     tileStyle: tileStyle + `;animation-delay:${60 + i * 34}ms`,
     chipStyle: `width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${it.c}22;border:1px solid ${it.c}55`,
-    open: () => this.setState({
+    open: () => it.name === 'BI' ? pageVals.openFirstBi() : it.name === 'Notas Fiscais' ? pageVals.goNfCadastros() : isCadFin(it) ? pageVals.goCategorias() : this.setState({
       view: 'app', module: it.name, collapsed: false,
       page: it.name === 'Configurações' ? (['usuarios', 'departamentos', 'perfis'].find(p => this.pode(this.pagePerm[p])) || 'dashboard') : 'dashboard',
       configOpen: it.name === 'Configurações' ? true : this.state.configOpen,
@@ -210,14 +211,22 @@ export function renderVals(this: AppLogic) {
   const pageVals: any = {
     ...this.usersVals(subItemStyle),
     ...this.deptsVals(),
+    ...this.categoriasVals(),
     ...this.perfisVals(subItemStyle),
     ...this.saldosVals(subItemStyle),
     ...this.lancVals(subItemStyle),
     ...this.progVals(subItemStyle),
     ...this.fluxoVals(subItemStyle),
+    ...this.biVals(subItemStyle),
+    ...this.notasCadastrosVals(subItemStyle),
   };
-  for (const [key, page] of [['usuariosItemStyle', 'usuarios'], ['departamentosItemStyle', 'departamentos'], ['perfisItemStyle', 'perfis'],
-    ['saldosItemStyle', 'saldos'], ['lancItemStyle', 'lancamentos'], ['progItemStyle', 'programacao'], ['fluxoItemStyle', 'fluxo']]) {
+  pageVals.categoriasItemStyle = s.page === 'categorias'
+    ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
+    : subItemStyle;
+  // Cadastros › Financeiro only holds Categorias for now: hide the group with it.
+  pageVals.cadFinGroupStyle = this.pode(this.pagePerm.categorias) ? '' : 'display:none';
+  for (const [key, page] of [['categoriasItemStyle', 'categorias'], ['usuariosItemStyle', 'usuarios'], ['departamentosItemStyle', 'departamentos'], ['perfisItemStyle', 'perfis'],
+    ['saldosItemStyle', 'saldos'], ['lancItemStyle', 'lancamentos'], ['progItemStyle', 'programacao'], ['fluxoItemStyle', 'fluxo'], ['nfCadastrosItemStyle', 'nfCadastros']]) {
     pageVals[key] = hide(pageVals[key], page);
   }
 
@@ -227,16 +236,17 @@ export function renderVals(this: AppLogic) {
     isHome: s.view === 'home',
     dateLabel: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
     expanded: !c,
-    crumbLabel: (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
-    pageTitle: s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação do dia' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
+    crumbLabel: s.page === 'bi' ? 'BI' : s.page === 'nfCadastros' ? 'Notas Fiscais' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
+    pageTitle: s.page === 'bi' ? pageVals.biTitle : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'categorias' ? 'Categorias' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação do dia' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
     goHome: () => this.setState({ view: 'home', page: 'dashboard', userMenuOpen: false }),
     homeShellStyle: `position:relative;height:100vh;width:100%;overflow:hidden;background:${homeBg}`,
     scrimStyle: s.bgMode === 'image'
       ? 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.74) 0%,rgba(9,10,16,.46) 46%,rgba(9,10,16,.12) 100%)'
       : 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.34) 0%,rgba(9,10,16,.2) 100%)',
     appShellStyle: `display:${s.view === 'app' ? 'flex' : 'none'};height:100vh;width:100%;overflow:hidden`,
-    operacao: this.homeModules.operacao.map(mkTile),
-    cadastros: this.homeModules.cadastros.map((it, i) => mkTile(it, i + 9)),
+    operacao: this.homeModules.operacao
+      .filter(it => (it.name !== 'BI' || pageVals.biTileVisible) && (it.name !== 'Notas Fiscais' || pageVals.nfTileVisible)).map(mkTile),
+    cadastros: this.homeModules.cadastros.map((it, i) => mkTile(it, i + this.homeModules.operacao.length)),
     showWeatherChip: showWeather,
     showIndicators, indicators,
     isSun: showWeather && s.wkind === 'sun',
@@ -257,12 +267,17 @@ export function renderVals(this: AppLogic) {
       pick: () => this.saveBg({ bgColor: sw.v }),
     })),
     onPickBg: (e) => {
-      const f = e.target.files && e.target.files[0];
-      if (!f) return;
-      const r = new FileReader();
-      r.onload = () => this.saveBg({ bgUrl: r.result, bgMode: 'image' });
-      r.readAsDataURL(f);
+      const input = e.target;
+      const f = input.files && input.files[0];
+      input.value = '';
+      if (f) this.uploadBg(f);
     },
+    bgOpen: !!s.bgOpen,
+    toggleBgOpen: () => this.setState({ bgOpen: !s.bgOpen }),
+    bgHasCustom:!!s.bgCustom,
+    restoreBg: () => this.restoreBg(),
+    bgHint:'1920×1080 · até 5 MB',
+    bgTip: 'Trocar imagem — resolução ideal 1920×1080 px (16:9, paisagem). JPG, PNG ou WebP, até 5 MB.',
 
     collapsed: c,
 
@@ -304,17 +319,20 @@ export function renderVals(this: AppLogic) {
     togglePermutas: () => this.setState(st => ({ permutasOpen: !st.permutasOpen })),
     toggleVendas: () => this.setState(st => ({ vendasOpen: !st.vendasOpen })),
     toggleConfig: () => this.setState(st => ({ configOpen: !st.configOpen })),
+    toggleCadFin: () => this.setState(st => ({ cadFinOpen: !st.cadFinOpen })),
 
     financeiroChevron: (!c && s.financeiroOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     rhChevron: (!c && s.rhOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     permutasChevron: (!c && s.permutasOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     vendasChevron: (!c && s.vendasOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     configChevron: (!c && s.configOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
+    cadFinChevron: (!c && s.cadFinOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
 
     financeiroContentStyle: `display:grid;grid-template-rows:${(!c && s.financeiroOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     rhContentStyle: `display:grid;grid-template-rows:${(!c && s.rhOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     permutasContentStyle: `display:grid;grid-template-rows:${(!c && s.permutasOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     vendasContentStyle: `display:grid;grid-template-rows:${(!c && s.vendasOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
+    cadFinContentStyle: `display:grid;grid-template-rows:${(!c && s.cadFinOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     configContentStyle: `display:grid;grid-template-rows:${(!c && s.configOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
 
     toggleUserMenu: () => this.setState(st => ({ userMenuOpen: !st.userMenuOpen })),
