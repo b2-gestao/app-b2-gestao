@@ -15,6 +15,7 @@
 // Ações ({ acao, ... }):
 //   preparar { billId }                         → dados do modal (solicitante, departamento, categorias, assunto, mensagem)
 //   criar    { billId, categoriaId, mensagem }  → abre o chamado → { ok, mensagem, protocolo }
+//            (protocolo lido em /ticket/list logo depois: /ticket/new não devolve o número)
 //
 // API: https://api.tomticket.com/v2.0, Bearer, POST em form-data, limite de 3 requisições por segundo
 // (acima disso, 429: a requisição foi recusada e pode ser repetida).
@@ -150,14 +151,28 @@ async function clienteExiste(email: string): Promise<boolean | null> {
   return r.corpo.success === true ? true : null;
 }
 
-/** Id/protocolo do chamado, se o TomTicket devolver (a documentação só cita error, message e success). */
-function protocoloDe(corpo: Record<string, unknown>): string | null {
-  const d = corpo.data as Record<string, unknown> | string | number | undefined;
-  if (typeof d === "string" || typeof d === "number") return String(d);
-  if (d && typeof d === "object") {
-    for (const k of ["protocol", "protocolo", "ticket_protocol", "ticket_id", "id"]) if (d[k] != null) return String(d[k]);
+/**
+ * /ticket/new só devolve error, message e success (sem id nem protocolo). O número vem de
+ * /ticket/list (id, protocol, subject, customer.email, creation_date), mais recente primeiro:
+ * o chamado deste usuário, com este assunto, criado a partir de `desde`. Falha aqui não é erro,
+ * porque o chamado já foi aberto.
+ */
+async function buscarProtocolo(email: string, departamentoId: string, desde: number): Promise<string | null> {
+  try {
+    const r = await tomticket("GET", "/ticket/list", { page: "1", department_id: departamentoId, column: "protocol", order: "DESC" });
+    if (falhou(r) || !Array.isArray(r.corpo.data)) return null;
+    for (const t of r.corpo.data as Record<string, unknown>[]) {
+      const cliente = (t.customer ?? {}) as Record<string, unknown>;
+      if (String(cliente.email ?? "").trim().toLowerCase() !== email) continue;
+      if (normalizar(String(t.subject ?? "")) !== normalizar(ASSUNTO)) continue;
+      const criado = Date.parse(String(t.creation_date ?? "").replace(" ", "T"));
+      if (Number.isFinite(criado) && criado < desde) continue;
+      const numero = t.protocol ?? t.id;
+      return numero == null ? null : String(numero);
+    }
+  } catch (e) {
+    console.error("app-tomticket: protocolo", e);
   }
-  for (const k of ["protocol", "ticket_id"]) if (corpo[k] != null) return String(corpo[k]);
   return null;
 }
 
@@ -212,6 +227,7 @@ Deno.serve(async (req) => {
         const categoria = categorias.find((c) => c.id === String(corpo.categoriaId ?? ""));
         if (!categoria) throw new Erro("Escolha uma categoria do departamento.");
 
+        const desde = Date.now() - 60_000; // folga para diferença de relógio
         // Sem nova tentativa depois de enviado: criar chamado não é idempotente (só o 429, recusado, se repete).
         const r = await tomticket("POST", "/ticket/new", {
           customer_id: email,
@@ -225,7 +241,7 @@ Deno.serve(async (req) => {
         return json({
           ok: true,
           mensagem: typeof r.corpo.message === "string" ? r.corpo.message : "Chamado aberto.",
-          protocolo: protocoloDe(r.corpo),
+          protocolo: await buscarProtocolo(email, departamento.id, desde),
         }, 201);
       }
 
