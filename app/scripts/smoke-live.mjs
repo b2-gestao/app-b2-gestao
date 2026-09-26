@@ -43,6 +43,8 @@ function pagar(p_de, p_ate) {
     business_area: 'SPE TESTE', balance: Math.round(r() * 50000 + 500), authorized: j % 3 !== 0,
   }))));
 }
+// Parcelas a receber no período (app_receber_periodo): a 191 tem plano empresário.
+const receber = () => [190, 191, 217].map((company_id, i) => ({ company_id, receber_aberto: 100000 * (i + 1), parcelas: 3 + i }));
 const seg = () => empresas.slice(0, 6).flatMap((e, i) => ['ADMINISTRAÇÃO', 'CONSTRUÇÃO', 'SPE TESTE', 'Incorporação', 'Comercial', 'Outros'].slice(0, 3 + (i % 3)).map((segmento, j) => ({ company_id: e.id, segmento, total: (j + 1) * 10000 * (6 - i) })));
 
 const usuarios = [{ id: '00000000-0000-0000-0000-000000000001', nome: 'Usuária Teste', email: 'teste@b2.com.br', telefone: null, funcao: 'Administrador', departamento: 'Financeiro', empresas: [2, 3], centros_custo: [100], status: 'ativo' }];
@@ -57,9 +59,38 @@ const tables = {
   app_departamentos: [{ id: 'd-fin', nome: 'Financeiro', descricao: 'Caixa', ativo: true }, { id: 'd-ti', nome: 'TI', descricao: null, ativo: true }],
   app_saldo_contas_manual: [],
   app_rec_financeiro_lancamento: [],
-  app_fluxo_empresas_sem_receber: [],
+  app_fluxo_empresas_sem_receber: [{ company_id: 191, motivo: 'Plano empresário vigente' }],
   app_bi_paineis: [],
+  app_nf_cadastros: [],
 };
+
+// Edge function app-nf (Notas Fiscais › Cadastros): respostas no formato de supabase/functions/app-nf/regras.ts.
+const nfDocumento = {
+  tipoDocumento: 'NFE', numero: '14027', serie: '1', dataEmissao: '2026-09-23', dataVencimento: null, valorTotal: 3478.8,
+  fornecedorNome: 'FORNECEDOR TESTE LTDA', fornecedorCnpj: '11222333000181', destinatarioNome: 'SPE TESTE 190', destinatarioCnpj: '00000000000100',
+  itens: [{ codigo: 'CB40', descricao: 'CUBA SOBREPOR QUADRADA 40CM BR', ncm: '69109000', unidade: 'UN', quantidade: 12, valorUnitario: 289.9, valorTotal: 3478.8 }],
+};
+const nfCorpos = [];
+function appNf(b) {
+  nfCorpos.push(b);
+  if (b.acao === 'analisar') return { documento: nfDocumento, fornecedor: { id: 77, nome: 'Fornecedor Teste Ltda', cnpj: '11.222.333/0001-81' }, empresa: { id: 190, nome: 'SPE Teste 190', cnpj: '00.000.000/0001-00' }, pedidos: [{ id: 93410, numero: '93410', data: '2026-09-16', status: 'PENDING', obraId: 1901, obraNome: 'Obra Teste', valorTotal: 3478.8 }], pedidosOutraEmpresa: 0, bloqueios: [] };
+  if (b.acao === 'preview') return {
+    pedido: { id: 93410, numero: '93410', status: 'PENDING', obraId: 1901, obraNome: 'Obra Teste', valorEmAberto: 3478.8 }, tipoDocumento: 'NFE',
+    documentIds: { NFE: 'NFE', NFSE: 'NFSE', BOLETO: 'BOL', FATURA: 'FAT' },
+    cabecalho: { numero: '14027', serie: '1', dataEmissao: '2026-09-23', dataMovimento: '2026-09-25', vencimento: '2026-10-12', vencimentoDocumento: null, valorTotal: 3478.8, observacaoAutomatica: 'Pedido de compra 93410 vinculado a esta nota. Cadastrado via Externo.' },
+    fornecedorNota: { nome: nfDocumento.fornecedorNome, cnpj: '11.222.333/0001-81' }, destinatarioNota: { nome: nfDocumento.destinatarioNome, cnpj: '00.000.000/0001-00' },
+    fornecedor: { id: 77, nome: 'Fornecedor Teste Ltda', cnpj: '11.222.333/0001-81' }, empresa: { id: 190, nome: 'SPE Teste 190', cnpj: '00.000.000/0001-00' },
+    itensNota: nfDocumento.itens.map((it, indice) => ({ indice, ...it })),
+    itensPedido: [{ itemNumber: 1, codigoInsumo: '143', descricao: 'CUBA DE SOBREPOR QUADRADA BRANCA', unidade: 'UN', quantidadePedido: 12, quantidadeEmAberto: 12, precoUnitario: 289.9 }],
+    vinculos: [{ itemNumber: 1, indiceNota: 0, similaridade: 0.63, quantidade: 12, selecionado: true }],
+    criterioSelecao: 'valor_total', vencimentoEditavel: false, bloqueios: [], avisos: [],
+  };
+  if (b.acao === 'cadastrar') {
+    tables.app_nf_cadastros.unshift({ id: 'nf1', criado_em: new Date().toISOString(), criado_por_email: 'teste@b2.com.br', situacao: 'cadastrada', tipo_documento: b.tipoDocumento, numero: b.cabecalho.numero, serie: b.cabecalho.serie, data_emissao: b.cabecalho.dataEmissao, vencimento: '2026-10-12', valor: b.valor, fornecedor_nome: b.fornecedorNome, empresa_nome: b.empresaNome, pedido: b.purchaseOrderId, obra_nome: 'Obra Teste', sequencial: 55900, bill_id: 90200, avisos: [], anexos: [{ descricao: b.descricaoAnexo, nome: b.nomeArquivo, ok: true }] });
+    return { sequentialNumber: 55900, billId: 90200, message: `Nota fiscal ${b.cabecalho.numero} cadastrada com sucesso (sequencial 55900).`, avisos: [], cadastroId: 'nf1' };
+  }
+  return { ok: true };
+}
 let seq = 1;
 function rest(route, name) {
   const req = route.request();
@@ -109,7 +140,7 @@ await page.route('https://fake-project.supabase.co/**', async route => {
     calls.push('select app_usuarios');
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(usuarios) });
   }
-  const table = url.pathname.match(/^\/rest\/v1\/(app_perfis|app_departamentos|app_saldo_contas_manual|app_rec_financeiro_lancamento|app_fluxo_empresas_sem_receber|app_bi_paineis)$/);
+  const table = url.pathname.match(/^\/rest\/v1\/(app_perfis|app_departamentos|app_saldo_contas_manual|app_rec_financeiro_lancamento|app_fluxo_empresas_sem_receber|app_bi_paineis|app_nf_cadastros)$/);
   if (table) return rest(route, table[1]);
   // Storage (fundo da tela inicial): nenhuma imagem enviada.
   if (url.pathname.startsWith('/storage/v1/object/list/')) return route.fulfill({ status: 200, contentType: 'application/json', body: '[]' });
@@ -120,6 +151,11 @@ await page.route('https://fake-project.supabase.co/**', async route => {
   if (url.pathname === '/functions/v1/app-ia') {
     calls.push('fn app-ia');
     return route.fulfill({ status: 503, contentType: 'application/json', body: JSON.stringify({ error: 'IA não configurada' }) });
+  }
+  if (url.pathname === '/functions/v1/app-nf') {
+    const b = route.request().postDataJSON();
+    calls.push('fn app-nf:' + b.acao);
+    return route.fulfill({ status: b.acao === 'cadastrar' ? 201 : 200, contentType: 'application/json', body: JSON.stringify(appNf(b)) });
   }
   if (url.pathname === '/functions/v1/app-usuarios') {
     const b = route.request().postDataJSON();
@@ -132,7 +168,7 @@ await page.route('https://fake-project.supabase.co/**', async route => {
   calls.push(fn);
   const data = fn === 'app_empresas' ? empresas : fn === 'app_centros_custo' ? centros : fn === 'app_contas_correntes' ? contas
     : fn === 'app_fluxo_diario' ? fluxo(body.p_de, body.p_ate) : fn === 'app_pagar_periodo' ? pagar(body.p_de, body.p_ate)
-      : fn === 'app_pagar_segmentos' ? seg() : fn === 'app_ultimo_sync' ? new Date().toISOString()
+      : fn === 'app_receber_periodo' ? receber() : fn === 'app_pagar_segmentos' ? seg() : fn === 'app_ultimo_sync' ? new Date().toISOString()
         : fn === 'app_pagos_diario' ? days(body.p_de, body.p_ate).map(dia => ({ company_id: 190, dia, pago: 50000, juros: 750, correcao: 0, desconto: 300 }))
         : fn === 'app_is_member' || fn === 'app_is_admin' ? true : null;
   if (!fn) return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(user) });
@@ -175,6 +211,10 @@ await page.screenshot({ path: `${out}/06b-lancamento-recorrente.png` });
 const lanc = tables.app_rec_financeiro_lancamento;
 if (lanc.length !== 3 || new Set(lanc.map(l => l.grupo_id)).size !== 1 || lanc.map(l => l.parcela).join() !== '1,2,3') errors.push('Recorrência não gerou 3 parcelas: ' + JSON.stringify(lanc));
 await clickText('Programação do dia');
+// Saldo inicial = contas + a receber (190 e 217; a 191 tem plano empresário e fica fora).
+const cardSaldo = await page.getByText('Saldo inicial do dia', { exact: true }).first().locator('..').innerText();
+if (!cardSaldo.includes('receber 400.000,00') || !cardSaldo.includes('bens, permutas e financiamento') || !cardSaldo.includes('Exclui plano empresário: 1 empresa')) errors.push('Card Saldo inicial sem o a receber/observações: ' + cardSaldo);
+await page.screenshot({ path: `${out}/06c-programacao-receber.png` });
 await page.getByText('Ver análise', { exact: true }).first().click();
 await page.waitForTimeout(500);
 await page.screenshot({ path: `${out}/07-ia-prog.png` });
@@ -203,6 +243,27 @@ if (bi.length !== 1 || bi[0].nome !== 'Vendas' || bi[0].ordem !== 1 || bi[0].ocu
 await clickText('Vendas');
 await page.screenshot({ path: `${out}/08c-bi.png` });
 if (!(await page.locator('iframe[src="https://app.powerbi.com/view?r=vendas"]').count())) errors.push('BI: iframe do painel não abriu');
+// Notas Fiscais › Cadastros: análise → pedido → conferência → cadastrar (app-nf) e o histórico (app_nf_cadastros).
+await clickText('Notas Fiscais'); // abre o grupo no menu
+await clickText('Cadastros');
+await page.screenshot({ path: `${out}/08d-nf-historico.png` });
+await clickText('Cadastrar nota');
+await page.locator('input[type=file]').first().setInputFiles({ name: 'danfe-14027.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 teste') });
+await clickText('Analisar documento');
+await page.getByText('Usar este pedido', { exact: true }).first().click();
+await page.waitForTimeout(900);
+await page.getByPlaceholder('Código do centro de custo').fill('123');
+await page.screenshot({ path: `${out}/08e-nf-conferencia.png`, fullPage: true });
+await clickText('Cadastrar no Sienge');
+await page.waitForTimeout(900);
+await page.screenshot({ path: `${out}/08f-nf-cadastrada.png` });
+const nfCad = nfCorpos.find(b => b.acao === 'cadastrar');
+if (!nfCad || nfCad.centroCustoId !== 123 || nfCad.purchaseOrderId !== '93410' || JSON.stringify(nfCad.itens) !== '[{"itemNumber":1,"quantidade":12}]' || nfCad.descricaoAnexo !== 'NF' || !nfCad.pdfBase64 || nfCad.vencimentoManual) {
+  errors.push('NF: corpo de cadastrar inesperado: ' + JSON.stringify({ ...nfCad, pdfBase64: nfCad?.pdfBase64 ? '(base64)' : null }));
+}
+if (nfCorpos.find(b => b.acao === 'preview')?.documento?.numero !== '14027') errors.push('NF: preview não recebeu o documento lido na análise');
+await clickText('Ver notas cadastradas');
+if (!(await page.getByText('NF 14027 · série 1').count())) errors.push('NF: nota cadastrada não apareceu no histórico');
 // Login screen (no session).
 const login = await browser.newPage({ viewport: { width: 1440, height: 900 } });
 login.on('pageerror', e => errors.push(String(e)));

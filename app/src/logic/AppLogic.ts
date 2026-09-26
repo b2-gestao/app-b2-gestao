@@ -8,14 +8,16 @@ import { lancVals } from './vals/lancamentos';
 import { progVals } from './vals/programacao';
 import { fluxoVals } from './vals/fluxo';
 import { biVals } from './vals/bi';
+import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
+import { nfApi } from '../lib/nf';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
   readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
 } from './data';
-import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo } from './insights';
+import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg } from './insights';
 import { hashFromState, stateFromHash } from './route';
 
 // Home screen data (indicators, weather, background URL) is shown from localStorage right away
@@ -125,6 +127,12 @@ export class AppLogic extends Component<any, any> {
     biId: null,
     biCfgOpen: false,
     biCfgDraft: null,
+    // Notas Fiscais › Cadastros: histórico (app_nf_cadastros) e o assistente de cadastro (vals/notasCadastros.ts).
+    nfOpen: false,
+    nfLista: null,
+    nfBusca: '',
+    nfSituacao: 'Todas',
+    ...NF_INICIAL,
     // Screen from the URL hash (F5 / shared link reopens the same screen).
     ...stateFromHash(window.location.hash),
   };
@@ -163,6 +171,22 @@ export class AppLogic extends Component<any, any> {
       this.toast('Não foi possível carregar perfis e departamentos: ' + e.message);
     }
     await this.loadCategorias();
+  }
+
+  /** Loads the Notas Fiscais history (app_nf_cadastros). `aviso` toasts when done (Recarregar button). */
+  async loadNfHistorico(aviso = false) {
+    if (this._nfLoading) return;
+    this._nfLoading = true;
+    try {
+      const rows = await nfApi.historico();
+      this.setState({ nfLista: rows });
+      if (aviso) this.toast('Histórico atualizado.');
+    } catch (e: any) {
+      if (this.state.nfLista == null) this.setState({ nfLista: [] });
+      this.toast('Não foi possível carregar as notas cadastradas: ' + e.message);
+    } finally {
+      this._nfLoading = false;
+    }
   }
 
   /** Loads app_lancamento_categorias (Categorias screen and the Lançamentos form). */
@@ -211,6 +235,7 @@ export class AppLogic extends Component<any, any> {
     saldos: 'financeiro.saldos', lancamentos: 'financeiro.lancamentos', programacao: 'financeiro.programacao', fluxo: 'financeiro.fluxo',
     usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
     categorias: 'cadastros.categorias',
+    nfCadastros: 'notas.cadastros',
   };
 
   /** Toast + false when the profile cannot edit this menu (the database enforces it too). */
@@ -415,29 +440,86 @@ export class AppLogic extends Component<any, any> {
     this.startSbAnim();
   }
 
+  /** Analyses received in this session, by data: going back to a date already analysed doesn't call again. */
+  _iaMemo = new Map<string, any>();
+
+  /** Identifies the data the panel would send to the LLM (same data = same analysis). */
+  iaKey(panel: 'prog' | 'fluxo') {
+    // Same state object = same data: computed once per render, not once per caller.
+    const m = this._iaKeyMemo;
+    if (m && m.state === this.state && m.panel === panel) return m.key;
+    const key = panel + JSON.stringify(panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this));
+    this._iaKeyMemo = { state: this.state, panel, key };
+    return key;
+  }
+
   /**
-   * Asks the app-ia edge function (LLM) for the panel's analysis. Until it answers, or when
-   * the model is not configured (503), the panel shows the rule-based analysis.
+   * Asks the app-ia edge function (LLM) for the panel's analysis. Only runs when the user
+   * clicks "Analisar com IA"; until it answers, or when the model is not configured (503),
+   * the panel shows the rule-based analysis. The function also keeps a shared cache.
    */
-  async askIa(panel: 'prog' | 'fluxo', auto = false) {
+  async askIa(panel: 'prog' | 'fluxo') {
     if (!this.live || this.state.iaOff) return;
     const rules = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
+    if (rules.loading) return;
     const contexto = panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this);
-    const key = JSON.stringify(contexto);
+    const key = panel + JSON.stringify(contexto);
+    if (this._iaMemo.has(key)) return;
     const cur = (this.state.iaRemote || {})[panel];
-    // The automatic call never retries an error for the same data; "Ver análise" does.
-    if (cur && cur.key === key && (auto || cur.status !== 'error')) return;
+    if (cur && cur.key === key && cur.status === 'loading') return;
     const put = (v: any) => this.setState(st => ({ iaRemote: { ...(st.iaRemote || {}), [panel]: v } }));
     put({ key, status: 'loading' });
     if (!this.state.iaModelo) this.loadIaModelo();
     try {
       const data = await apoioApi.ia(panel, contexto, rules.items.map(i => ({ label: i.label, text: i.text })));
-      put({ key, status: 'ready', data });
+      this._iaMemo.set(key, data);
+      if (this._iaMemo.size > 30) this._iaMemo.delete(this._iaMemo.keys().next().value!);
+      put({ key, status: 'ready' });
       this.saveIaModelo(data.modelo);
     } catch (e: any) {
       if (e.status === 503) this.setState({ iaOff: true });
       put({ key, status: 'error', error: e.message });
     }
+  }
+
+  /** State of the LLM analysis for the data on screen right now. */
+  iaStatus(panel: 'prog' | 'fluxo'): 'ready' | 'loading' | 'error' | 'idle' {
+    const key = this.iaKey(panel);
+    if (this._iaMemo.has(key)) return 'ready';
+    const cur = (this.state.iaRemote || {})[panel];
+    return cur && cur.key === key && cur.status !== 'ready' ? cur.status : 'idle';
+  }
+
+  /** Downloads the Programação do dia analysis (points + companies needing aporte) as a PDF. */
+  async baixarPdfIa() {
+    if (this.state.iaPdfBusy) return;
+    this.setState({ iaPdfBusy: true });
+    try {
+      const { gerarPdfIaProg } = await import('../lib/relatorioIaPdf');
+      await gerarPdfIaProg(relatorioProg(this));
+      this.toast('PDF da análise gerado.');
+    } catch (e: any) {
+      console.error('PDF da análise:', e);
+      this.toast('Não foi possível gerar o PDF.');
+    } finally {
+      this.setState({ iaPdfBusy: false });
+    }
+  }
+
+  /** "Baixar PDF" button of the analysis panel (Programação do dia only). */
+  iaPdfVals() {
+    const s = this.state;
+    const show = this.live && s.iaPanel === 'prog';
+    // Waits for the data and for the LLM, so the PDF has the same analysis the panel shows.
+    const wait = show && (progInsights(this).loading || this.iaStatus('prog') === 'loading');
+    const off = wait || s.iaPdfBusy;
+    return {
+      iaPdfShow: show,
+      iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off) this.baixarPdfIa(); },
+      iaPdfLabel: s.iaPdfBusy ? 'Gerando…' : 'Baixar PDF',
+      iaPdfTitle: wait ? 'Aguarde a análise terminar' : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
+      iaPdfStyle: `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${off ? 'default' : 'pointer'};opacity:${off ? 0.5 : 1}`,
+    };
   }
 
   /** Model id (IA_MODEL), shown while the LLM is thinking; cached from the last answer. */
@@ -452,50 +534,38 @@ export class AppLogic extends Component<any, any> {
   }
 
   /**
-   * Programação/Fluxo open with data loaded: ask the LLM for the banner on its own, once the
-   * data has been stable for a moment (unchecking several items in a row = one call).
+   * Banner of Programação/Fluxo: the LLM's headline when this data was already analysed,
+   * "thinking" while it runs, else the rules and the "Analisar com IA" button.
    */
-  autoIa() {
-    const s = this.state;
-    const panel = s.view === 'app' && s.page === 'programacao' ? 'prog' : s.view === 'app' && s.page === 'fluxo' ? 'fluxo' : null;
-    if (!this.live || s.iaOff || !panel || !this.props.session) return;
-    const loading = panel === 'prog' ? progInsights(this).loading : fluxoInsights(this).loading;
-    if (loading) return;
-    const key = panel + JSON.stringify(panel === 'prog' ? iaContextoProg(this) : iaContextoFluxo(this));
-    if (key === this._iaAutoKey) return;
-    this._iaAutoKey = key;
-    clearTimeout(this._iaAutoT);
-    this._iaAutoT = setTimeout(() => this.askIa(panel, true), 1200);
-  }
-
-  /** Banner line of Programação/Fluxo: the LLM's headline, "thinking", or the rules. */
   iaBanner(panel: 'prog' | 'fluxo', rules: { headline: string; sub: string; items: any[]; loading?: boolean }) {
-    const remote = this.iaRemoteFor(panel);
-    const st = (this.state.iaRemote || {})[panel]?.status;
+    const st = this.iaStatus(panel);
+    const remote = st === 'ready' ? this.iaRemoteFor(panel) : null;
     const modelo = remote?.modelo || this.state.iaModelo;
     const pontos = (n: number) => `${n} ${n === 1 ? 'ponto de atenção' : 'pontos de atenção'}`;
-    if (remote) return { headline: remote.headline, sub: `Análise com IA · ${modelo} · ${pontos(remote.items.length)}` };
-    if (st === 'loading' || (!rules.loading && !this.state.iaOff && this.props.session && st !== 'error')) {
-      return { headline: 'A IA está pensando…', sub: `Analisando os dados${modelo ? ` com ${modelo}` : ''}` };
-    }
-    return { headline: rules.headline, sub: rules.loading ? rules.sub : `Análise por regras · ${pontos(rules.items.length)}` };
+    if (remote) return { headline: remote.headline, sub: `Análise com IA · ${modelo} · ${pontos(remote.items.length)}`, btn: 'Ver análise' };
+    if (st === 'loading') return { headline: 'A IA está pensando…', sub: `Analisando os dados${modelo ? ` com ${modelo}` : ''}`, btn: 'Ver análise' };
+    const off = this.state.iaOff;
+    const sub = rules.loading ? rules.sub
+      : `Análise por regras · ${pontos(rules.items.length)}${off ? '' : st === 'error' ? ' · a IA não respondeu, tente de novo' : ''}`;
+    return { headline: rules.headline, sub, btn: off ? 'Ver análise' : 'Analisar com IA' };
   }
 
-  /** LLM answer for the panel when it matches the current data, else null. */
+  /** LLM answer for the data on screen right now, else null. */
   iaRemoteFor(panel: 'prog' | 'fluxo') {
-    const r = (this.state.iaRemote || {})[panel];
-    return r && r.status === 'ready' ? r.data : null;
+    return this.live ? this._iaMemo.get(this.iaKey(panel)) || null : null;
   }
 
   iaInsights(panel) {
     if (this.live && (panel === 'prog' || panel === 'fluxo')) {
       const r = panel === 'prog' ? progInsights(this) : fluxoInsights(this);
       const remote = this.iaRemoteFor(panel);
-      const loading = (this.state.iaRemote || {})[panel]?.status === 'loading';
+      const st = remote ? 'ready' : this.iaStatus(panel);
+      const loading = st === 'loading';
       const cor = { critico: '#EF4444', atencao: '#F59E0B', info: '#94A3B8', positivo: '#43B997' };
       if (remote) {
+        const quando = remote.gerado_em ? ` às ${new Date(remote.gerado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : '';
         return {
-          title: r.title, subtitle: `Gerada por IA (${remote.modelo}) sobre os dados do período.`,
+          title: r.title, subtitle: `Gerada por IA (${remote.modelo})${quando} sobre os dados do período${remote.cache ? ' · reaproveitada, sem nova chamada' : ''}.`,
           items: remote.items.map(i => ({
             label: i.label, text: i.text, action: '',
             onAction: () => this.setState({ iaPanel: null }),
@@ -506,7 +576,8 @@ export class AppLogic extends Component<any, any> {
       }
       return {
         title: r.title,
-        subtitle: loading ? `A IA está pensando${this.state.iaModelo ? ` (${this.state.iaModelo})` : ''}… enquanto isso, a análise por regras:` : r.subtitle,
+        subtitle: loading ? `A IA está pensando${this.state.iaModelo ? ` (${this.state.iaModelo})` : ''}… enquanto isso, a análise por regras:`
+          : st === 'error' ? 'A IA não respondeu agora; abaixo, a análise por regras. Tente de novo em instantes.' : r.subtitle,
         items: r.items.map(i => ({
           label: i.label, text: i.text, action: i.action || '',
           onAction: i.go || (() => this.setState({ iaPanel: null })),
@@ -593,6 +664,9 @@ export class AppLogic extends Component<any, any> {
       { key: 'lancamentos', label: 'Lançamentos manuais' },
       { key: 'programacao', label: 'Programação do dia' },
       { key: 'fluxo', label: 'Fluxo de caixa' },
+    ] },
+    { key: 'notas', label: 'Notas Fiscais', subs: [
+      { key: 'cadastros', label: 'Cadastros' },
     ] },
     { key: 'rh', label: 'RH', subs: [
       { key: 'colaboradores', label: 'Colaboradores' },
@@ -921,6 +995,7 @@ export class AppLogic extends Component<any, any> {
     operacao: [
       { name:'Financeiro', sub:'Contas, tesouraria e fluxo', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
       { name:'BI', sub:'Painéis do Power BI', c:'#F2C811', d:'M5 20V13M10 20V8M15 20v-5M20 20V4M3 20h18' },
+      { name:'Notas Fiscais', sub:'Cadastro de NF no Sienge', c:'#14B8A6', d:'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5' },
       { name:'RH', sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
       { name:'Veículos', sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
       { name:'Permutas', sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
@@ -994,10 +1069,11 @@ export class AppLogic extends Component<any, any> {
 
   componentDidUpdate() {
     this.ensureRanges();
-    this.autoIa();
     // Each screen change becomes a history entry, so the URL always names the open screen.
     const hash = hashFromState(this.state);
     if (hash !== window.location.hash) history.pushState(null, '', hash);
+    // Notas Fiscais history loads on first visit (menu, tile or a reopened URL).
+    if (this.state.page === 'nfCadastros' && this.state.nfLista == null && this.pode(this.pagePerm.nfCadastros)) this.loadNfHistorico();
     // Page the profile cannot open (menus are hidden, but a tile or old state may lead here).
     const need = this.pagePerm[this.state.page];
     if (this.live && this.state.view === 'app' && need && !this.pode(need)) {
@@ -1009,7 +1085,6 @@ export class AppLogic extends Component<any, any> {
   componentWillUnmount() {
     window.removeEventListener('popstate', this.onPopState);
     clearTimeout(this._toastT);
-    clearTimeout(this._iaAutoT);
     cancelAnimationFrame(this._sbRaf);
   }
 
@@ -1264,5 +1339,6 @@ export class AppLogic extends Component<any, any> {
   progVals(subItemStyle: string): any { return progVals.call(this, subItemStyle); }
   fluxoVals(subItemStyle: string): any { return fluxoVals.call(this, subItemStyle); }
   biVals(subItemStyle: string): any { return biVals.call(this, subItemStyle); }
+  notasCadastrosVals(subItemStyle: string): any { return notasCadastrosVals.call(this, subItemStyle); }
   renderVals(): any { return renderVals.call(this); }
 }

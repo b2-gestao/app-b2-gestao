@@ -55,6 +55,13 @@ export interface FluxoDia {
   pagar_correcao: number;
 }
 
+/** Parcelas a receber em aberto no período por empresa, sem Bens, Permuta e Financiamento. */
+export interface ReceberEmpresa {
+  company_id: number;
+  receber_aberto: number;
+  parcelas: number;
+}
+
 export interface PagoDia {
   company_id: number;
   dia: string;
@@ -86,6 +93,8 @@ export const api = {
     rpc<TituloPagar[]>('app_pagar_periodo', { p_de: de, p_ate: ate, p_empresas: empresas && empresas.length ? empresas : null }),
   fluxoDiario: (de: string, ate: string, empresas?: number[] | null) =>
     rpc<FluxoDia[]>('app_fluxo_diario', { p_de: de, p_ate: ate, p_empresas: empresas && empresas.length ? empresas : null }),
+  receberPeriodo: (de: string, ate: string, empresas?: number[] | null) =>
+    rpc<ReceberEmpresa[]>('app_receber_periodo', { p_de: de, p_ate: ate, p_empresas: empresas && empresas.length ? empresas : null }),
   pagarSegmentos: (de: string, ate: string) => rpc<PagarSegmento[]>('app_pagar_segmentos', { p_de: de, p_ate: ate }),
   ultimoSync: () => rpc<string | null>('app_ultimo_sync'),
   pagosDiario: (de: string, ate: string) => rpc<PagoDia[]>('app_pagos_diario', { p_de: de, p_ate: ate }),
@@ -272,7 +281,7 @@ export const cadastrosApi = {
 };
 
 // ---- edge functions de apoio ----
-async function invoke<T>(fn: string, body?: Record<string, unknown>): Promise<T> {
+export async function invoke<T>(fn: string, body?: Record<string, unknown>): Promise<T> {
   const { data, error } = await db().functions.invoke(fn, { body: body || {} });
   if (error) {
     const b = await (error as any).context?.json?.().catch(() => null);
@@ -283,7 +292,7 @@ async function invoke<T>(fn: string, body?: Record<string, unknown>): Promise<T>
   return data as T;
 }
 
-export interface IaResposta { headline: string; items: { label: string; text: string; nivel: 'critico' | 'atencao' | 'info' | 'positivo' }[]; modelo: string }
+export interface IaResposta { headline: string; items: { label: string; text: string; nivel: 'critico' | 'atencao' | 'info' | 'positivo' }[]; modelo: string; cache?: boolean; gerado_em?: string }
 
 export const apoioApi = {
   /** BCB/SGS via edge function app-indicadores: { SELIC: { valor, data } | null, ... } */

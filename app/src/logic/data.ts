@@ -9,7 +9,7 @@ import { fluxoPeriodo } from './vals/fluxoData';
 // Live-data layer for the screens. In demo mode (no Supabase env) none of this runs
 // and the screens keep the prototype's sample data.
 
-export type RangeKind = 'fluxo' | 'pagar' | 'seg' | 'pagos' | 'saldo';
+export type RangeKind = 'fluxo' | 'pagar' | 'receber' | 'seg' | 'pagos' | 'saldo';
 export interface RangeEntry<T> {
   status: 'loading' | 'ready' | 'error';
   rows: T[];
@@ -58,6 +58,7 @@ async function fetchRange(app: AppLogic, kind: RangeKind, from: string, to: stri
   try {
     const rows: unknown[] = kind === 'fluxo' ? await api.fluxoDiario(from, to)
       : kind === 'pagar' ? await api.pagarPeriodo(from, to)
+        : kind === 'receber' ? await api.receberPeriodo(from, to)
         : kind === 'pagos' ? await api.pagosDiario(from, to)
           : kind === 'saldo' ? await cadastrosApi.saldos(from)
             : await api.pagarSegmentos(from, to);
@@ -78,7 +79,11 @@ export function neededRanges(this: AppLogic): [RangeKind, string, string][] {
   if (s.view !== 'app') return out;
   const saldo = (d: string) => out.push(['saldo', d, d]);
   if (s.page === 'saldos') saldo(s.sbDate || today);
-  if (s.page === 'programacao') { out.push(['pagar', s.pgDateFrom || today, s.pgDateTo || today]); saldo(s.pgDateFrom || today); }
+  if (s.page === 'programacao') {
+    const from = s.pgDateFrom || today, to = s.pgDateTo || from;
+    out.push(['pagar', from, to], ['receber', from, to]);
+    saldo(from);
+  }
   if (s.page === 'fluxo') { const p = fluxoPeriodo(s); out.push(['fluxo', p.anchor, p.to]); saldo(p.anchor); }
   const pages = ['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo'];
   if (!pages.includes(s.page)) {

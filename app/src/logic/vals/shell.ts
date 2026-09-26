@@ -189,7 +189,7 @@ export function renderVals(this: AppLogic) {
     ringStyle: ringBase,
     tileStyle: tileStyle + `;animation-delay:${60 + i * 34}ms`,
     chipStyle: `width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${it.c}22;border:1px solid ${it.c}55`,
-    open: () => it.name === 'BI' ? pageVals.openFirstBi() : isCadFin(it) ? pageVals.goCategorias() : this.setState({
+    open: () => it.name === 'BI' ? pageVals.openFirstBi() : it.name === 'Notas Fiscais' ? pageVals.goNfCadastros() : isCadFin(it) ? pageVals.goCategorias() : this.setState({
       view: 'app', module: it.name, collapsed: false,
       page: it.name === 'Configurações' ? (['usuarios', 'departamentos', 'perfis'].find(p => this.pode(this.pagePerm[p])) || 'dashboard') : 'dashboard',
       configOpen: it.name === 'Configurações' ? true : this.state.configOpen,
@@ -218,6 +218,7 @@ export function renderVals(this: AppLogic) {
     ...this.progVals(subItemStyle),
     ...this.fluxoVals(subItemStyle),
     ...this.biVals(subItemStyle),
+    ...this.notasCadastrosVals(subItemStyle),
   };
   pageVals.categoriasItemStyle = s.page === 'categorias'
     ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
@@ -225,7 +226,7 @@ export function renderVals(this: AppLogic) {
   // Cadastros › Financeiro only holds Categorias for now: hide the group with it.
   pageVals.cadFinGroupStyle = this.pode(this.pagePerm.categorias) ? '' : 'display:none';
   for (const [key, page] of [['categoriasItemStyle', 'categorias'], ['usuariosItemStyle', 'usuarios'], ['departamentosItemStyle', 'departamentos'], ['perfisItemStyle', 'perfis'],
-    ['saldosItemStyle', 'saldos'], ['lancItemStyle', 'lancamentos'], ['progItemStyle', 'programacao'], ['fluxoItemStyle', 'fluxo']]) {
+    ['saldosItemStyle', 'saldos'], ['lancItemStyle', 'lancamentos'], ['progItemStyle', 'programacao'], ['fluxoItemStyle', 'fluxo'], ['nfCadastrosItemStyle', 'nfCadastros']]) {
     pageVals[key] = hide(pageVals[key], page);
   }
 
@@ -235,15 +236,16 @@ export function renderVals(this: AppLogic) {
     isHome: s.view === 'home',
     dateLabel: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
     expanded: !c,
-    crumbLabel: s.page === 'bi' ? 'BI' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
-    pageTitle: s.page === 'bi' ? pageVals.biTitle : s.page === 'categorias' ? 'Categorias' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação do dia' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
+    crumbLabel: s.page === 'bi' ? 'BI' : s.page === 'nfCadastros' ? 'Notas Fiscais' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
+    pageTitle: s.page === 'bi' ? pageVals.biTitle : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'categorias' ? 'Categorias' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação do dia' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
     goHome: () => this.setState({ view: 'home', page: 'dashboard', userMenuOpen: false }),
     homeShellStyle: `position:relative;height:100vh;width:100%;overflow:hidden;background:${homeBg}`,
     scrimStyle: s.bgMode === 'image'
       ? 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.74) 0%,rgba(9,10,16,.46) 46%,rgba(9,10,16,.12) 100%)'
       : 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.34) 0%,rgba(9,10,16,.2) 100%)',
     appShellStyle: `display:${s.view === 'app' ? 'flex' : 'none'};height:100vh;width:100%;overflow:hidden`,
-    operacao: this.homeModules.operacao.filter(it => it.name !== 'BI' || pageVals.biTileVisible).map(mkTile),
+    operacao: this.homeModules.operacao
+      .filter(it => (it.name !== 'BI' || pageVals.biTileVisible) && (it.name !== 'Notas Fiscais' || pageVals.nfTileVisible)).map(mkTile),
     cadastros: this.homeModules.cadastros.map((it, i) => mkTile(it, i + this.homeModules.operacao.length)),
     showWeatherChip: showWeather,
     showIndicators, indicators,

@@ -24,6 +24,16 @@ export default function IaPanel({ v }: { v: any }) {
               {v.iaData.subtitle}
             </div>
           </div>
+          {v.iaPdfShow ? (
+            <>
+              <button onClick={v.iaPdf} title={v.iaPdfTitle} style={css(v.iaPdfStyle)} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+                {v.iaPdfLabel}
+              </button>
+            </>
+          ) : null}
           <button onClick={v.iaClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid #EEEEF1", "background": "#FFFFFF", "color": "#94A3B8", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:#EF4444;background:#FEE9E9", undefined, undefined)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>

@@ -127,6 +127,31 @@ export default function Sidebar({ v }: { v: any }) {
             </div>
           </div>
         </div>
+        <div style={css(v.nfGroupStyle)}>
+          <div onClick={v.toggleNf} style={css(v.navItemStyle)} title="Notas Fiscais" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
+              <path d="M6 3h9l4 4v14H6z" stroke="#A1A1AA" strokeWidth="1.5" strokeLinejoin="round"></path>
+              <path d="M15 3v4h4M9 12h7M9 16h5" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+            </svg>
+            <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
+              Notas Fiscais
+            </span>
+            {!v.collapsed ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={css(`margin-left:auto;flex:none;transform:${v.nfChevron};transition:transform .15s`)}>
+                  <path d="M6 9l6 6 6-6" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </>
+            ) : null}
+          </div>
+          <div style={css(v.nfContentStyle)}>
+            <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
+              <a href="#" onClick={v.goNfCadastros} style={css(v.nfCadastrosItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
+                Cadastros
+              </a>
+            </div>
+          </div>
+        </div>
         <div>
           <div onClick={v.toggleRh} style={css(v.navItemStyle)} title="RH" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>

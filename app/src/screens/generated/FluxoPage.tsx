@@ -86,7 +86,7 @@ export default function FluxoPage({ v }: { v: any }) {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"></path>
               </svg>
-              Ver análise
+              {v.iaFluxoBtnLabel}
             </button>
           </div>
           <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>

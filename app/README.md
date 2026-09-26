@@ -38,7 +38,7 @@ direto, protegidas por RLS: leitura para membros, escrita conforme o perfil.
 | Empresas (filtros, seletores) | `empresas` LEFT JOIN `de_para_sharepoint` (nome do empreendimento; várias linhas no De Para viram uma lista, sem duplicar a empresa) |
 | Centros de custo | `centros_custo` |
 | Saldos bancários | só as contas adicionadas em `app_saldo_contas_selecionadas` (escolhidas entre as de `contas_correntes` com status ENABLED, via "Informar saldo"; o botão de lixeira remove); o saldo digitado ou importado pelo CSV-modelo vai para `app_saldo_contas_manual` (um registro por conta e dia) |
-| Programação do dia | títulos em aberto de `parcelas_pagar_raw` no período + lançamentos manuais, contra o saldo informado do primeiro dia |
+| Programação do dia | títulos em aberto de `parcelas_pagar_raw` no período + lançamentos manuais, contra o saldo inicial: saldo informado do primeiro dia + parcelas a receber em aberto no período (`app_receber_periodo`, sem Bens, Permuta e Financiamento pelo `grupo_parcela` de `payment_term_descriptions`; empresas em `app_fluxo_empresas_sem_receber` — plano empresário — não somam recebíveis) |
 | Fluxo de caixa | `parcelas_receber` (receitas) e `parcelas_pagar_raw` (pagamentos) em aberto, no período escolhido na tela (padrão: 10 dias a partir de hoje; até 62), por empresa; visão Consolidado (soma das empresas do filtro, aportes se anulam) ou Por SPE; aportes calculados para a holding (`VITE_HOLDING_EMPRESA_ID`). Empresas em `app_fluxo_empresas_sem_receber` (engrenagem da tela, com motivo) ficam com receitas zeradas — recebíveis já comprometidos |
 | Painel (Visão Geral) | totais diários de receber/pagar, próximos vencimentos, ranking por empresa e por segmento (`business_area_name`); pago, juros (juros + multa) e descontos por data de pagamento em `parcelas_pagar_payments` (`app_pagos_diario`) |
 | Lançamentos manuais | `app_rec_financeiro_lancamento`. Uma recorrência ("Mensal · 6x") grava 6 linhas com o mesmo `grupo_id` (parcela 1/6 … 6/6); cada parcela é editada/excluída sozinha |
@@ -46,6 +46,7 @@ direto, protegidas por RLS: leitura para membros, escrita conforme o perfil.
 | Categorias (Cadastros › Financeiro) | `app_lancamento_categorias`. As ativas aparecem no campo Categoria dos lançamentos manuais; `app_rec_financeiro_lancamento.categoria` é FK para o nome (`on update cascade`), então renomear atualiza os lançamentos e categoria em uso não pode ser excluída, só inativada |
 | Departamentos, Perfis | `app_departamentos` e `app_perfis`. A "Função" do usuário é o nome do perfil (FK com `on update cascade`) |
 | BI | `app_bi_paineis` (nome, link público do Power BI, ordem, ativo, ocultar rodapé). Cada painel ativo vira um item do menu BI e abre o relatório num iframe (`src/screens/BiPage.tsx`); "Gerenciar painéis" (`BiCfgModal.tsx`) cadastra pelo link ou pelo código `<iframe>` do *Publicar na Web*. Não há back-end: o app lê e grava a tabela direto |
+| Notas Fiscais › Cadastros | Cadastro de nota de compra no Sienge a partir do PDF (NF-e, NFS-e, boleto, fatura), portado do projeto `sienge-nf-automatica`: edge function `app-nf` (leitura do PDF por Gemini/OpenAI, fornecedor/empresa pelo CNPJ, pedidos em aberto, sugestão de vínculo dos insumos, gravação da nota, vencimento +17 dias e anexos no título). Histórico em `app_nf_cadastros`, gravado só pela função. Permissão `notas.cadastros`: ver = histórico; editar = cadastrar. Tela escrita à mão: `src/screens/NotasCadastrosPage.tsx` + `src/logic/vals/notasCadastros.ts` |
 | Indicadores (tela inicial) | API SGS do Banco Central pela edge function `app-indicadores` (cache de 1 h); se ela falhar, direto do navegador |
 | Análise com IA | edge function `app-ia` (modelo configurável, ver abaixo); sem modelo configurado, regras fixas sobre os dados |
 
@@ -77,12 +78,29 @@ ligar, defina os segredos em *Edge Functions › Secrets* (sem mudar código):
 | `IA_MODEL` | id exato do modelo, como está na documentação da OpenAI |
 | `IA_API_URL` | opcional; padrão `https://api.openai.com/v1` (troque para usar outro provedor compatível) |
 | `IA_JSON_MODE` | opcional; `false` se o provedor não aceitar `response_format: json_object` |
+| `IA_REASONING_EFFORT` | opcional; `low`, `medium`... (sem ele, o padrão do modelo) |
+| `IA_CACHE_HORAS` | opcional; validade do cache compartilhado, padrão 4 |
 
 Modelo escolhido (24/09): `gpt-5.6-luna` (OpenAI, aceita `/chat/completions` e JSON mode).
 
-A faixa de análise da Programação do dia e do Fluxo de caixa chama a IA sozinha quando os dados
-terminam de carregar (e de novo ~1s depois de cada mudança nos dados). Enquanto espera, mostra
-"A IA está pensando…" com o nome do modelo. Sem IA ou com erro, mostra "Análise por regras".
+A faixa de análise da Programação do dia e do Fluxo de caixa mostra a análise por regras e só
+chama a IA quando o usuário clica em **Analisar com IA** (decisão de 24/09, para controlar custo).
+Enquanto espera, mostra "A IA está pensando…" com o nome do modelo. Se os dados mudarem, a faixa
+volta para as regras e o botão volta a ser "Analisar com IA"; voltar para dados já analisados na
+sessão mostra a análise de novo sem chamar a IA. No modal da Programação, **Baixar PDF** gera o
+relatório (pontos de atenção + empresas que precisam de aporte) sem nova chamada.
+
+O app manda à IA um bloco `resumo` com os totais já calculados (os mesmos dos cards) e o prompt
+proíbe recalcular: a IA só escolhe e escreve. A função guarda cada resposta na tabela
+`app_ia_cache` (chave = hash dos dados + tela + data + modelo + versão do prompt): outro usuário
+que pede os mesmos dados no mesmo dia recebe a mesma resposta, sem custo. Mudou o prompt? Suba
+`PROMPT_VERSAO` na função. Chamadas pagas, reaproveitadas e tokens das últimas 24 h:
+
+```sql
+select count(*) as chamadas_pagas, coalesce(sum(hits), 0) as reaproveitadas,
+       sum(tokens_entrada) as entrada, sum(tokens_saida) as saida, sum(tokens_raciocinio) as raciocinio
+from app_ia_cache where criado_em > now() - interval '1 day';
+```
 
 Trocar de modelo ou provedor = trocar os segredos. Enquanto não houver chave e modelo, a
 função responde 503 e o painel mostra a análise por regras.
@@ -106,6 +124,8 @@ função responde 503 e o painel mostra a análise por regras.
    ✅ (24/09) `20260924100000_app_bi_paineis.sql` (seção BI).
    ✅ (24/09) `20260924110000_app_saldo_contas_selecionadas.sql` (contas listadas em Saldos bancários).
    ✅ (24/09) `20260924120000_app_lancamento_categorias.sql` (Cadastros › Financeiro › Categorias).
+   ✅ (24/09) `20260924130000_app_receber_periodo.sql` (a receber no saldo inicial da Programação do dia).
+   ✅ (24/09) `20260924140000_app_ia_cache.sql` (cache compartilhado da Análise com IA).
 2. ✅ (23/09) Edge functions publicadas: `app-usuarios`, `app-indicadores`, `app-ia`.
    **Falta** o segredo `APP_URL` (endereço onde o app roda; os links dos e-mails levam
    para lá). Rodando local, use `http://localhost:5173`.

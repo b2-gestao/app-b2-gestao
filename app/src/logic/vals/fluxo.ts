@@ -147,6 +147,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     ...fluxoCfgVals.call(this),
     iaFluxoHeadline: ia ? ia.headline : 'Saldo projetado fica negativo em 28/09 · R$ 142 mil abaixo do necessário',
     iaFluxoSub: ia ? ia.sub : 'Análise com IA · projeção dos próximos 10 dias',
+    iaFluxoBtnLabel: ia ? ia.btn : 'Ver análise',
     isFluxo: s.page === 'fluxo',
     fluxoItemStyle: s.page === 'fluxo' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
     goFluxo: e => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'fluxo', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },

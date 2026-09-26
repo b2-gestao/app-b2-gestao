@@ -50,6 +50,23 @@ await page.screenshot({ path: `${out}/12-bi-painel.png` });
 await clickText('Obras');
 await page.waitForTimeout(800);
 await page.screenshot({ path: `${out}/13-bi-painel-2.png` });
+// Notas Fiscais › Cadastros: histórico e o assistente inteiro com os dados de demonstração.
+await clickText('Início');
+await clickText('Notas Fiscais'); // tile da tela inicial
+await page.screenshot({ path: `${out}/15-nf-historico.png` });
+await clickText('Cadastrar nota');
+await page.locator('input[type=file]').first().setInputFiles({ name: 'danfe-14027.pdf', mimeType: 'application/pdf', buffer: Buffer.from('%PDF-1.4 teste') });
+await clickText('Analisar documento');
+await page.waitForTimeout(900);
+await page.screenshot({ path: `${out}/16-nf-pedido.png` });
+await page.getByText('Usar este pedido', { exact: true }).first().click();
+await page.waitForTimeout(1200);
+await page.getByPlaceholder('Código do centro de custo').fill('123');
+await page.screenshot({ path: `${out}/17-nf-conferencia.png`, fullPage: true });
+await clickText('Cadastrar no Sienge');
+await page.waitForTimeout(1200);
+await page.screenshot({ path: `${out}/18-nf-cadastrada.png` });
+if (!(await page.getByText(/cadastrada com sucesso/).count())) errors.push('NF: tela de concluído não apareceu');
 await clickText('Perfis');
 await clickText('Novo perfil');
 await page.getByText('Gerenciar painéis', { exact: true }).last().scrollIntoViewIfNeeded();

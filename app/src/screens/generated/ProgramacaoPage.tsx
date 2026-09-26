@@ -29,9 +29,10 @@ export default function ProgramacaoPage({ v }: { v: any }) {
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
               <button onClick={v.pgExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
-                  <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                  <rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" strokeWidth="1.7"></rect>
+                  <path d="M4 9h16M4 14.5h16M10 9v11.5" stroke="currentColor" strokeWidth="1.7"></path>
                 </svg>
-                Exportar remessa
+                Exportar para Excel
               </button>
             </div>
           </div>
@@ -54,7 +55,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"></path>
               </svg>
-              Ver análise
+              {v.iaProgBtnLabel}
             </button>
           </div>
           <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "12px", "flexWrap": "wrap", "padding": "12px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "40ms" }}>
@@ -145,6 +146,9 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                   <div style={{ "fontSize": "12px", "color": "#64748B" }}>
                     {c.sub}
                   </div>
+                  <div title={c.noteTip || undefined} style={css(c.noteStyle)}>
+                    {c.note}
+                  </div>
                 </div>
               </Fragment>
             ))}
@@ -206,7 +210,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                             {g.emp}
                           </span>
                         </div>
-                        <div style={{ "textAlign": "right", "fontSize": "13px", "color": "#374151", "fontVariantNumeric": "tabular-nums" }}>
+                        <div title={g.saldoTip} style={{ "textAlign": "right", "fontSize": "13px", "color": "#374151", "fontVariantNumeric": "tabular-nums" }}>
                           {g.saldo}
                         </div>
                         <div style={{ "textAlign": "right", "fontSize": "13px", "color": "#DC2626", "fontVariantNumeric": "tabular-nums" }}>

@@ -67,6 +67,12 @@ Supabase
 - [ ] **Seção BI:** migration `20260924100000_app_bi_paineis.sql` já aplicada (24/09); falta cadastrar os
       painéis em BI › Gerenciar painéis e liberar cada um nos perfis (Configurações › Perfis, seção BI).
 
+- [ ] **Notas Fiscais › Cadastros:** migration `20260925100000_app_nf_cadastros.sql` aplicada e edge function `app-nf`
+      publicada (25/09). Falta criar os segredos: `SIENGE_API_USER`, `SIENGE_API_PASSWORD` (Painel de Integrações) e
+      `OPENAI_API_KEY` (a leitura do PDF usa OpenAI por padrão; `OPENAI_MODEL` opcional, padrão `gpt-4.1-mini`), e opcionais
+      `SIENGE_FORMATO_PEDIDO`, `SIENGE_DOCUMENT_ID_*`, `SIENGE_MOVEMENT_TYPE_ID`, `NF_TOLERANCIA_VALOR`,
+      `NF_SENHA_VENCIMENTO` (sem ela o vencimento fica travado em +17 dias). Liberar `notas.cadastros` nos perfis.
+
 ### Validar no primeiro uso real
 
 - [ ] Primeiro teste de ponta a ponta: login real, telas com dados reais, gravar saldo e lançamento.

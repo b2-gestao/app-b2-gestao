@@ -1,4 +1,6 @@
 import type { AppLogic } from './AppLogic';
+import type { RelatorioIaProg } from '../lib/relatorioIaPdf';
+import { todayIso } from '../lib/api';
 import { progLiveGroups } from './vals/programacaoData';
 import { fluxoLive } from './vals/fluxoData';
 
@@ -123,7 +125,8 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 export function iaContextoProg(app: AppLogic) {
   const { groups } = progLiveGroups.call(app);
   const sel: string[] | undefined = app.state.pgEmpSel;
-  const gs = (sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups).map((g: any) => {
+  const sgs = sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups;
+  const gs = sgs.map((g: any) => {
     const on = g.items.filter((i: any) => i.on);
     const tit = on.filter((i: any) => i.tag === 'Título');
     const total = on.reduce((t: number, i: any) => t + i.val, 0);
@@ -138,11 +141,43 @@ export function iaContextoProg(app: AppLogic) {
         .map((i: any) => ({ credor: i.title, valor: r2(i.val), vencimento: i.due, autorizado: i.authorized !== false })),
     };
   }).sort((a, b) => b.titulos_sienge + b.lancamentos_manuais - a.titulos_sienge - a.lancamentos_manuais);
+
+  // Totais prontos (os mesmos dos cards e do PDF), para a IA não precisar fazer contas.
+  const soma = (f: (e: any) => number) => r2(gs.reduce((t, e) => t + f(e), 0));
+  const titulos = sgs.flatMap((g: any) => g.items.filter((i: any) => i.on && i.tag === 'Título').map((i: any) => ({ ...i, emp: g.emp })));
+  const media = titulos.length ? titulos.reduce((t: number, i: any) => t + i.val, 0) / titulos.length : 0;
+  const maior = titulos.slice().sort((a: any, b: any) => b.val - a.val)[0];
+  const semAut = titulos.filter((i: any) => i.authorized === false);
+  const comAporte = gs.filter(e => e.aporte_necessario > 0).sort((a, b) => b.aporte_necessario - a.aporte_necessario);
+  const aPagar = soma(e => e.titulos_sienge + e.lancamentos_manuais);
+  const resumo = {
+    empresas: gs.length,
+    empresas_com_pagamentos: gs.filter(e => e.qtd_pagamentos).length,
+    saldo_inicial_total: soma(e => e.saldo_inicial),
+    titulos_sienge_total: soma(e => e.titulos_sienge),
+    lancamentos_manuais_total: soma(e => e.lancamentos_manuais),
+    total_a_pagar: aPagar,
+    saldo_apos_pagamentos: r2(soma(e => e.saldo_inicial) - aPagar),
+    aporte_total: soma(e => e.aporte_necessario),
+    empresas_com_aporte: comAporte.length,
+    maior_aporte: comAporte[0] ? { empresa: comAporte[0].empresa, valor: comAporte[0].aporte_necessario } : null,
+    titulos: {
+      quantidade: titulos.length,
+      media: r2(media),
+      sem_autorizacao: { quantidade: semAut.length, valor: r2(semAut.reduce((t: number, i: any) => t + i.val, 0)) },
+      maior: maior ? { credor: maior.title, empresa: maior.emp, valor: r2(maior.val), vezes_a_media: media ? Math.round((maior.val / media) * 10) / 10 : null } : null,
+    },
+  };
+
+  // Empresas sem nenhum pagamento no período vão só como contagem (economiza tokens).
+  const comPag = gs.filter(e => e.qtd_pagamentos);
+  const semPag = gs.filter(e => !e.qtd_pagamentos);
   return {
     periodo: { de: app.state.pgDateFrom, ate: app.state.pgDateTo },
-    empresas_com_saldo_informado: gs.filter(g => g.saldo_inicial).length,
-    empresas: gs.slice(0, 40),
-    empresas_omitidas: Math.max(0, gs.length - 40),
+    resumo,
+    empresas: comPag.slice(0, 40),
+    empresas_omitidas: Math.max(0, comPag.length - 40),
+    empresas_sem_pagamentos: { quantidade: semPag.length, saldo_total: r2(semPag.reduce((t, e) => t + e.saldo_inicial, 0)) },
   };
 }
 
@@ -159,10 +194,93 @@ export function iaContextoFluxo(app: AppLogic) {
     aportes_enviados: g.aportes ? g.aportes.map(r2) : undefined,
   }));
   const peso = (e: any) => Math.min(...e.saldo_projetado);
+
+  // Totais prontos (os mesmos da análise por regras), para a IA não precisar fazer contas.
+  const cons = L.days.map((_, i) => L.groups.reduce((t, g: any) => t + L.running(g.data)[i], 0));
+  const neg = cons.findIndex(v => v < 0);
+  const pior = neg >= 0 ? L.groups.map((g: any) => ({ g, v: L.running(g.data)[neg] })).sort((a, b) => a.v - b.v)[0] : null;
+  const saidas = L.days.map((_, i) => L.groups.reduce((t, g: any) => t + g.data.pagamentos[i] - Math.min(0, g.data.inputs[i]), 0));
+  const totSaidas = saidas.reduce((t, v) => t + v, 0);
+  const totReceitas = L.groups.reduce((t, g: any) => t + g.data.receitas.reduce((a: number, v: number) => a + v, 0), 0);
+  const pico = totSaidas > 0 ? saidas.indexOf(Math.max(...saidas)) : -1;
+  const negativas = empresas.filter(e => peso(e) < 0);
+  const resumo = {
+    dias: L.days.length,
+    caixa_inicial_total: r2(L.groups.reduce((t, g: any) => t + g.data.caixa, 0)),
+    receitas_total: r2(totReceitas),
+    saidas_total: r2(totSaidas),
+    cobertura_receitas_pct: totSaidas ? Math.round((totReceitas / totSaidas) * 100) : 100,
+    saldo_consolidado_por_dia: cons.map(r2),
+    primeiro_dia_negativo: neg >= 0 ? { dia: L.days[neg], saldo: r2(cons[neg]), empresa_mais_negativa: pior?.g.name, saldo_empresa: r2(pior?.v || 0) } : null,
+    dia_pico_saidas: pico >= 0 ? { dia: L.days[pico], valor: r2(saidas[pico]), pct_das_saidas: Math.round((saidas[pico] / totSaidas) * 100), media_pct_por_dia: Math.round(100 / L.days.length) } : null,
+    empresas_com_saldo_negativo: negativas.length,
+    total_aportes: r2(L.totalAportes),
+  };
   return {
     dias: L.days,
-    total_aportes: r2(L.totalAportes),
+    resumo,
     empresas: empresas.sort((a, b) => peso(a) - peso(b)).slice(0, 25),
     empresas_omitidas: Math.max(0, empresas.length - 25),
+  };
+}
+
+// ---- dados do PDF da análise (Programação do dia) ----
+const dmy = (iso: string) => (iso ? iso.split('-').reverse().join('/') : '');
+const NIVEL_COR: Record<string, string> = { '#EF4444': 'critico', '#F59E0B': 'atencao', '#43B997': 'positivo' };
+
+export function relatorioProg(app: AppLogic): RelatorioIaProg {
+  const s = app.state;
+  const { groups } = progLiveGroups.call(app);
+  const sel: string[] | undefined = s.pgEmpSel;
+  const gs = sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups;
+  const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  let totSaldo = 0, totTit = 0, totMan = 0, totAporte = 0;
+  const linhas = gs.map((g: any) => {
+    const on = g.items.filter((i: any) => i.on);
+    const tit = on.filter((i: any) => i.tag === 'Título').reduce((t: number, i: any) => t + i.val, 0);
+    const man = on.filter((i: any) => i.tag === 'Manual').reduce((t: number, i: any) => t + i.val, 0);
+    const total = tit + man;
+    const after = g.saldo - total;
+    const aporte = after < 0 ? -after : 0;
+    totSaldo += g.saldo; totTit += tit; totMan += man; totAporte += aporte;
+    return { cd: g.cd, emp: g.emp, saldo: g.saldo, tit, man, total, after, aporte, qtd: on.length, on };
+  });
+  const aportes = linhas.filter(l => l.aporte > 0.004).sort((a, b) => b.aporte - a.aporte);
+
+  const rules = progInsights(app);
+  const remote = app.iaRemoteFor('prog');
+  const pontos = remote
+    ? remote.items.map((i: any) => ({ label: i.label, text: i.text, nivel: i.nivel }))
+    : rules.items.map(i => ({ label: i.label, text: i.text, nivel: NIVEL_COR[i.color] || 'info' }));
+
+  const from = s.pgDateFrom || todayIso();
+  const to = s.pgDateTo || from;
+  const agora = new Date();
+  const user = app.props.session?.user;
+  const meta = user?.user_metadata || {};
+  return {
+    periodo: from === to ? dmy(from) : `${dmy(from)} a ${dmy(to)}`,
+    geradoEm: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    geradoPor: `por ${meta.full_name || meta.name || user?.email || 'usuário'}`,
+    fonte: remote ? `Análise com IA · ${remote.modelo}` : 'Análise por regras',
+    headline: remote ? remote.headline : rules.headline,
+    cards: [
+      { label: 'Saldo inicial', val: f2(totSaldo), sub: `${gs.length} empresas · ${gs.filter((g: any) => g.items.length).length} com movimento` },
+      { label: 'Títulos Sienge', val: '-' + f2(totTit), sub: 'Parcelas em aberto', tone: 'neg' },
+      { label: 'Lanç. manuais', val: '-' + f2(totMan), sub: 'Entram na programação', tone: 'neg' },
+      { label: 'Aporte necessário', val: f2(totAporte), sub: aportes.length ? `${aportes.length} ${aportes.length === 1 ? 'empresa' : 'empresas'} com saldo insuficiente` : 'Nenhuma empresa', tone: totAporte ? 'aporte' : undefined },
+      { label: 'Saldo após pagtos.', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do período' },
+    ],
+    pontos,
+    aportes: aportes.map(({ on: _on, ...a }) => a),
+    composicao: aportes.map(a => ({
+      emp: a.emp, aporte: a.aporte,
+      itens: a.on.slice().sort((x: any, y: any) => y.val - x.val).slice(0, 5).map((i: any) => ({
+        credor: i.title, tipo: i.tag, venc: dmy(i.due),
+        autorizado: i.tag === 'Título' ? (i.authorized === false ? 'Não' : 'Sim') : '-', val: i.val,
+      })),
+    })),
+    arquivo: `analise-ia-programacao-${from}${to !== from ? `_a_${to}` : ''}.pdf`,
   };
 }

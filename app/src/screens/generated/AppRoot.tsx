@@ -22,6 +22,7 @@ import BiPage from '../BiPage';
 import BiCfgModal from '../BiCfgModal';
 import CategoriasPage from '../CategoriasPage';
 import CategoriaModal from '../CategoriaModal';
+import NotasCadastrosPage from '../NotasCadastrosPage';
 import Toast from './Toast';
 
 export default function AppRoot({ v }: { v: any }) {
@@ -43,6 +44,7 @@ export default function AppRoot({ v }: { v: any }) {
           <DashboardPage v={v} />
           <BiPage v={v} />
           <CategoriasPage v={v} />
+          <NotasCadastrosPage v={v} />
         </div>
         <UserModal v={v} />
         <DeptModal v={v} />
