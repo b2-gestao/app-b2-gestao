@@ -11,7 +11,7 @@ import { biVals } from './vals/bi';
 import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
-import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
+import { todayIso, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import { nfApi } from '../lib/nf';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
@@ -1057,7 +1057,7 @@ export class AppLogic extends Component<any, any> {
     this.loadIndicators();
     if (this.live) {
       if (this.props.session) { this.loadCatalogs(); this.loadBg(); }
-      this.setState({ lcRowsData: [], pgDateFrom: todayIso(), pgDateTo: todayIso(), sbDate: todayIso(), lcFrom: todayIso(), lcTo: addDays(todayIso(), 12) });
+      this.setState({ lcRowsData: [], sbDate: todayIso(), ...this.dataDoDia('lancamentos'), ...this.dataDoDia('programacao') });
     }
   }
 
@@ -1067,7 +1067,19 @@ export class AppLogic extends Component<any, any> {
     if (patch) this.setState(patch);
   };
 
-  componentDidUpdate() {
+  /** Date filters of a screen reset to today: Lançamentos and Programação diária open on the current day. */
+  dataDoDia(page: string): Record<string, any> | null {
+    const hoje = todayIso();
+    if (page === 'lancamentos') return { lcFrom: hoje, lcTo: hoje, lcDate: hoje };
+    if (page === 'programacao') return { pgPeriod: 'Diário', pgDateFrom: hoje, pgDateTo: hoje };
+    return null;
+  }
+
+  componentDidUpdate(_prevProps: any, prevState: any) {
+    // Opening Lançamentos or Programação (menu, tile, back/forward) always starts on today's date.
+    const abriu = this.state.view === 'app' && (prevState.page !== this.state.page || prevState.view !== 'app');
+    const hoje = this.live && abriu && this.dataDoDia(this.state.page);
+    if (hoje) { this.setState(hoje); return; }
     this.ensureRanges();
     // Each screen change becomes a history entry, so the URL always names the open screen.
     const hash = hashFromState(this.state);

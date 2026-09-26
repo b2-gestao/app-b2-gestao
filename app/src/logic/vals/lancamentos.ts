@@ -1,5 +1,5 @@
 import type { AppLogic } from '../AppLogic';
-import { todayIso, addDays, cadastrosApi } from '../../lib/api';
+import { todayIso, cadastrosApi } from '../../lib/api';
 import { expandLanc } from '../data';
 
 export function lancVals(this: AppLogic, subItemStyle: string) {
@@ -12,7 +12,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
   const lcEmp = s.lcEmp || empAll;
   const empNames: any[] = []; all.forEach(a => { if (empNames.indexOf(a.emp) < 0) empNames.push(a.emp); });
   if (this.live) Object.values(this.empresaById()).forEach((e: any) => { if (empNames.indexOf(e.label) < 0) empNames.push(e.label); });
-  const from = s.lcFrom || today, to = s.lcTo || (this.live ? addDays(today, 12) : '2026-10-05');
+  const from = s.lcFrom || today, to = s.lcTo || (this.live ? today : '2026-10-05');
   const tipo = s.lcTipo || 'Todos', sit = s.lcSit || 'Todas';
   const q = (s.lcSearch || '').trim().toLowerCase();
   const filtered = all.filter(a =>
