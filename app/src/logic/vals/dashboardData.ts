@@ -29,12 +29,14 @@ export function dashSource(this: AppLogic) {
   const pagos = this.rangeData('pagos', addDays(today, -DASH_BACK_DAYS), today);
   const pgt: PagoDia[] = pagos?.rows || [];
   const loading = [fluxo, pagar, seg, pagos].some(r => !r || r.status === 'loading');
+  // Payables are shown net (what is actually paid: minus withheld taxes and discount).
+  const net = (t: TituloPagar) => Number(t.liquido ?? t.balance) || 0;
 
   const byDay: Record<string, DayTotals> = {};
   for (const r of fl) {
     const d = (byDay[r.dia] ||= { in: 0, out: 0, pago: 0, juros: 0, desc: 0, recAb: 0, pagAb: 0 });
-    d.in += Number(r.receber_original) || 0;
-    d.out += Number(r.pagar_original) || 0;
+    d.in += Number(r.receber_corrigido ?? r.receber_original) || 0;
+    d.out += Number(r.pagar_liquido ?? r.pagar_original) || 0;
     d.recAb += Number(r.receber_aberto) || 0;
     d.pagAb += Number(r.pagar_aberto) || 0;
   }
@@ -44,19 +46,22 @@ export function dashSource(this: AppLogic) {
     d.juros += Number(r.juros) || 0;
     d.desc += Number(r.desconto) || 0;
   }
-  const bucket = (x: string, from: string, to: string) => {
+  // skipTodayIn: in the per-day views (Diário, Semanal) today's parcelas a receber are
+  // already in today's bank balance (Saldos bancários); counting them again duplicates them.
+  const bucket = (x: string, from: string, to: string, skipTodayIn = false) => {
     const t = { x, in: 0, out: 0, pago: 0, juros: 0, desc: 0 };
     for (let d = from; d <= to; d = addDays(d, 1)) {
       const v = byDay[d];
       if (!v) continue;
-      t.in += v.in; t.out += v.out; t.pago += v.pago; t.juros += v.juros; t.desc += v.desc;
+      if (!(skipTodayIn && d === today)) t.in += v.in;
+      t.out += v.out; t.pago += v.pago; t.juros += v.juros; t.desc += v.desc;
     }
     return t;
   };
   const last7 = Array.from({ length: 7 }, (_, i) => addDays(today, i - 6));
   const periodsData: any = {
-    D: { label: 'Diário', sub: 'Entradas vs. saídas por vencimento · hoje', data: [bucket('Hoje', today, today)] },
-    '7D': { label: 'Semanal', sub: 'Entradas vs. saídas por vencimento · últimos 7 dias', data: last7.map(d => bucket(WEEKDAYS[dateOf(d).getDay()], d, d)) },
+    D: { label: 'Diário', sub: 'Entradas vs. saídas por vencimento · hoje', data: [bucket('Hoje', today, today, true)] },
+    '7D': { label: 'Semanal', sub: 'Entradas vs. saídas por vencimento · últimos 7 dias', data: last7.map(d => bucket(WEEKDAYS[dateOf(d).getDay()], d, d, true)) },
     '30D': { label: 'Mensal', sub: 'Entradas vs. saídas por vencimento · últimas 5 semanas', data: Array.from({ length: 5 }, (_, i) => { const end = addDays(today, -7 * (4 - i)); return bucket(`Sem ${i + 1}`, addDays(end, -6), end); }) },
     '90D': { label: 'Trimestral', sub: 'Entradas vs. saídas por vencimento · últimos 3 meses', data: ['Mês -2', 'Mês -1', 'Mês atual'].map((x, i) => { const end = addDays(today, -30 * (2 - i)); return bucket(x, addDays(end, -29), end); }) },
   };
@@ -87,7 +92,7 @@ export function dashSource(this: AppLogic) {
   for (const t of pg) {
     const k = `${t.due_date}|${t.company_id}`;
     const g = (groups[k] ||= { date: t.due_date, company: t.company_id, total: 0, titles: [] });
-    g.total += Number(t.balance) || 0;
+    g.total += net(t);
     g.titles.push(t);
   }
   const parcelas = Object.values(groups)
@@ -96,7 +101,7 @@ export function dashSource(this: AppLogic) {
     .map(g => {
       const dt = dateOf(g.date);
       const days = Math.round((dt.getTime() - dateOf(today).getTime()) / 86400000);
-      const top = g.titles.slice().sort((a, b) => b.balance - a.balance)[0];
+      const top = g.titles.slice().sort((a, b) => net(b) - net(a))[0];
       const more = g.titles.length > 1 ? ` + ${g.titles.length - 1}` : '';
       const tone = days <= 0 ? '#EF4444' : days <= 3 ? '#F59E0B' : days <= 10 ? '#4161FF' : days <= 20 ? '#7C3AED' : '#43B997';
       return {
@@ -150,7 +155,7 @@ export function dashSource(this: AppLogic) {
     parcelasTodayLabel: dueToday.length ? `${dueToday.length} ${dueToday.length === 1 ? 'parcela vence hoje' : 'parcelas vencem hoje'}` : 'Nenhuma parcela vence hoje',
     vencendo7Label: `${in7.length} ${in7.length === 1 ? 'parcela' : 'parcelas'}`,
     dueTodayCount: dueToday.length,
-    dueTodayValue: sumBy(dueToday, t => t.balance),
+    dueTodayValue: sumBy(dueToday, net),
     next10Count: in10.length,
   };
 }

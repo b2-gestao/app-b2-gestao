@@ -39,7 +39,10 @@ export interface TituloPagar {
   document_id: string | null;
   document_number: string | null;
   business_area: string | null;
+  /** Gross open balance (balance_amount). */
   balance: number;
+  /** Net open balance: what will actually be paid (minus withheld taxes and discount). */
+  liquido?: number;
   authorized: boolean;
 }
 
@@ -48,10 +51,14 @@ export interface FluxoDia {
   dia: string;
   receber_aberto: number;
   receber_original: number;
+  /** By due date: original amount with the still-open part replaced by its corrected balance (correctedBalanceAmount). */
+  receber_corrigido?: number;
   /** Corrected open balance, due date + 2, without Bens/Permuta/Financiamento or companies in app_fluxo_empresas_sem_receber. */
   receber_caixa: number;
   pagar_aberto: number;
   pagar_original: number;
+  /** Net amount due that day: original − withheld taxes − discount. */
+  pagar_liquido?: number;
   pagar_quitado: number;
   pagar_desconto: number;
   pagar_correcao: number;

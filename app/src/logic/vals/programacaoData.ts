@@ -5,7 +5,7 @@ import type { TituloPagar } from '../data';
 const ddmm = (iso: string) => { const [, m, d] = iso.split('-'); return `${d}/${m}`; };
 
 /**
- * Programação do dia (live): open payables from parcelas_pagar_raw in the selected
+ * Programação do dia (live): open payables (net value) from parcelas_pagar_raw in the selected
  * period plus manual outflows, grouped by company, against the opening balance typed
  * in Saldos bancários for the first day of the period.
  */
@@ -28,7 +28,7 @@ export function progLiveGroups(this: AppLogic) {
     const when = t.due_date === today ? 'vence hoje' : `vence ${ddmm(t.due_date)}`;
     group(t.company_id, t.company_name).items.push({
       key, title: t.creditor_name || 'Credor não informado', sub: [doc, when, t.authorized ? '' : 'sem autorização'].filter(Boolean).join(' · '),
-      tag: 'Título', val: Number(t.balance) || 0, on: !off[key], authorized: t.authorized, due: t.due_date,
+      tag: 'Título', val: Number(t.liquido ?? t.balance) || 0, on: !off[key], authorized: t.authorized, due: t.due_date,
     });
   }
   for (const l of s.lcRowsData || []) {

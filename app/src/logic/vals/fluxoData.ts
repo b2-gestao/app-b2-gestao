@@ -13,8 +13,10 @@ export const HOLDING_ID = Number(import.meta.env.VITE_HOLDING_EMPRESA_ID || 2);
 /**
  * Fluxo de caixa (live), 10 days from today, per company:
  *   caixa inicial  = opening balance typed in Saldos bancários for today
- *   receitas       = receber_caixa (corrected balance, D+2, see app_fluxo_diario)
- *   pagamentos     = parcelas_pagar_raw open balance due each day
+ *   receitas       = receber_caixa (corrected balance, D+2, see app_fluxo_diario),
+ *                    except today: today's bank balance already includes what came in
+ *                    today, so counting those parcelas again would duplicate them
+ *   pagamentos     = parcelas_pagar_raw net open balance due each day (minus withheld taxes/discount)
  *   input          = manual entries (entrada +, saída −)
  * An SPE whose running balance goes negative needs an aporte; the holding sends the
  * new shortfall of each day as an outflow ("Aportes enviados às SPEs").
@@ -35,7 +37,7 @@ export function fluxoLive(this: AppLogic) {
     const i = idx[r.dia];
     if (i == null) continue;
     const e = get(r.company_id);
-    e.receitas[i] += Number(r.receber_caixa) || 0;
+    if (r.dia !== today) e.receitas[i] += Number(r.receber_caixa) || 0;
     e.pagamentos[i] += Number(r.pagar_aberto) || 0;
   }
   for (const l of s.lcRowsData || []) {
