@@ -10,7 +10,7 @@
 //   TOMTICKET_TOKEN             token da API v2.0 com "Pode criar e modificar dados", sem restrição de IP
 //                               (Administração › Configurações da Conta › API › Novo Token)
 //   TOMTICKET_DEPARTAMENTO      nome ou id do departamento (padrão Contabilidade)
-//   TOMTICKET_CATEGORIA_PADRAO  nome ou id da categoria sugerida (padrão Conferência de Título Programação Vigente)
+//   TOMTICKET_CATEGORIA_PADRAO  nome ou id da categoria sugerida (padrão Conferência de Títulos - Programação Vigente)
 //
 // Ações ({ acao, ... }):
 //   preparar { billId }                         → dados do modal (solicitante, departamento, categorias, assunto, mensagem)
@@ -27,7 +27,7 @@ const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const TOKEN = Deno.env.get("TOMTICKET_TOKEN") || "";
 const DEPARTAMENTO = Deno.env.get("TOMTICKET_DEPARTAMENTO") || "Contabilidade";
-const CATEGORIA_PADRAO = Deno.env.get("TOMTICKET_CATEGORIA_PADRAO") || "Conferência de Título Programação Vigente";
+const CATEGORIA_PADRAO = Deno.env.get("TOMTICKET_CATEGORIA_PADRAO") || "Conferência de Títulos - Programação Vigente";
 
 const BASE = "https://api.tomticket.com/v2.0";
 const PERMISSAO = "notas.cadastros";
@@ -111,7 +111,7 @@ function nomeDe(item: Record<string, unknown>): string {
   return v == null ? "" : String(v).trim();
 }
 
-const normalizar = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+const normalizar = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, " ").trim().toLowerCase();
 
 interface Opcao { id: string; nome: string }
 
@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
           clienteEncontrado,
           departamento,
           categorias,
-          categoriaPadraoId: encontrar(categorias, CATEGORIA_PADRAO)?.id ?? null,
+          categoriaPadraoId: (encontrar(categorias, CATEGORIA_PADRAO) ?? categorias.find((c) => normalizar(c.nome).includes("programacao vigente")))?.id ?? null,
           assunto: ASSUNTO,
           mensagem: `Por gentileza, conferir o título ${billId}.`,
         });

@@ -76,7 +76,7 @@ Supabase
       `app-tomticket` e criar os segredos. `TOMTICKET_TOKEN` vem do TomTicket em Administração › Configurações da
       Conta › API › Novo Token, com "Pode criar e modificar dados" e sem restrição de IP. Opcionais:
       `TOMTICKET_DEPARTAMENTO` (padrão `Contabilidade`) e `TOMTICKET_CATEGORIA_PADRAO` (padrão `Conferência de
-      Título Programação Vigente`), por nome ou id. Cada usuário precisa estar cadastrado como cliente no TomTicket
+      Títulos - Programação Vigente`), por nome ou id. Cada usuário precisa estar cadastrado como cliente no TomTicket
       com o mesmo e-mail do login. No primeiro uso, conferir no TomTicket se o chamado saiu no nome certo.
 
 ### Validar no primeiro uso real
