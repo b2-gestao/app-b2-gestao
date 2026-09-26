@@ -105,7 +105,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
     lcFooterLabel: `${filtered.length} lançamentos`,
     lcTotalFmt: f2(filtered.reduce((t, a) => t + (a.tipo === 'saida' ? -a.value : a.value), 0)),
     lcTotalStyle: `text-align:right;font-size:14px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums`,
-    lcExport: () => (this.live ? this.exportLancCsv(filtered) : this.toast('Lançamentos exportados · lancamentos.xlsx')),
+    lcExport: () => this.exportLancCsv(filtered),
     lcOpenNew: () => openFor(null),
     lcOverlayStyle: `display:${s.lcModal ? 'flex' : 'none'};position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both`,
     lcClose: () => this.setState({ lcModal: false, lcForm: null, lcErr: '', ddOpen: null }),

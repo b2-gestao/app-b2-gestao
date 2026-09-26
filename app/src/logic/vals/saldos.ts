@@ -171,7 +171,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbFilteredTotal: 'R$ ' + f2(filtered.reduce((t2, a) => t2 + (a.saldo || 0), 0)),
 
     sbImportLabel: s.sbImporting ? 'Importando…' : 'Importar planilha',
-    sbDownload: () => (this.live ? downloadTemplate(this, pool, s.sbDate || defDate) : this.toast('Planilha-modelo baixada · saldos_modelo.xlsx')),
+    sbDownload: () => downloadTemplate(this, pool, s.sbDate || defDate),
     sbImport: e => {
       const file = e.target.files && e.target.files[0];
       if (!file) return;
