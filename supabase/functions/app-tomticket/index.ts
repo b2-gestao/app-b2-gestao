@@ -111,7 +111,7 @@ function nomeDe(item: Record<string, unknown>): string {
   return v == null ? "" : String(v).trim();
 }
 
-const normalizar = (t: string) => t.normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
+const normalizar = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, " ").trim().toLowerCase();
 
 interface Opcao { id: string; nome: string }
 
