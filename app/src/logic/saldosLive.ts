@@ -1,5 +1,6 @@
 import type { AppLogic } from './AppLogic';
 import type { ContaCorrente } from '../lib/api';
+import { baixarCsv } from '../lib/download';
 
 // Saldos bancários in live mode: accounts come from contas_correntes (Sienge);
 // opening balances are typed in or imported from the CSV template and saved in
@@ -67,14 +68,9 @@ export function downloadTemplate(app: AppLogic, rows: any[], date: string) {
   const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
   // ="0000088420" keeps Excel from dropping leading zeros / turning the number into 8,8E+04.
   const lines = [CSV_HEAD.join(';')].concat(rows.map(r => [esc(r.cd), `="${String(r.cc).replace(/"/g, '')}"`, esc(r.tipo), esc(r.saldo != null ? f2(r.saldo) : '')].join(';')));
-  // BOM so Excel opens UTF-8 correctly; ";" is Excel's separator in pt-BR.
-  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `saldos_modelo_${date}.csv`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  app.toast(`Planilha-modelo baixada · ${a.download}`);
+  // ";" is Excel's separator in pt-BR.
+  const nome = baixarCsv(lines, `saldos_modelo_${date}.csv`);
+  app.toast(`Planilha-modelo baixada · ${nome}`);
 }
 
 function parseCsv(text: string): string[][] {

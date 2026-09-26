@@ -11,6 +11,7 @@ import { biVals } from './vals/bi';
 import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
+import { baixarCsv } from '../lib/download';
 import { todayIso, addDays, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import { nfApi } from '../lib/nf';
 import {
@@ -842,12 +843,7 @@ export class AppLogic extends Component<any, any> {
     const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
     const head = ['data', 'cd_empresa', 'empresa', 'descricao', 'categoria', 'tipo', 'valor', 'recorrencia', 'parcela', 'total_parcelas', 'situacao'];
     const lines = [head.join(';')].concat(rows.map(r => [r.date, r.cd, r.emp, r.desc, r.cat, r.tipo, f2(r.value), r.rec, r.parc, r.parcTotal ?? r.parc, r.sit].map(esc).join(';')));
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob(['\ufeff' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' }));
-    a.download = 'lancamentos.csv';
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    this.toast(`Lançamentos exportados · ${a.download}`);
+    this.toast(`Lançamentos exportados · ${baixarCsv(lines, 'lancamentos.csv')}`);
   }
 
   pgSeed() {

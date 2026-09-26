@@ -1,4 +1,5 @@
 import { zipSync, strToU8 } from 'fflate';
+import { baixarArquivo } from '../lib/download';
 
 /**
  * Programação do dia → real .xlsx (two sheets: one row per company, one row per item).
@@ -174,10 +175,8 @@ export function exportProgramacaoXlsx(groups: any[], from: string, to: string) {
     { name: 'Por empresa', xml: sheetXml(empCols, empRows, empRows.length ? empTotal : undefined) },
     { name: 'Itens', xml: sheetXml(itemCols, itemRows) },
   ]);
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([bytes as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
-  a.download = from === to ? `programacao_${from}.xlsx` : `programacao_${from}_a_${to}.xlsx`;
-  a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  return a.download;
+  return baixarArquivo(
+    new Blob([bytes as BlobPart], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }),
+    from === to ? `programacao_${from}.xlsx` : `programacao_${from}_a_${to}.xlsx`,
+  );
 }
