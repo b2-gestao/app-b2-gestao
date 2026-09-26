@@ -235,5 +235,6 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     iaOverlayStyle: `display:${s.iaPanel ? 'flex' : 'none'};position:fixed;inset:0;z-index:110;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(2px);animation:overlayIn .18s ease-out both`,
     iaData: this.iaInsights(s.iaPanel),
     ...this.iaPdfVals(),
+    ...this.envioEmailVals(),
   };
 }

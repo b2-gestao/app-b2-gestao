@@ -22,6 +22,7 @@ import BiPage from '../BiPage';
 import BiCfgModal from '../BiCfgModal';
 import CategoriasPage from '../CategoriasPage';
 import CategoriaModal from '../CategoriaModal';
+import EnviarEmailModal from '../EnviarEmailModal';
 import NotasCadastrosPage from '../NotasCadastrosPage';
 import Toast from './Toast';
 
@@ -53,6 +54,7 @@ export default function AppRoot({ v }: { v: any }) {
         <BiCfgModal v={v} />
         <CategoriaModal v={v} />
         <IaPanel v={v} />
+        <EnviarEmailModal v={v} />
         <Toast v={v} />
       </div>
     </>

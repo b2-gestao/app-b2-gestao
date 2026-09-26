@@ -18,7 +18,8 @@ import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
   readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
 } from './data';
-import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg } from './insights';
+import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg, relatorioFluxo } from './insights';
+import { abrirEnvioEmail, enviarEmail, envioEmailVals, type EnvioEmail } from './vals/envioEmail';
 import { hashFromState, stateFromHash } from './route';
 
 // Home screen data (indicators, weather, background URL) is shown from localStorage right away
@@ -111,6 +112,8 @@ export class AppLogic extends Component<any, any> {
     catFormErr: '',
     toastMsg: '',
     iaPanel: null,
+    // "Enviar por e-mail" (logic/vals/envioEmail.ts): { envio, para, busy, erro } | null.
+    envioEmail: null,
     iaModelo: (() => { try { return localStorage.getItem('he_ia_modelo') || ''; } catch { return ''; } })(),
     // Fluxo de caixa: empresas sem recebíveis ({ cd, motivo }) e a modal da engrenagem.
     fxSemRec: [],
@@ -491,13 +494,22 @@ export class AppLogic extends Component<any, any> {
     return cur && cur.key === key && cur.status !== 'ready' ? cur.status : 'idle';
   }
 
-  /** Downloads the Programação do dia analysis (points + companies needing aporte) as a PDF. */
+  /** PDF of the open analysis panel (Programação do dia or Fluxo de caixa), ready to save or attach. */
+  async montarPdfIa(panel: 'prog' | 'fluxo') {
+    const pdf = await import('../lib/relatorioIaPdf');
+    const r = panel === 'prog' ? relatorioProg(this) : relatorioFluxo(this);
+    const doc = panel === 'prog' ? await pdf.montarPdfIaProg(r as any) : await pdf.montarPdfIaFluxo(r as any);
+    return { doc, r, pdfBase64: pdf.pdfBase64 };
+  }
+
+  /** Downloads the analysis of the open panel (points + companies needing aporte) as a PDF. */
   async baixarPdfIa() {
-    if (this.state.iaPdfBusy) return;
+    const panel = this.state.iaPanel;
+    if (this.state.iaPdfBusy || (panel !== 'prog' && panel !== 'fluxo')) return;
     this.setState({ iaPdfBusy: true });
     try {
-      const { gerarPdfIaProg } = await import('../lib/relatorioIaPdf');
-      await gerarPdfIaProg(relatorioProg(this));
+      const { doc, r } = await this.montarPdfIa(panel);
+      doc.save(r.arquivo);
       this.toast('PDF da análise gerado.');
     } catch (e: any) {
       console.error('PDF da análise:', e);
@@ -507,21 +519,48 @@ export class AppLogic extends Component<any, any> {
     }
   }
 
-  /** "Baixar PDF" button of the analysis panel (Programação do dia only). */
+  /** Opens "Enviar por e-mail" with the analysis PDF of the open panel. */
+  enviarPdfIaPorEmail() {
+    const panel = this.state.iaPanel;
+    if (panel !== 'prog' && panel !== 'fluxo') return;
+    const r = panel === 'prog' ? relatorioProg(this) : relatorioFluxo(this);
+    const titulo = panel === 'prog' ? 'Análise com IA · Programação do dia' : 'Análise com IA · Fluxo de caixa';
+    this.abrirEnvioEmail({
+      tipo: panel === 'prog' ? 'analise-prog' : 'analise-fluxo',
+      titulo,
+      periodo: r.periodo,
+      arquivo: r.arquivo,
+      // Same text app-email builds (MODELOS there); shown only as a preview.
+      assunto: `${titulo} · ${r.periodo}`,
+      corpo: `Olá,\n\nSegue a análise do período ${r.periodo}.\n\nAnálise gerada a partir de inteligência artificial.\n\nAtt.,\nDepartamento de Sistemas`,
+      gerarPdf: async () => { const { doc, pdfBase64 } = await this.montarPdfIa(panel); return pdfBase64(doc); },
+    });
+  }
+
+  /** "Baixar PDF" and "Enviar por e-mail" buttons of the analysis panel. */
   iaPdfVals() {
     const s = this.state;
-    const show = this.live && s.iaPanel === 'prog';
+    const panel = s.iaPanel;
+    const show = this.live && (panel === 'prog' || panel === 'fluxo');
     // Waits for the data and for the LLM, so the PDF has the same analysis the panel shows.
-    const wait = show && (progInsights(this).loading || this.iaStatus('prog') === 'loading');
+    const wait = show && ((panel === 'prog' ? progInsights(this) : fluxoInsights(this)).loading || this.iaStatus(panel) === 'loading');
     const off = wait || s.iaPdfBusy;
+    const btn = (disabled: boolean) => `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${disabled ? 'default' : 'pointer'};opacity:${disabled ? 0.5 : 1}`;
     return {
       iaPdfShow: show,
       iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off) this.baixarPdfIa(); },
       iaPdfLabel: s.iaPdfBusy ? 'Gerando…' : 'Baixar PDF',
       iaPdfTitle: wait ? 'Aguarde a análise terminar' : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
-      iaPdfStyle: `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${off ? 'default' : 'pointer'};opacity:${off ? 0.5 : 1}`,
+      iaPdfStyle: btn(off),
+      iaEmail: (e?: any) => { e?.stopPropagation?.(); if (!wait) this.enviarPdfIaPorEmail(); },
+      iaEmailTitle: wait ? 'Aguarde a análise terminar' : 'Enviar a análise em PDF por e-mail',
+      iaEmailStyle: btn(wait),
     };
   }
+
+  abrirEnvioEmail(envio: EnvioEmail) { abrirEnvioEmail.call(this, envio); }
+  enviarEmail(): Promise<void> { return enviarEmail.call(this); }
+  envioEmailVals(): any { return envioEmailVals.call(this); }
 
   /** Model id (IA_MODEL), shown while the LLM is thinking; cached from the last answer. */
   async loadIaModelo() {

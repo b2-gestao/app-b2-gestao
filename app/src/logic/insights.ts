@@ -1,8 +1,8 @@
 import type { AppLogic } from './AppLogic';
-import type { RelatorioIaProg } from '../lib/relatorioIaPdf';
+import type { RelatorioIaFluxo, RelatorioIaProg } from '../lib/relatorioIaPdf';
 import { todayIso } from '../lib/api';
 import { progLiveGroups } from './vals/programacaoData';
-import { fluxoLive } from './vals/fluxoData';
+import { fluxoLive, fluxoPeriodo } from './vals/fluxoData';
 
 // Rule-based insights over the live data, shown in the "Análise com IA" banner and
 // panel of Programação do dia and Fluxo de caixa. Each item: [label, text, color, action?].
@@ -228,6 +228,22 @@ export function iaContextoFluxo(app: AppLogic) {
 const dmy = (iso: string) => (iso ? iso.split('-').reverse().join('/') : '');
 const NIVEL_COR: Record<string, string> = { '#EF4444': 'critico', '#F59E0B': 'atencao', '#43B997': 'positivo' };
 
+/** Período, quem gerou e quando: o topo comum dos PDFs da análise. */
+function cabecalhoRelatorio(app: AppLogic, from: string, to: string, remote: any) {
+  const agora = new Date();
+  const user = app.props.session?.user;
+  const meta = user?.user_metadata || {};
+  return {
+    periodo: periodoLabel(from, to),
+    geradoEm: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    geradoPor: `por ${meta.full_name || meta.name || user?.email || 'usuário'}`,
+    fonte: remote ? `Análise com IA · ${remote.modelo}` : 'Análise por regras',
+  };
+}
+
+/** "26/09/2026" ou "26/09/2026 a 05/10/2026": o período que vai no PDF e no e-mail. */
+export const periodoLabel = (from: string, to: string) => (from === to ? dmy(from) : `${dmy(from)} a ${dmy(to)}`);
+
 export function relatorioProg(app: AppLogic): RelatorioIaProg {
   const s = app.state;
   const { groups } = progLiveGroups.call(app);
@@ -256,14 +272,8 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
 
   const from = s.pgDateFrom || todayIso();
   const to = s.pgDateTo || from;
-  const agora = new Date();
-  const user = app.props.session?.user;
-  const meta = user?.user_metadata || {};
   return {
-    periodo: from === to ? dmy(from) : `${dmy(from)} a ${dmy(to)}`,
-    geradoEm: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-    geradoPor: `por ${meta.full_name || meta.name || user?.email || 'usuário'}`,
-    fonte: remote ? `Análise com IA · ${remote.modelo}` : 'Análise por regras',
+    ...cabecalhoRelatorio(app, from, to, remote),
     headline: remote ? remote.headline : rules.headline,
     cards: [
       { label: 'Saldo inicial', val: f2(totSaldo), sub: `${gs.length} empresas · ${gs.filter((g: any) => g.items.length).length} com movimento` },
@@ -282,5 +292,60 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
       })),
     })),
     arquivo: `analise-ia-programacao-${from}${to !== from ? `_a_${to}` : ''}.pdf`,
+  };
+}
+
+// ---- dados do PDF da análise (Fluxo de caixa) ----
+export function relatorioFluxo(app: AppLogic): RelatorioIaFluxo {
+  const L = fluxoLive.call(app);
+  const P = fluxoPeriodo(app.state);
+  const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const soma = (xs: number[]) => xs.reduce((t, v) => t + v, 0);
+
+  // Saldo projetado sem os aportes (o que a tela mostra por SPE): a soma das linhas bate com o
+  // consolidado, e a necessidade de aporte aparece na tabela das SPEs negativas.
+  const empresas = L.groups.map((g: any) => {
+    const saldo: number[] = L.running(g.data);
+    const neg = saldo.findIndex(v => v < 0);
+    return {
+      emp: g.name, tipo: g.aportes ? 'Holding' : 'SPE',
+      caixa: g.data.caixa,
+      receitas: soma(g.data.receitas),
+      pagamentos: soma(g.data.pagamentos),
+      manuais: soma(g.data.inputs),
+      final: saldo.length ? saldo[saldo.length - 1] : g.data.caixa,
+      menor: saldo.length ? Math.min(...saldo) : g.data.caixa,
+      diaNeg: neg >= 0 ? L.days[neg] : '',
+    };
+  }).sort((a, b) => a.menor - b.menor);
+  // SPEs que ficam negativas: o aporte do período é o maior buraco do saldo projetado.
+  const aportes = empresas.filter(e => e.tipo === 'SPE' && e.menor < 0)
+    .map(e => ({ emp: e.emp, dia: e.diaNeg, menor: e.menor, aporte: -e.menor }));
+
+  const rules = fluxoInsights(app);
+  const remote = app.iaRemoteFor('fluxo');
+  const pontos = remote
+    ? remote.items.map((i: any) => ({ label: i.label, text: i.text, nivel: i.nivel }))
+    : rules.items.map(i => ({ label: i.label, text: i.text, nivel: NIVEL_COR[i.color] || 'info' }));
+
+  const cons = L.days.map((_, i) => L.groups.reduce((t, g: any) => t + L.running(g.data)[i], 0));
+  const menor = cons.length ? Math.min(...cons) : 0;
+  const caixa = soma(empresas.map(e => e.caixa));
+  const receitas = soma(empresas.map(e => e.receitas));
+  const saidas = soma(empresas.map(e => e.pagamentos - e.manuais));
+  return {
+    ...cabecalhoRelatorio(app, P.from, P.to, remote),
+    headline: remote ? remote.headline : rules.headline,
+    cards: [
+      { label: 'Caixa inicial', val: f2(caixa), sub: `${empresas.length} ${empresas.length === 1 ? 'empresa' : 'empresas'}` },
+      { label: 'Receitas', val: f2(receitas), sub: 'Parcelas a receber' },
+      { label: 'Saídas', val: '-' + f2(saidas), sub: 'Pagamentos e manuais (líquido)', tone: 'neg' },
+      { label: 'Saldo final', val: f2(cons.length ? cons[cons.length - 1] : caixa), sub: `Consolidado em ${L.days[L.days.length - 1] || '-'}` },
+      { label: 'Menor saldo', val: f2(menor), sub: aportes.length ? `${aportes.length} ${aportes.length === 1 ? 'empresa precisa' : 'empresas precisam'} de aporte` : 'Nenhuma empresa negativa', tone: menor < 0 ? 'neg' : aportes.length ? 'aporte' : undefined },
+    ],
+    pontos,
+    empresas,
+    aportes,
+    arquivo: `analise-ia-fluxo-${P.from}_a_${P.to}.pdf`,
   };
 }
