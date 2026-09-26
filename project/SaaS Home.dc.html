@@ -14,8 +14,17 @@
 <style>
   body{margin:0;background:#FEFEFE;color:#111827;font-family:"Inter",system-ui,sans-serif}
   *{box-sizing:border-box}
-  ::-webkit-scrollbar{width:8px;height:8px}
-  ::-webkit-scrollbar-thumb{background:#E7E7EA;border-radius:4px}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-track{background:#F4F4F6}
+  ::-webkit-scrollbar-thumb{background:#C2C2CB;border-radius:5px;border:2px solid #F4F4F6}
+  ::-webkit-scrollbar-thumb:hover{background:#9CA3AF}
+  aside ::-webkit-scrollbar-track{background:transparent}
+  aside ::-webkit-scrollbar-thumb{background:#3F3F46;border-color:#080808}
+  aside ::-webkit-scrollbar-thumb:hover{background:#52525B}
+  /* Conteúdo das telas: barra sempre visível e cartões sem encolher (senão a tabela é cortada e não há o que rolar). */
+  main{overflow-y:scroll!important}
+  main>*,aside nav>*{flex-shrink:0}
+  @supports not selector(::-webkit-scrollbar){*{scrollbar-color:#C2C2CB #F4F4F6}aside *{scrollbar-color:#3F3F46 transparent}}
   a{color:#4161FF;text-decoration:none}
   a:hover{color:#3153F4}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
