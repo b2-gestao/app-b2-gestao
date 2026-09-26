@@ -17,7 +17,7 @@ import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
   readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
 } from './data';
-import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg } from './insights';
+import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg, relatorioFluxo } from './insights';
 import { hashFromState, stateFromHash } from './route';
 
 // Home screen data (indicators, weather, background URL) is shown from localStorage right away
@@ -490,13 +490,17 @@ export class AppLogic extends Component<any, any> {
     return cur && cur.key === key && cur.status !== 'ready' ? cur.status : 'idle';
   }
 
-  /** Downloads the Programação do dia analysis (points + companies needing aporte) as a PDF. */
-  async baixarPdfIa() {
+  /**
+   * Downloads the panel's analysis as a PDF: Programação do dia (points + companies needing
+   * aporte) or Fluxo de caixa (points + consolidated balance per day + negative companies).
+   */
+  async baixarPdfIa(panel: 'prog' | 'fluxo') {
     if (this.state.iaPdfBusy) return;
     this.setState({ iaPdfBusy: true });
     try {
-      const { gerarPdfIaProg } = await import('../lib/relatorioIaPdf');
-      await gerarPdfIaProg(relatorioProg(this));
+      const { gerarPdfIaProg, gerarPdfIaFluxo } = await import('../lib/relatorioIaPdf');
+      if (panel === 'prog') await gerarPdfIaProg(relatorioProg(this));
+      else await gerarPdfIaFluxo(relatorioFluxo(this));
       this.toast('PDF da análise gerado.');
     } catch (e: any) {
       console.error('PDF da análise:', e);
@@ -506,18 +510,21 @@ export class AppLogic extends Component<any, any> {
     }
   }
 
-  /** "Baixar PDF" button of the analysis panel (Programação do dia only). */
+  /** "Baixar PDF" button of the analysis panel (Programação do dia and Fluxo de caixa). */
   iaPdfVals() {
     const s = this.state;
-    const show = this.live && s.iaPanel === 'prog';
+    const panel: 'prog' | 'fluxo' | null = s.iaPanel === 'prog' || s.iaPanel === 'fluxo' ? s.iaPanel : null;
+    const show = this.live && !!panel;
     // Waits for the data and for the LLM, so the PDF has the same analysis the panel shows.
-    const wait = show && (progInsights(this).loading || this.iaStatus('prog') === 'loading');
+    const wait = show && !!panel && ((panel === 'prog' ? progInsights(this) : fluxoInsights(this)).loading || this.iaStatus(panel) === 'loading');
     const off = wait || s.iaPdfBusy;
     return {
       iaPdfShow: show,
-      iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off) this.baixarPdfIa(); },
+      iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off && panel) this.baixarPdfIa(panel); },
       iaPdfLabel: s.iaPdfBusy ? 'Gerando…' : 'Baixar PDF',
-      iaPdfTitle: wait ? 'Aguarde a análise terminar' : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
+      iaPdfTitle: wait ? 'Aguarde a análise terminar'
+        : panel === 'fluxo' ? 'Baixar a análise em PDF, com o saldo projetado por dia e as empresas negativas'
+          : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
       iaPdfStyle: `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${off ? 'default' : 'pointer'};opacity:${off ? 0.5 : 1}`,
     };
   }
