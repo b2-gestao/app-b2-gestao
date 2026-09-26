@@ -130,7 +130,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     { label: `Saldo final (${days[N - 1]})`, val: `R$ ${f2(sumFinal)}`, sub: `${perEmp.length} de ${emps.length} empresas no filtro`, style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:300ms', valStyle: `font-size:20px;font-weight:700;color:${sumFinal < 0 ? '#DC2626' : '#111827'};font-variant-numeric:tabular-nums` },
   ];
 
-  const ddFxEmp = { toggle: () => this.setState({ ddOpen: s.ddOpen === 'fxEmp' ? null : 'fxEmp' }), isOpen: s.ddOpen === 'fxEmp', label: `${fxEmpSel.length} selecionadas`, btnStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxEmp' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).panelStyle };
+  const ddFxEmp = { toggle: () => this.setState(st => ({ ddOpen: st.ddOpen === 'fxEmp' ? null : 'fxEmp' })), isOpen: s.ddOpen === 'fxEmp', label: `${fxEmpSel.length} selecionadas`, btnStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxEmp' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).panelStyle };
   const ddFxRec = { toggle: () => this.setState({ ddOpen: s.ddOpen === 'fxRec' ? null : 'fxRec' }), isOpen: s.ddOpen === 'fxRec', label: fxRecSel.length === recAll.length ? 'Todas' : `${fxRecSel.length} selecionadas`, btnStyle: this.mkDropdown('fxRec', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxRec' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxRec', s, '', [], () => {}).panelStyle };
   const chkItem = (sel, label, on, toggle) => ({
     // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button and close the panel.
@@ -181,7 +181,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     },
     fxSaveViewLabel: fxIsSavedMatch ? 'Visão padrão salva' : 'Salvar como visão padrão',
     fxSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${fxIsSavedMatch ? '#C7EEE0' : '#E7E7EA'};background:${fxIsSavedMatch ? '#E1F7EF' : '#FFFFFF'};color:${fxIsSavedMatch ? '#258B6C' : '#374151'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;align-self:flex-end`,
-    fxEmpItems: emps.map(e => chkItem(fxEmpSel, e.name, fxEmpSel.includes(e.cd), () => this.setState({ fxEmpSel: fxEmpSel.includes(e.cd) ? fxEmpSel.filter(c => c !== e.cd) : fxEmpSel.concat(e.cd) }))),
+    fxEmpItems: emps.map(e => chkItem(fxEmpSel, e.name, fxEmpSel.includes(e.cd), () => this.setState(st => { const cur: any[] = st.fxEmpSel || emps.map(x => x.cd); return { fxEmpSel: cur.includes(e.cd) ? cur.filter(c => c !== e.cd) : cur.concat(e.cd) }; }))),
     ddFxRec,
     fxRecItems: recAll.map(r => chkItem(fxRecSel, r, fxRecSel.includes(r), () => this.setState({ fxRecSel: fxRecSel.includes(r) ? fxRecSel.filter(x => x !== r) : fxRecSel.concat(r) }))),
     fxCards,
