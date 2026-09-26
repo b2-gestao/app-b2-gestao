@@ -72,6 +72,12 @@ Supabase
       `OPENAI_API_KEY` (a leitura do PDF usa OpenAI por padrão; `OPENAI_MODEL` opcional, padrão `gpt-4.1-mini`), e opcionais
       `SIENGE_FORMATO_PEDIDO`, `SIENGE_DOCUMENT_ID_*`, `SIENGE_MOVEMENT_TYPE_ID`, `NF_TOLERANCIA_VALOR`,
       `NF_SENHA_VENCIMENTO` (sem ela o vencimento fica travado em +17 dias). Liberar `notas.cadastros` nos perfis.
+- [ ] **Chamado de conferência no TomTicket** (botão na tela de nota cadastrada): publicar a edge function
+      `app-tomticket` e criar os segredos. `TOMTICKET_TOKEN` vem do TomTicket em Administração › Configurações da
+      Conta › API › Novo Token, com "Pode criar e modificar dados" e sem restrição de IP. Opcionais:
+      `TOMTICKET_DEPARTAMENTO` (padrão `Contabilidade`) e `TOMTICKET_CATEGORIA_PADRAO` (padrão `Conferência de
+      Títulos - Programação Vigente`), por nome ou id. Cada usuário precisa estar cadastrado como cliente no TomTicket
+      com o mesmo e-mail do login. No primeiro uso, conferir no TomTicket se o chamado saiu no nome certo.
 
 ### Validar no primeiro uso real
 

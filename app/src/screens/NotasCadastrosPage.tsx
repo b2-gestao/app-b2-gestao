@@ -725,6 +725,26 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
           </div>
         </div>
       ) : null}
+      {r.chamado ? (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 14px', borderRadius: '10px', background: '#F7F8FF', boxShadow: 'inset 0 0 0 1px #E4E9FF' }}>
+          <div style={{ flex: '1 1 240px', minWidth: 0 }}>
+            <div style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Conferência do título na contabilidade</div>
+            <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+              {r.chamado.criado
+                ? `Chamado aberto no TomTicket${r.chamado.protocolo ? ` (${r.chamado.protocolo})` : ''} no seu nome.`
+                : `Abra no TomTicket o chamado de conferência do título ${r.titulo}, já preenchido.`}
+            </div>
+          </div>
+          {r.chamado.criado
+            ? <Chip tom="ok">Chamado criado</Chip>
+            : (
+              <button onClick={r.chamado.abrir} disabled={r.chamado.carregando} style={css(btnSec + ';height:38px' + (r.chamado.carregando ? off : ''))} className={hv(btnSecHover, 'transform:scale(.97)', undefined)}>
+                {r.chamado.carregando ? <><Spinner color="#4161FF" /> Preparando…</> : 'Criar chamado de conferência'}
+              </button>
+            )}
+        </div>
+      ) : null}
+      {r.chamado?.aberto ? <ChamadoModal c={r.chamado} /> : null}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button onClick={nf.outra} disabled={r.enviando} style={css(btnPrim + (r.enviando ? off : ''))} className={r.enviando ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
           {r.enviando ? <><Spinner /> Enviando anexos…</> : 'Cadastrar outra nota'}
@@ -732,5 +752,69 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
         <button onClick={nf.verHistorico} disabled={r.enviando} style={css(btnSec + ';height:38px' + (r.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Ver notas cadastradas</button>
       </div>
     </section>
+  );
+}
+
+/** Chamado de conferência do título no TomTicket: tudo preenchido, só categoria e mensagem editáveis. */
+function ChamadoModal({ c }: { c: any }) {
+  const bloqueado = c.carregando || c.enviando || !c.pronto || c.clienteEncontrado === false;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') c.fechar(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [c]);
+  return (
+    <div onClick={c.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
+      <div role="dialog" aria-modal="true" aria-label="Criar chamado de conferência" onClick={e => e.stopPropagation()}
+        style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
+          <div style={{ fontWeight: 700, fontSize: '15.5px', color: '#111827' }}>Criar chamado de conferência</div>
+          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px' }}>Confira os dados e abra o chamado no TomTicket, no seu nome.</div>
+        </div>
+        <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
+          {c.carregando ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '24px 0', justifyContent: 'center', fontSize: '13px', color: '#64748B' }}>
+              <Spinner color="#4161FF" /> Buscando departamento e categorias no TomTicket…
+            </div>
+          ) : null}
+          {c.pronto ? (
+            <>
+              {c.clienteEncontrado === false ? (
+                <Alerta tom="erro" titulo="E-mail não cadastrado no TomTicket">
+                  Seu e-mail ({c.email}) não está cadastrado como cliente no TomTicket. Peça o cadastro ao suporte e tente de novo.
+                </Alerta>
+              ) : null}
+              {c.clienteEncontrado === null ? (
+                <Alerta tom="aviso" titulo="Não foi possível confirmar seu cadastro no TomTicket">
+                  O chamado será aberto com o e-mail {c.email}.
+                </Alerta>
+              ) : null}
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,minmax(0,1fr))', gap: '12px' }}>
+                <Campo rotulo="Solicitante" largura={2}><Leitura valor={c.email} /></Campo>
+                <Campo rotulo="Departamento"><Leitura valor={c.departamento} /></Campo>
+                <Campo rotulo="Assunto"><Leitura valor={c.assunto} /></Campo>
+                <Campo rotulo="Categoria" largura={2}>
+                  <select value={c.categoriaId} onChange={c.onCategoria} disabled={c.enviando} style={css(input + ';cursor:pointer')}>
+                    {c.categoriaId ? null : <option value="">Escolha a categoria</option>}
+                    {c.categorias.map((o: any) => <option key={o.id} value={o.id}>{o.nome}</option>)}
+                  </select>
+                </Campo>
+                <Campo rotulo="Mensagem" largura={2}>
+                  <textarea value={c.mensagem} onChange={c.onMensagem} disabled={c.enviando} rows={5} maxLength={5000}
+                    style={css(input + ';height:auto;padding:9px 12px;resize:vertical;line-height:1.45')} />
+                </Campo>
+              </div>
+            </>
+          ) : null}
+          {c.erro ? <Alerta tom="erro" titulo={c.erro} /> : null}
+        </div>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: '#FCFCFD' }}>
+          <button onClick={c.fechar} disabled={c.enviando} style={css(btnSec + ';height:38px' + (c.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
+          <button onClick={c.criar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
+            {c.enviando ? <><Spinner /> Criando…</> : 'Criar chamado'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
