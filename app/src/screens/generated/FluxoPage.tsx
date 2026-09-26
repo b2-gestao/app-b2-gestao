@@ -21,6 +21,10 @@ export default function FluxoPage({ v }: { v: any }) {
                   <span style={{ "width": "7px", "height": "7px", "borderRadius": "50%", "background": "#43B997", "animation": "blink 1.6s ease-in-out infinite" }}></span>
                   {v.syncLabel}
                 </span>
+                <span title={v.fxSaldoTitle} style={css(v.fxSaldoStyle)}>
+                  <span style={css(v.fxSaldoDotStyle)}></span>
+                  {v.fxSaldoLabel}
+                </span>
               </div>
               <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "780px", "lineHeight": "1.5", "textWrap": "pretty" }}>
                 Fluxo diário por empresa:{" "}

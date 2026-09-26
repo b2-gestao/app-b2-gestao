@@ -3,6 +3,7 @@ import { fluxoLive, fluxoPeriodo, daysBetween, FLUXO_MAX_DAYS } from './fluxoDat
 import { addDays } from '../../lib/api';
 import { fluxoInsights } from '../insights';
 import { fluxoCfgVals } from './fluxoCfg';
+import { saldoAtualizacao } from '../data';
 
 export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -143,8 +144,40 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   });
 
   const ia = this.live && s.page === 'fluxo' ? this.iaBanner('fluxo', fluxoInsights(this)) : null;
+
+  // Badge beside "Sienge sincronizado": when the bank balances behind the Caixa inicial were
+  // last changed. Green if changed today; amber if older or not informed for that date.
+  const pill = (bg: string, fg: string, dot: string, blink: boolean) => ({
+    fxSaldoStyle: `display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;background:${bg};color:${fg};font-size:11.5px;font-weight:600;cursor:default`,
+    fxSaldoDotStyle: `width:7px;height:7px;border-radius:50%;background:${dot}${blink ? ';animation:blink 1.6s ease-in-out infinite' : ''}`,
+  });
+  const verde = pill('#E1F7EF', '#258B6C', '#43B997', true);
+  const ambar = pill('#FEF3E2', '#B45309', '#F59E0B', false);
+  let saldoBadge: any;
+  if (!L) {
+    saldoBadge = { ...verde, fxSaldoLabel: 'Saldos bancários atualizados às 08:05', fxSaldoTitle: 'Última alteração dos saldos bancários usados no caixa inicial.' };
+  } else {
+    const dmy = (d: string) => d.split('-').reverse().slice(0, 2).join('/');
+    const U = saldoAtualizacao.call(this, P.anchor);
+    if (U.loading) {
+      saldoBadge = { ...pill('#F4F4F6', '#64748B', '#CBD5E1', false), fxSaldoLabel: 'Saldos bancários: carregando…', fxSaldoTitle: '' };
+    } else if (!U.at) {
+      saldoBadge = { ...ambar, fxSaldoLabel: `Saldos bancários de ${dmy(P.anchor)} não informados`, fxSaldoTitle: `Nenhum saldo bancário foi informado para ${dmy(P.anchor)}: o caixa inicial está zerado. Informe em Financeiro › Saldos bancários.` };
+    } else {
+      const hora = U.at.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const hoje = U.at.toDateString() === new Date().toDateString();
+      const quando = hoje ? `hoje às ${hora}` : `em ${U.at.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })} às ${hora}`;
+      saldoBadge = {
+        ...(hoje ? verde : ambar),
+        fxSaldoLabel: `Saldos bancários atualizados ${quando}`,
+        fxSaldoTitle: `Caixa inicial usa os saldos informados para ${dmy(P.anchor)} (${U.contas} ${U.contas === 1 ? 'conta' : 'contas'}). Última alteração: ${U.at.toLocaleDateString('pt-BR')} às ${hora}.`,
+      };
+    }
+  }
+
   return {
     ...fluxoCfgVals.call(this),
+    ...saldoBadge,
     iaFluxoHeadline: ia ? ia.headline : 'Saldo projetado fica negativo em 28/09 · R$ 142 mil abaixo do necessário',
     iaFluxoSub: ia ? ia.sub : 'Análise com IA · projeção dos próximos 10 dias',
     iaFluxoBtnLabel: ia ? ia.btn : 'Ver análise',
