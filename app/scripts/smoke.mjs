@@ -67,6 +67,15 @@ await clickText('Cadastrar no Sienge');
 await page.waitForTimeout(1200);
 await page.screenshot({ path: `${out}/18-nf-cadastrada.png` });
 if (!(await page.getByText(/cadastrada com sucesso/).count())) errors.push('NF: tela de concluído não apareceu');
+// Chamado de conferência do título no TomTicket (dados de demonstração).
+await clickText('Criar chamado de conferência');
+await page.waitForTimeout(900);
+await page.screenshot({ path: `${out}/19-nf-chamado.png` });
+if (!(await page.locator('textarea').filter({ hasText: /Por gentileza, conferir o título/ }).count())) errors.push('NF: mensagem do chamado não veio preenchida');
+await page.getByRole('button', { name: 'Criar chamado', exact: true }).click();
+await page.waitForTimeout(1000);
+await page.screenshot({ path: `${out}/20-nf-chamado-criado.png` });
+if (!(await page.getByText('Chamado criado', { exact: true }).count())) errors.push('NF: chamado não foi marcado como criado');
 await clickText('Perfis');
 await clickText('Novo perfil');
 await page.getByText('Gerenciar painéis', { exact: true }).last().scrollIntoViewIfNeeded();
