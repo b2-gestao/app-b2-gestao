@@ -177,6 +177,17 @@ export async function writeSaldos(this: AppLogic, date: string, patch: Record<st
   return true;
 }
 
+/**
+ * When the balances informed for a date were last changed (latest atualizado_em among its
+ * accounts). `contas` = accounts with a balance; `at` is null when none was informed.
+ */
+export function saldoAtualizacao(this: AppLogic, date: string): { loading: boolean; contas: number; at: Date | null } {
+  const entry = this.rangeData('saldo', date, date);
+  const rows: SaldoConta[] = entry?.rows || [];
+  const last = rows.reduce((m, r) => (r.atualizado_em && r.atualizado_em > m ? r.atualizado_em : m), '');
+  return { loading: !entry || (entry.status === 'loading' && !rows.length), contas: rows.length, at: last ? new Date(last) : null };
+}
+
 /** Informed opening balance per company for a date. */
 export function saldoPorEmpresa(this: AppLogic, date: string): Record<number, number> {
   const day: Record<string, SaldoInformado> = this.readSaldos()[date] || {};

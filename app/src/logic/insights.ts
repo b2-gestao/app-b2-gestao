@@ -224,25 +224,9 @@ export function iaContextoFluxo(app: AppLogic) {
   };
 }
 
-// ---- dados do PDF da análise (Programação do dia) ----
+// ---- dados dos PDFs da análise (Programação do dia e Fluxo de caixa) ----
 const dmy = (iso: string) => (iso ? iso.split('-').reverse().join('/') : '');
 const NIVEL_COR: Record<string, string> = { '#EF4444': 'critico', '#F59E0B': 'atencao', '#43B997': 'positivo' };
-
-/** Período, quem gerou e quando: o topo comum dos PDFs da análise. */
-function cabecalhoRelatorio(app: AppLogic, from: string, to: string, remote: any) {
-  const agora = new Date();
-  const user = app.props.session?.user;
-  const meta = user?.user_metadata || {};
-  return {
-    periodo: periodoLabel(from, to),
-    geradoEm: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
-    geradoPor: `por ${meta.full_name || meta.name || user?.email || 'usuário'}`,
-    fonte: remote ? `Análise com IA · ${remote.modelo}` : 'Análise por regras',
-  };
-}
-
-/** "26/09/2026" ou "26/09/2026 a 05/10/2026": o período que vai no PDF e no e-mail. */
-export const periodoLabel = (from: string, to: string) => (from === to ? dmy(from) : `${dmy(from)} a ${dmy(to)}`);
 
 export function relatorioProg(app: AppLogic): RelatorioIaProg {
   const s = app.state;
@@ -272,13 +256,19 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
 
   const from = s.pgDateFrom || todayIso();
   const to = s.pgDateTo || from;
+  const agora = new Date();
+  const user = app.props.session?.user;
+  const meta = user?.user_metadata || {};
   return {
-    ...cabecalhoRelatorio(app, from, to, remote),
+    periodo: from === to ? dmy(from) : `${dmy(from)} a ${dmy(to)}`,
+    geradoEm: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    geradoPor: `por ${meta.full_name || meta.name || user?.email || 'usuário'}`,
+    fonte: remote ? `Análise com IA · ${remote.modelo}` : 'Análise por regras',
     headline: remote ? remote.headline : rules.headline,
     cards: [
       { label: 'Saldo inicial', val: f2(totSaldo), sub: `${gs.length} empresas · ${gs.filter((g: any) => g.items.length).length} com movimento` },
-      { label: 'Títulos Sienge', val: '-' + f2(totTit), sub: 'Parcelas em aberto', tone: 'neg' },
-      { label: 'Lanç. manuais', val: '-' + f2(totMan), sub: 'Entram na programação', tone: 'neg' },
+      { label: 'Títulos Sienge', val: totTit ? '-' + f2(totTit) : f2(0), sub: 'Parcelas em aberto', tone: totTit ? 'neg' : undefined },
+      { label: 'Lanç. manuais', val: totMan ? '-' + f2(totMan) : f2(0), sub: 'Entram na programação', tone: totMan ? 'neg' : undefined },
       { label: 'Aporte necessário', val: f2(totAporte), sub: aportes.length ? `${aportes.length} ${aportes.length === 1 ? 'empresa' : 'empresas'} com saldo insuficiente` : 'Nenhuma empresa', tone: totAporte ? 'aporte' : undefined },
       { label: 'Saldo após pagtos.', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do período' },
     ],
@@ -295,32 +285,47 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
   };
 }
 
-// ---- dados do PDF da análise (Fluxo de caixa) ----
 export function relatorioFluxo(app: AppLogic): RelatorioIaFluxo {
   const L = fluxoLive.call(app);
-  const P = fluxoPeriodo(app.state);
   const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const soma = (xs: number[]) => xs.reduce((t, v) => t + v, 0);
+  const n = L.days.length;
+  // Lançamentos manuais entram como entrada (+) ou saída (-); pagamentos são sempre saída.
+  const entradas = (d: any) => d.receitas.map((v: number, i: number) => v + Math.max(0, d.inputs[i])) as number[];
+  const saidas = (d: any) => d.pagamentos.map((v: number, i: number) => v + Math.max(0, -d.inputs[i])) as number[];
 
-  // Saldo projetado sem os aportes (o que a tela mostra por SPE): a soma das linhas bate com o
-  // consolidado, e a necessidade de aporte aparece na tabela das SPEs negativas.
-  const empresas = L.groups.map((g: any) => {
-    const saldo: number[] = L.running(g.data);
-    const neg = saldo.findIndex(v => v < 0);
+  // Consolidado: saldo de cada empresa sem os aportes (no total, holding − e SPE + se anulam).
+  const cons = L.days.map((_, i) => L.groups.reduce((t, g: any) => t + L.running(g.data)[i], 0));
+  const dias = L.days.map((dia, i) => ({
+    dia: `${dia} · ${L.dows[i]}`,
+    entradas: L.groups.reduce((t, g: any) => t + entradas(g.data)[i], 0),
+    saidas: L.groups.reduce((t, g: any) => t + saidas(g.data)[i], 0),
+    saldo: cons[i],
+  }));
+
+  // Mesma regra da tela: a SPE recebe, a cada dia, o quanto o déficit dela cresceu.
+  const aporteSpe = (cells: number[]) => {
+    let prev = 0;
+    return soma(cells.map(v => { const d = Math.max(0, -v); const a = Math.max(0, d - prev); prev = d; return a; }));
+  };
+  const negativas = L.groups.map((g: any) => {
+    const holding = !!g.aportes;
+    const cells: number[] = holding ? L.holdingCells : L.running(g.data);
+    const min = cells.length ? Math.min(...cells) : 0;
     return {
-      emp: g.name, tipo: g.aportes ? 'Holding' : 'SPE',
-      caixa: g.data.caixa,
-      receitas: soma(g.data.receitas),
-      pagamentos: soma(g.data.pagamentos),
-      manuais: soma(g.data.inputs),
-      final: saldo.length ? saldo[saldo.length - 1] : g.data.caixa,
-      menor: saldo.length ? Math.min(...saldo) : g.data.caixa,
-      diaNeg: neg >= 0 ? L.days[neg] : '',
+      cd: g.cd, emp: g.name, holding, caixa: g.data.caixa,
+      entradas: soma(entradas(g.data)), saidas: soma(saidas(g.data)),
+      menor: min, diaMenor: L.days[cells.indexOf(min)] || '', final: cells[n - 1] ?? g.data.caixa,
+      aporte: holding ? 0 : aporteSpe(cells),
     };
-  }).sort((a, b) => a.menor - b.menor);
-  // SPEs que ficam negativas: o aporte do período é o maior buraco do saldo projetado.
-  const aportes = empresas.filter(e => e.tipo === 'SPE' && e.menor < 0)
-    .map(e => ({ emp: e.emp, dia: e.diaNeg, menor: e.menor, aporte: -e.menor }));
+  }).filter(e => e.menor < -0.004).sort((a, b) => a.menor - b.menor);
+
+  const caixa = L.groups.reduce((t, g: any) => t + g.data.caixa, 0);
+  const totEnt = soma(dias.map(d => d.entradas));
+  const totSai = soma(dias.map(d => d.saidas));
+  const final = n ? cons[n - 1] : caixa;
+  const totRec = L.groups.reduce((t, g: any) => t + soma(g.data.receitas), 0);
+  const totPag = L.groups.reduce((t, g: any) => t + soma(g.data.pagamentos), 0);
 
   const rules = fluxoInsights(app);
   const remote = app.iaRemoteFor('fluxo');
@@ -328,24 +333,27 @@ export function relatorioFluxo(app: AppLogic): RelatorioIaFluxo {
     ? remote.items.map((i: any) => ({ label: i.label, text: i.text, nivel: i.nivel }))
     : rules.items.map(i => ({ label: i.label, text: i.text, nivel: NIVEL_COR[i.color] || 'info' }));
 
-  const cons = L.days.map((_, i) => L.groups.reduce((t, g: any) => t + L.running(g.data)[i], 0));
-  const menor = cons.length ? Math.min(...cons) : 0;
-  const caixa = soma(empresas.map(e => e.caixa));
-  const receitas = soma(empresas.map(e => e.receitas));
-  const saidas = soma(empresas.map(e => e.pagamentos - e.manuais));
+  const { from, to } = fluxoPeriodo(app.state);
+  const agora = new Date();
+  const user = app.props.session?.user;
+  const meta = user?.user_metadata || {};
   return {
-    ...cabecalhoRelatorio(app, P.from, P.to, remote),
+    periodo: L.periodLabel,
+    geradoEm: `${agora.toLocaleDateString('pt-BR')} às ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`,
+    geradoPor: `por ${meta.full_name || meta.name || user?.email || 'usuário'}`,
+    fonte: remote ? `Análise com IA · ${remote.modelo}` : 'Análise por regras',
     headline: remote ? remote.headline : rules.headline,
     cards: [
-      { label: 'Caixa inicial', val: f2(caixa), sub: `${empresas.length} ${empresas.length === 1 ? 'empresa' : 'empresas'}` },
-      { label: 'Receitas', val: f2(receitas), sub: 'Parcelas a receber' },
-      { label: 'Saídas', val: '-' + f2(saidas), sub: 'Pagamentos e manuais (líquido)', tone: 'neg' },
-      { label: 'Saldo final', val: f2(cons.length ? cons[cons.length - 1] : caixa), sub: `Consolidado em ${L.days[L.days.length - 1] || '-'}` },
-      { label: 'Menor saldo', val: f2(menor), sub: aportes.length ? `${aportes.length} ${aportes.length === 1 ? 'empresa precisa' : 'empresas precisam'} de aporte` : 'Nenhuma empresa negativa', tone: menor < 0 ? 'neg' : aportes.length ? 'aporte' : undefined },
+      { label: 'Caixa inicial', val: f2(caixa), sub: `${L.groups.length} ${L.groups.length === 1 ? 'empresa' : 'empresas'} no filtro`, tone: caixa < 0 ? 'neg' : undefined },
+      { label: 'Entradas', val: f2(totEnt), sub: `Receber ${f2(totRec)} · manuais ${f2(totEnt - totRec)}` },
+      { label: 'Saídas', val: totSai ? '-' + f2(totSai) : f2(0), sub: `Pagar ${f2(totPag)} · manuais ${f2(totSai - totPag)}`, tone: totSai ? 'neg' : undefined },
+      { label: 'Aportes às SPEs', val: f2(L.totalAportes), sub: negativas.length ? `${negativas.length} ${negativas.length === 1 ? 'empresa fica negativa' : 'empresas ficam negativas'}` : 'Nenhuma empresa negativa', tone: L.totalAportes ? 'aporte' : undefined },
+      { label: `Saldo final${n ? ` ${L.days[n - 1]}` : ''}`, val: f2(final), sub: 'Consolidado do período', tone: final < 0 ? 'neg' : undefined },
     ],
     pontos,
-    empresas,
-    aportes,
-    arquivo: `analise-ia-fluxo-${P.from}_a_${P.to}.pdf`,
+    dias,
+    negativas,
+    totalAportes: L.totalAportes,
+    arquivo: `analise-ia-fluxo-${from}${to !== from ? `_a_${to}` : ''}.pdf`,
   };
 }

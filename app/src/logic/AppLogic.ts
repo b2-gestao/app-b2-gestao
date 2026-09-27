@@ -502,10 +502,12 @@ export class AppLogic extends Component<any, any> {
     return { doc, r, pdfBase64: pdf.pdfBase64 };
   }
 
-  /** Downloads the analysis of the open panel (points + companies needing aporte) as a PDF. */
-  async baixarPdfIa() {
-    const panel = this.state.iaPanel;
-    if (this.state.iaPdfBusy || (panel !== 'prog' && panel !== 'fluxo')) return;
+  /**
+   * Downloads the panel's analysis as a PDF: Programação do dia (points + companies needing
+   * aporte) or Fluxo de caixa (points + consolidated balance per day + negative companies).
+   */
+  async baixarPdfIa(panel: 'prog' | 'fluxo') {
+    if (this.state.iaPdfBusy) return;
     this.setState({ iaPdfBusy: true });
     try {
       const { doc, r } = await this.montarPdfIa(panel);
@@ -548,9 +550,11 @@ export class AppLogic extends Component<any, any> {
     const btn = (disabled: boolean) => `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${disabled ? 'default' : 'pointer'};opacity:${disabled ? 0.5 : 1}`;
     return {
       iaPdfShow: show,
-      iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off) this.baixarPdfIa(); },
+      iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off && (panel === 'prog' || panel === 'fluxo')) this.baixarPdfIa(panel); },
       iaPdfLabel: s.iaPdfBusy ? 'Gerando…' : 'Baixar PDF',
-      iaPdfTitle: wait ? 'Aguarde a análise terminar' : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
+      iaPdfTitle: wait ? 'Aguarde a análise terminar'
+        : panel === 'fluxo' ? 'Baixar a análise em PDF, com o saldo projetado por dia e as empresas negativas'
+          : 'Baixar a análise em PDF, com as empresas que precisam de aporte',
       iaPdfStyle: btn(off),
       iaEmail: (e?: any) => { e?.stopPropagation?.(); if (!wait) this.enviarPdfIaPorEmail(); },
       iaEmailTitle: wait ? 'Aguarde a análise terminar' : 'Enviar a análise em PDF por e-mail',
