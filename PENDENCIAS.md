@@ -38,7 +38,7 @@ Supabase
    │   ├─ tabelas do app: app_usuarios, app_perfis, app_departamentos,
    │   │   app_saldo_contas_manual, app_rec_financeiro_lancamento (RLS por perfil)
    │   └─ pg_cron ..... atualiza mv_parcelas_receber / mv_parcelas_pagar 2x/dia
-   └─ Edge functions .. app-usuarios, app-indicadores, app-ia
+   └─ Edge functions .. app-usuarios, app-indicadores, app-ia, app-email
         ▲                              ▲
  n8n / GitHub Actions (service_role)   MCP (mcp_conector)
 ```
@@ -78,6 +78,12 @@ Supabase
       `TOMTICKET_DEPARTAMENTO` (padrão `Contabilidade`) e `TOMTICKET_CATEGORIA_PADRAO` (padrão `Conferência de
       Títulos - Programação Vigente`), por nome ou id. Cada usuário precisa estar cadastrado como cliente no TomTicket
       com o mesmo e-mail do login. No primeiro uso, conferir no TomTicket se o chamado saiu no nome certo.
+- [ ] **Enviar por e-mail** (botão no painel da Análise com IA da Programação do dia e do Fluxo de caixa):
+      publicar a edge function `app-email`, criar a conta no [Resend](https://resend.com), verificar o domínio de
+      envio (registros DNS) e criar os segredos `RESEND_API_KEY` e `EMAIL_FROM` (ex.: `sistemas@<domínio>`).
+      Opcional: `EMAIL_FROM_NOME_PADRAO`. O "De" sai como "Nome do usuário <EMAIL_FROM>" e as respostas vão para o
+      e-mail de quem enviou. O texto do e-mail fica em `MODELOS`, no topo de `supabase/functions/app-email/index.ts`;
+      para liberar o envio em outra tela, crie um modelo lá e chame `app.abrirEnvioEmail(...)` com o PDF da tela.
 
 ### Validar no primeiro uso real
 

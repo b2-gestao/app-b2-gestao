@@ -170,7 +170,7 @@ async function iniciar(titulo: string, r: RelatorioIaBase) {
   }
   p.y += 6;
 
-  /** Nota final, rodapé em todas as páginas e download. */
+  /** Nota final e rodapé em todas as páginas; devolve o documento (para baixar ou anexar). */
   const concluir = (nota: string) => {
     quebra(10);
     fonte(6.8); cor(FAINT);
@@ -183,13 +183,13 @@ async function iniciar(titulo: string, r: RelatorioIaBase) {
       doc.text('Departamento de Sistemas | B2', W / 2, H - 7, { align: 'center' });
       doc.text(`${i}/${paginas}`, W - M, H - 7, { align: 'right' });
     }
-    doc.save(r.arquivo);
+    return doc;
   };
 
   return { doc, autoTable, p, secao, aviso, quebra, tabela, concluir };
 }
 
-export async function gerarPdfIaProg(r: RelatorioIaProg) {
+export async function montarPdfIaProg(r: RelatorioIaProg) {
   const { doc, autoTable, p, secao, aviso, tabela, concluir } = await iniciar('Análise com IA · Programação do dia', r);
 
   // ---- empresas que precisam de aporte ----
@@ -243,10 +243,10 @@ export async function gerarPdfIaProg(r: RelatorioIaProg) {
     p.y = (doc as any).lastAutoTable.finalY + 8;
   }
 
-  concluir('Valores em R$. Aporte necessário = total a pagar no período - saldo inicial informado em Saldos bancários, por empresa. Análise gerada automaticamente; confirme os números antes de liberar pagamentos.');
+  return concluir('Valores em R$. Aporte necessário = total a pagar no período - saldo inicial informado em Saldos bancários, por empresa. Análise gerada automaticamente; confirme os números antes de liberar pagamentos.');
 }
 
-export async function gerarPdfIaFluxo(r: RelatorioIaFluxo) {
+export async function montarPdfIaFluxo(r: RelatorioIaFluxo) {
   const { doc, autoTable, p, secao, aviso, tabela, concluir } = await iniciar('Análise com IA · Fluxo de caixa', r);
   const vermelhoSeNeg = (d: any, cols: number[]) => {
     if (d.section === 'body' && cols.includes(d.column.index) && typeof d.cell.raw === 'string' && d.cell.raw.startsWith('-') && d.cell.raw !== '-') d.cell.styles.textColor = [220, 38, 38];
@@ -303,5 +303,19 @@ export async function gerarPdfIaFluxo(r: RelatorioIaFluxo) {
     aviso('Nenhuma empresa fica com saldo negativo no período projetado.');
   }
 
-  concluir('Valores em R$. Saldo projetado = caixa inicial + entradas (parcelas a receber e lançamentos manuais de entrada) - saídas (parcelas a pagar e lançamentos manuais de saída), dia a dia. Aporte = quanto a holding envia para a SPE não ficar negativa; no consolidado os aportes se anulam. Análise gerada automaticamente; confirme os números antes de tomar decisões.');
+  return concluir('Valores em R$. Saldo projetado = caixa inicial + entradas (parcelas a receber e lançamentos manuais de entrada) - saídas (parcelas a pagar e lançamentos manuais de saída), dia a dia. Aporte = quanto a holding envia para a SPE não ficar negativa; no consolidado os aportes se anulam. Análise gerada automaticamente; confirme os números antes de tomar decisões.');
+}
+
+export async function gerarPdfIaProg(r: RelatorioIaProg) {
+  (await montarPdfIaProg(r)).save(r.arquivo);
+}
+
+export async function gerarPdfIaFluxo(r: RelatorioIaFluxo) {
+  (await montarPdfIaFluxo(r)).save(r.arquivo);
+}
+
+/** Conteúdo do PDF em base64 (sem o prefixo data:), para anexar no e-mail. */
+export function pdfBase64(doc: { output(tipo: 'datauristring'): string }) {
+  const uri = doc.output('datauristring');
+  return uri.slice(uri.indexOf(',') + 1);
 }

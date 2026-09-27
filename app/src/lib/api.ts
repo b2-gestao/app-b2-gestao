@@ -311,4 +311,7 @@ export const apoioApi = {
     invoke<IaResposta>('app-ia', { tela, contexto, regras }),
   /** Só o id do modelo configurado em IA_MODEL. */
   iaModelo: () => invoke<{ modelo: string }>('app-ia', { tela: 'modelo' }),
+  /** Envia um PDF por e-mail (edge function app-email). `tipo` escolhe o assunto/corpo; 503 = envio não configurado. */
+  enviarEmail: (b: { tipo: string; periodo: string; para: string[]; arquivo: string; pdf: string }) =>
+    invoke<{ ok: true; id?: string }>('app-email', b),
 };
