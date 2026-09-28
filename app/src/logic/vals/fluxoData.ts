@@ -40,9 +40,10 @@ const holdingNome = (e: any, fallback: string) => (e && (e.nome_fantasia || e.no
  *   caixa inicial  = opening balance typed in Saldos bancários on the anchor day (rolled
  *                    forward to the first day shown when the period starts after today)
  *   receitas       = receber_caixa (corrected balance, D+2, see app_fluxo_diario), zero for
- *                    the companies in app_fluxo_empresas_sem_receber (state.fxSemRec) and on
- *                    the anchor day: its bank balance already includes what came in that day,
- *                    so counting those parcelas again would duplicate them
+ *                    the companies in app_fluxo_empresas_sem_receber (state.fxSemRec) and, for
+ *                    a company with a balance typed on the anchor day, on that day: its bank
+ *                    balance already includes what came in, so counting those parcelas again
+ *                    would duplicate them (same rule as the Programação do dia)
  *   pagamentos     = parcelas_pagar_raw net open balance due each day (minus withheld taxes/discount)
  *   input          = manual entries (entrada +, saída −)
  * An SPE whose running balance goes negative needs an aporte; the holding sends the
@@ -71,7 +72,7 @@ export function fluxoLive(this: AppLogic) {
     const i = idx[r.dia];
     if (i == null) continue;
     const e = get(r.company_id);
-    if (!semRec.has(Number(r.company_id)) && r.dia !== anchor) e.receitas[i] += Number(r.receber_caixa) || 0;
+    if (!semRec.has(Number(r.company_id)) && !(r.dia === anchor && r.company_id in saldos)) e.receitas[i] += Number(r.receber_caixa) || 0;
     e.pagamentos[i] += Number(r.pagar_aberto) || 0;
   }
   for (const l of s.lcRowsData || []) {

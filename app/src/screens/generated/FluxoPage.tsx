@@ -273,6 +273,25 @@ export default function FluxoPage({ v }: { v: any }) {
             </svg>
             Linha calculada pelo sistema. Aportes entre empresas se anulam no consolidado.
           </div>
+          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1" }}>
+            <div style={{ "fontSize": "11px", "fontWeight": "700", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "marginBottom": "8px" }}>
+              Regras de cálculo
+            </div>
+            <ul style={{ "margin": "0", "paddingLeft": "18px", "display": "flex", "flexDirection": "column", "gap": "5px", "fontSize": "12px", "lineHeight": "1.5", "color": "#64748B" }}>
+              <li>
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Caixa inicial:</span> saldo das contas informado em Saldos bancários no dia do saldo (hoje, ou o início do período se for anterior). Período futuro é projetado a partir de hoje.
+              </li>
+              <li>
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Receitas:</span> saldo corrigido das parcelas a receber, entrando no caixa em D+2 do vencimento. Ficam fora Bens, Permuta, Financiamento e as empresas com plano empresário (engrenagem).
+              </li>
+              <li>
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Dia do saldo:</span> na empresa com saldo informado, as receitas desse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma as receitas do dia.
+              </li>
+              <li>
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Pagamentos e aportes:</span> títulos Sienge em aberto (valor líquido) e lançamentos manuais. Quando o saldo de uma SPE fica negativo, a holding envia o aporte; aportes entre empresas se anulam no consolidado.
+              </li>
+            </ul>
+          </footer>
         </main>
       </>
     ) : null}

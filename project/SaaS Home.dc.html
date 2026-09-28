@@ -1515,6 +1515,15 @@
           </sc-for>
         </div>
       </sc-if>
+      <footer style="margin-top:4px;padding:14px 18px;border-radius:10px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;margin-bottom:8px">Regras de cálculo</div>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.5;color:#64748B">
+          <li><span style="color:#374151;font-weight:600">Saldo inicial:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período + parcelas a receber em aberto com vencimento no período.</li>
+          <li><span style="color:#374151;font-weight:600">Recebíveis fora:</span> parcelas de Bens, Permuta e Financiamento e todas as parcelas das empresas com plano empresário (engrenagem do Fluxo de caixa).</li>
+          <li><span style="color:#374151;font-weight:600">Dia do saldo:</span> na empresa com saldo informado no primeiro dia, os recebíveis que vencem nesse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma todos os recebíveis do período.</li>
+          <li><span style="color:#374151;font-weight:600">Saldo após pagamentos:</span> saldo inicial − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.</li>
+        </ul>
+      </footer>
     </main>
     </sc-if>
 
@@ -1652,6 +1661,15 @@
         <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8.5" stroke="currentColor" stroke-width="1.6"/><path d="M12 11v5M12 8v.1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
         Linha calculada pelo sistema. Aportes entre empresas se anulam no consolidado.
       </div>
+      <footer style="margin-top:4px;padding:14px 18px;border-radius:10px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;margin-bottom:8px">Regras de cálculo</div>
+        <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.5;color:#64748B">
+          <li><span style="color:#374151;font-weight:600">Caixa inicial:</span> saldo das contas informado em Saldos bancários no dia do saldo (hoje, ou o início do período se for anterior). Período futuro é projetado a partir de hoje.</li>
+          <li><span style="color:#374151;font-weight:600">Receitas:</span> saldo corrigido das parcelas a receber, entrando no caixa em D+2 do vencimento. Ficam fora Bens, Permuta, Financiamento e as empresas com plano empresário (engrenagem).</li>
+          <li><span style="color:#374151;font-weight:600">Dia do saldo:</span> na empresa com saldo informado, as receitas desse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma as receitas do dia.</li>
+          <li><span style="color:#374151;font-weight:600">Pagamentos e aportes:</span> títulos Sienge em aberto (valor líquido) e lançamentos manuais. Quando o saldo de uma SPE fica negativo, a holding envia o aporte; aportes entre empresas se anulam no consolidado.</li>
+        </ul>
+      </footer>
     </main>
     </sc-if>
 
