@@ -98,7 +98,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     progItemStyle: s.page === 'programacao' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
     goProg: e => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('financeiro.programacao'))) return; this.setState({ view: 'app', page: 'programacao', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
     pgStatusLabel: closed ? 'Programação fechada' : 'Aberta · em edição',
-    pgStatusPill: `display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${closed ? '#F1E9FF' : '#E1F7EF'};color:${closed ? '#7C3AED' : '#258B6C'}`,
+    pgStatusPill: `display:${closed ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${closed ? '#F1E9FF' : '#E1F7EF'};color:${closed ? '#7C3AED' : '#258B6C'}`,
     pgStatusDot: `width:7px;height:7px;border-radius:50%;background:${closed ? '#7C3AED' : '#43B997'};${closed ? '' : 'animation:blink 1.6s ease-in-out infinite'}`,
     pgExport: () => {
       if (!groups.length) { this.toast('Nenhuma empresa selecionada para exportar.'); return; }

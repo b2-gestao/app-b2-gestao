@@ -1053,7 +1053,6 @@
         <div style="flex:1 1 420px;min-width:0">
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
             <div style="font-weight:700;font-size:20px;color:#111827;letter-spacing:-.01em">Lançamentos manuais</div>
-            <span style="display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;background:#E1F7EF;color:#258B6C;font-size:11.5px;font-weight:600"><span style="width:7px;height:7px;border-radius:50%;background:#43B997;animation:blink 1.6s ease-in-out infinite"></span>Sienge sincronizado às 08:19</span>
           </div>
           <div style="font-size:12.5px;color:#64748B;margin-top:4px;max-width:720px;line-height:1.5;text-wrap:pretty">Despesas e entradas que não têm título no Sienge (VMD, fator recompra, juros P.E, RET…). Entram no fluxo de caixa e na programação do dia junto com as parcelas a pagar.</div>
         </div>
@@ -3205,7 +3204,7 @@ class Component extends DCLogic {
       progItemStyle: s.page === 'programacao' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
       goProg: e => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'programacao', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
       pgStatusLabel: closed ? 'Programação fechada' : 'Aberta · em edição',
-      pgStatusPill: `display:inline-flex;align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${closed ? '#F1E9FF' : '#E1F7EF'};color:${closed ? '#7C3AED' : '#258B6C'}`,
+      pgStatusPill: `display:${closed ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${closed ? '#F1E9FF' : '#E1F7EF'};color:${closed ? '#7C3AED' : '#258B6C'}`,
       pgStatusDot: `width:7px;height:7px;border-radius:50%;background:${closed ? '#7C3AED' : '#43B997'};${closed ? '' : 'animation:blink 1.6s ease-in-out infinite'}`,
       pgExport: () => this.toast('Programação exportada para Excel · programacao.xlsx'),
       pgToggleClose: () => { this.setState({ pgClosed: !closed }); this.toast(!closed ? 'Programação do dia fechada.' : 'Programação reaberta para edição.'); },

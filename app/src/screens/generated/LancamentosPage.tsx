@@ -17,10 +17,6 @@ export default function LancamentosPage({ v }: { v: any }) {
                 <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
                   Lançamentos manuais
                 </div>
-                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "#E1F7EF", "color": "#258B6C", "fontSize": "11.5px", "fontWeight": "600" }}>
-                  <span style={{ "width": "7px", "height": "7px", "borderRadius": "50%", "background": "#43B997", "animation": "blink 1.6s ease-in-out infinite" }}></span>
-                  {v.syncLabel}
-                </span>
               </div>
               <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
                 Despesas e entradas que não têm título no Sienge (VMD, fator recompra, juros P.E, RET…). Entram no fluxo de caixa e na programação do dia junto com as parcelas a pagar.
