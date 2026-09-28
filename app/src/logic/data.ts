@@ -82,6 +82,7 @@ export function neededRanges(this: AppLogic): [RangeKind, string, string][] {
   if (s.page === 'programacao') {
     const from = s.pgDateFrom || today, to = s.pgDateTo || from;
     out.push(['pagar', from, to], ['receber', from, to]);
+    if (to > from) out.push(['receber', from, from]);
     saldo(from);
   }
   if (s.page === 'fluxo') { const p = fluxoPeriodo(s); out.push(['fluxo', p.anchor, p.to]); saldo(p.anchor); }
