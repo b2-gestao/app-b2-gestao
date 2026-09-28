@@ -1194,6 +1194,18 @@ export class AppLogic extends Component<any, any> {
         values[label] = null;
       }
     }));
+    // Se INCC-M ainda está vazio, tenta com IA
+    if (values['INCC-M'] == null) {
+      try {
+        if (!this.props.session) throw new Error('sem sessão');
+        const { indicadores: indAi } = await apoioApi.invoke<{ indicadores: Record<string, any> }>('app-indicadores-ia');
+        if (indAi?.['INCC-M']?.valor != null) {
+          values['INCC-M'] = indAi['INCC-M'].valor;
+        }
+      } catch {
+        /* IA também não conseguiu */
+      }
+    }
     // Nothing came back (offline): keep showing the cached values, if any.
     if (Object.values(values).every(n => n == null || isNaN(n)) && cached) return;
     const econValues = Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])]));
