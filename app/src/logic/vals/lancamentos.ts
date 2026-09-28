@@ -85,7 +85,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
   return {
     isLanc: s.page === 'lancamentos',
     lancItemStyle: s.page === 'lancamentos' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
-    goLanc: e => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'lancamentos', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
+    goLanc: e => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('financeiro.lancamentos'))) return; this.setState({ view: 'app', page: 'lancamentos', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
     lcOutFmt: '− ' + f2(totalOut), lcOutSub: `${outs.length} lançamentos no período`,
     lcInFmt: '+ ' + f2(totalIn), lcInSub: `${ins.length} lançamentos no período`,
     lcRecCount: recCount,

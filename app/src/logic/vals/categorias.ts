@@ -54,7 +54,7 @@ export function categoriasVals(this: AppLogic) {
 
   return {
     isCategorias: s.page === 'categorias',
-    goCategorias: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'categorias', module: 'Cadastros', cadFinOpen: true, userMenuOpen: false }); },
+    goCategorias: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('cadastros.categorias'))) return; this.setState({ view: 'app', page: 'categorias', module: 'Cadastros', cadFinOpen: true, userMenuOpen: false }); },
     cCountLabel: `${all.length} categoria${all.length === 1 ? '' : 's'} cadastrada${all.length === 1 ? '' : 's'}`,
     cSearch: s.cSearch,
     onCSearch: e => this.setState({ cSearch: e.target.value }),

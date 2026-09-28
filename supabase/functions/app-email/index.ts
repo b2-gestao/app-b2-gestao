@@ -126,7 +126,7 @@ Deno.serve(async (req) => {
 
     const paragrafos = modelo.paragrafos(periodo);
     const envio: Record<string, unknown> = {
-      from: `"${nome}" <${EMAIL_FROM}>`,
+      from: `${nome} <${EMAIL_FROM}>`,
       to: para,
       subject: modelo.assunto(periodo),
       html: montarHtml(paragrafos, periodo),

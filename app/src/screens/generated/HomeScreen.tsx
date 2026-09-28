@@ -184,6 +184,9 @@ export default function HomeScreen({ v }: { v: any }) {
                         </span>
                         <span style={{ "fontSize": "13.5px", "fontWeight": "500", "color": "#F5F5F7" }}>
                           {it.name}
+                          {it.beta ? (
+                            <span style={css(it.betaTagStyle)}>Beta</span>
+                          ) : null}
                         </span>
                         <span style={{ "fontSize": "11px", "color": "rgba(245,245,247,.72)" }}>
                           {it.sub}
@@ -213,6 +216,9 @@ export default function HomeScreen({ v }: { v: any }) {
                         </span>
                         <span style={{ "fontSize": "13.5px", "fontWeight": "500", "color": "#F5F5F7" }}>
                           {it.name}
+                          {it.beta ? (
+                            <span style={css(it.betaTagStyle)}>Beta</span>
+                          ) : null}
                         </span>
                         <span style={{ "fontSize": "11px", "color": "rgba(245,245,247,.72)" }}>
                           {it.sub}

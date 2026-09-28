@@ -116,12 +116,12 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     closeDropdowns: () => this.setState({ ddOpen: null }),
     isUsuarios: s.page === 'usuarios',
     isDashboard: !['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo', 'bi', 'categorias', 'nfCadastros'].includes(s.page),
-    goUsuarios: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'usuarios', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
+    goUsuarios: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('configuracoes.usuarios'))) return; this.setState({ view: 'app', page: 'usuarios', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
     usuariosItemStyle: s.page === 'usuarios'
       ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
       : subItemStyle,
     isDepartamentos: s.page === 'departamentos',
-    goDepartamentos: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'departamentos', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
+    goDepartamentos: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('configuracoes.departamentos'))) return; this.setState({ view: 'app', page: 'departamentos', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
     departamentosItemStyle: s.page === 'departamentos'
       ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
       : subItemStyle,

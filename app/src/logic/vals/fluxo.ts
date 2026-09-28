@@ -183,7 +183,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     iaFluxoBtnLabel: ia ? ia.btn : 'Ver análise',
     isFluxo: s.page === 'fluxo',
     fluxoItemStyle: s.page === 'fluxo' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
-    goFluxo: e => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'fluxo', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
+    goFluxo: e => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('financeiro.fluxo'))) return; this.setState({ view: 'app', page: 'fluxo', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
     fxSpinStyle: s.fxRecalculating ? 'animation:spin .7s linear infinite' : '',
     fxExport: () => this.toast('Fluxo de caixa exportado · fluxo_caixa.xlsx'),
     fxRecalc: () => { this.setState({ fxRecalculating: true }); setTimeout(() => { this.setState({ fxRecalculating: false }); this.toast('Fluxo recalculado com os dados mais recentes.'); }, 900); },

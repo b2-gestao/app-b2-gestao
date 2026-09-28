@@ -134,7 +134,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
 
   return {
     isSaldos: s.page === 'saldos',
-    goSaldos: e => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'saldos', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); this.startSbAnim(); },
+    goSaldos: e => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('financeiro.saldos'))) return; this.setState({ view: 'app', page: 'saldos', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); this.startSbAnim(); },
     saldosItemStyle: s.page === 'saldos' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
     finStub: e => { if (e && e.preventDefault) e.preventDefault(); this.toast('Tela em construção.'); },
 

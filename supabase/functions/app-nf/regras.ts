@@ -95,6 +95,8 @@ export interface ItemPedidoPreview {
 export interface VinculoSugerido {
   itemNumber: number;
   indiceNota: number | null;
+  /** Todos os itens da nota ligados ao insumo (mais de um quando o pedido tem um único insumo e o valor bate). */
+  indicesNota: number[];
   similaridade: number | null;
   quantidade: number;
   selecionado: boolean;
@@ -385,6 +387,8 @@ function casarItens(itensNota: ItemNotaPreview[], itensPedido: ItemPedidoPreview
 /**
  * Sugere quais insumos do pedido o documento atende.
  * - Valor igual ao saldo do pedido: marca tudo com o saldo inteiro (qualquer tipo de documento).
+ *   Se o pedido tem um único insumo em aberto e a nota tem vários itens, todos os itens da nota
+ *   ficam ligados a esse insumo.
  * - NF-e com valor diferente: marca os insumos que casaram com itens da nota, na quantidade da nota.
  * - NFS-e/boleto com valor diferente: se o pedido tem um único insumo em aberto, marca a
  *   quantidade proporcional ao valor (ex.: medição parcial de serviço); senão, o usuário escolhe.
@@ -402,8 +406,20 @@ function sugerirVinculos(
   const comSaldo = itensPedido.filter((item) => item.quantidadeEmAberto > 0);
   const proporcional =
     !porValor && !temItens(tipo) && comSaldo.length === 1 && comSaldo[0].precoUnitario > 0 ? comSaldo[0] : null;
+  const agrupado = porValor && temItens(tipo) && comSaldo.length === 1 && itensNota.length > 1 ? comSaldo[0] : null;
 
   const vinculos = itensPedido.map((pedido): VinculoSugerido => {
+    if (agrupado?.itemNumber === pedido.itemNumber) {
+      const indices = itensNota.map((n) => n.indice);
+      return {
+        itemNumber: pedido.itemNumber,
+        indiceNota: indices[0],
+        indicesNota: indices,
+        similaridade: null,
+        quantidade: arredondar(pedido.quantidadeEmAberto),
+        selecionado: true,
+      };
+    }
     const par = casamento.get(pedido.itemNumber);
     const itemNota = par ? itensNota.find((n) => n.indice === par.nota) : undefined;
     const temSaldo = pedido.quantidadeEmAberto > 0;
@@ -418,6 +434,7 @@ function sugerirVinculos(
     return {
       itemNumber: pedido.itemNumber,
       indiceNota: par?.nota ?? null,
+      indicesNota: par ? [par.nota] : [],
       similaridade: par ? arredondar(par.score, 2) : null,
       quantidade: arredondar(quantidade),
       selecionado: temSaldo && (porValor || par !== undefined || proporcional?.itemNumber === pedido.itemNumber),
@@ -597,7 +614,7 @@ export async function montarPreview(entrada: { documento: DocumentoLido; purchas
     );
   }
 
-  const associados = new Set(vinculos.map((v) => v.indiceNota).filter((i) => i !== null));
+  const associados = new Set(vinculos.flatMap((v) => v.indicesNota));
   for (const item of itensNota) {
     if (!associados.has(item.indice)) avisos.push(`O item da nota "${item.descricao}" não foi associado automaticamente a um insumo do pedido.`);
   }

@@ -27,7 +27,10 @@ export function biVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
   const all: BiPainel[] = s.biPaineis || [];
   const gerenciar = this.pode('bi.gerenciar', true);
-  const visiveis = all.filter(p => p.ativo && (gerenciar || this.pode('bi.' + p.id)));
+  const pode = (p: BiPainel) => gerenciar || this.pode('bi.' + p.id);
+  const visiveis = all.filter(p => p.ativo && pode(p));
+  // The menu lists every active painel; one the profile cannot see only shows "sem acesso" on click.
+  const listados = all.filter(p => p.ativo);
   const painel = visiveis.find(p => p.id === s.biId) || visiveis[0] || null;
   const frameKey = painel ? `${painel.id}:${s.biReload || 0}` : '';
 
@@ -93,22 +96,22 @@ export function biVals(this: AppLogic, subItemStyle: string) {
 
   return {
     // ---- sidebar ----
-    biGroupStyle: visiveis.length || gerenciar ? '' : 'display:none',
+    biGroupStyle: '',
     toggleBi: () => this.setState(st => ({ biOpen: !st.biOpen })),
     biChevron: (!s.collapsed && s.biOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     biContentStyle: `display:grid;grid-template-rows:${(!s.collapsed && s.biOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
-    biItems: visiveis.map(p => ({
+    biItems: listados.map(p => ({
       id: p.id,
       nome: p.nome,
-      onClick: e => { if (e && e.preventDefault) e.preventDefault(); open(p); },
+      onClick: e => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(pode(p))) return; open(p); },
       style: s.page === 'bi' && painel?.id === p.id ? subItemStyle + activeItem : subItemStyle,
     })),
-    biMenuEmpty: visiveis.length === 0,
+    biMenuEmpty: listados.length === 0,
     canManageBi: gerenciar,
     biManageItemStyle: subItemStyle + ';display:flex;align-items:center;gap:6px;color:#71717a',
     openBiCfgMenu: e => { if (e && e.preventDefault) e.preventDefault(); openCfg(); },
-    biTileVisible: visiveis.length > 0 || gerenciar,
     openFirstBi: () => {
+      if (this.semAcesso(visiveis.length > 0 || gerenciar || (listados.length === 0 && this.podeModulo('bi')))) return;
       this.setState({ view: 'app', page: 'bi', module: 'BI', biOpen: true, collapsed: false });
       if (visiveis[0]) open(visiveis[0]);
     },

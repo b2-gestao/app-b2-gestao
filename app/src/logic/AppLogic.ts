@@ -242,6 +242,24 @@ export class AppLogic extends Component<any, any> {
     nfCadastros: 'notas.cadastros',
   };
 
+  /** Any menu under a module (e.g. 'rh' → rh.colaboradores, rh.folha) visible to the profile. */
+  podeModulo(key: string): boolean {
+    return this.permPaths().some(p => (p === key || p.startsWith(key + '.')) && this.pode(p));
+  }
+
+  /** Menus stay visible to every profile; opening one without permission only shows this toast. */
+  semAcesso(liberado: boolean): boolean {
+    if (liberado) return false;
+    this.toast('Acesso indisponível pelo Administrador');
+    return true;
+  }
+
+  /** Beta menu (screen still in development): permission first, then the "em desenvolvimento" notice. */
+  abrirBeta(perm: string | null) {
+    if (perm && this.semAcesso(perm.includes('.') ? this.pode(perm) : this.podeModulo(perm))) return;
+    this.toast('Módulo em desenvolvimento (Beta).');
+  }
+
   /** Toast + false when the profile cannot edit this menu (the database enforces it too). */
   podeEditar(path: string): boolean {
     if (this.pode(path, true)) return true;
@@ -1032,24 +1050,24 @@ export class AppLogic extends Component<any, any> {
 
   homeModules = {
     operacao: [
-      { name:'Financeiro', sub:'Contas, tesouraria e fluxo', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
+      { name:'Financeiro', perm:'financeiro', sub:'Contas, tesouraria e fluxo', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
       { name:'BI', sub:'Painéis do Power BI', c:'#F2C811', d:'M5 20V13M10 20V8M15 20v-5M20 20V4M3 20h18' },
       { name:'Notas Fiscais', sub:'Cadastro de NF no Sienge', c:'#14B8A6', d:'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5' },
-      { name:'RH', sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
-      { name:'Veículos', sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
-      { name:'Permutas', sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
-      { name:'Vendas', sub:'Propostas e contratos', c:'#F59E0B', d:'M3 17l5-5 4 3 8-9M15 6h5v5' },
-      { name:'Cobrança', sub:'Carteira e inadimplência', c:'#EC4899', d:'M5 3h14v18H5zM8 8h8M8 12h8M8 16h5' },
-      { name:'Jurídico', sub:'Processos e distratos', c:'#43B997', d:'M12 4v16M7 20h10M5 9h14M5 9l2.5 6h-5zM19 9l2.5 6h-5z' },
-      { name:'CRC', sub:'Relacionamento com cliente', c:'#4161FF', d:'M3 5h18v14H3zM8 9.9a2.1 2.1 0 100 4.2 2.1 2.1 0 000-4.2M13 10h6M13 14h4' },
+      { name:'RH', perm:'rh', beta:true, sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
+      { name:'Veículos', perm:'veiculos', beta:true, sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
+      { name:'Permutas', perm:'permutas', beta:true, sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
+      { name:'Vendas', perm:'vendas', beta:true, sub:'Propostas e contratos', c:'#F59E0B', d:'M3 17l5-5 4 3 8-9M15 6h5v5' },
+      { name:'Cobrança', perm:'cobranca', beta:true, sub:'Carteira e inadimplência', c:'#EC4899', d:'M5 3h14v18H5zM8 8h8M8 12h8M8 16h5' },
+      { name:'Jurídico', perm:'juridico', beta:true, sub:'Processos e distratos', c:'#43B997', d:'M12 4v16M7 20h10M5 9h14M5 9l2.5 6h-5zM19 9l2.5 6h-5z' },
+      { name:'CRC', perm:'crc', beta:true, sub:'Relacionamento com cliente', c:'#4161FF', d:'M3 5h18v14H3zM8 9.9a2.1 2.1 0 100 4.2 2.1 2.1 0 000-4.2M13 10h6M13 14h4' },
       { name:'Configurações', sub:'Usuários, perfis, auditoria', c:'#94A3B8', d:'M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8' },
     ],
     cadastros: [
       { name:'Financeiro', sub:'Despesas e categorias', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
-      { name:'Clientes', sub:'Pessoas e empresas', c:'#43B997', d:'M12 5a3.2 3.2 0 100 6.4 3.2 3.2 0 000-6.4M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6' },
-      { name:'Fornecedores', sub:'Parceiros e contratos', c:'#F59E0B', d:'M3 8h18v11H3zM8 8V6a4 4 0 018 0v2' },
-      { name:'Imóveis', sub:'Unidades e lotes', c:'#7C3AED', d:'M4 10.5L12 4l8 6.5M6 9.5V20h12V9.5' },
-      { name:'Contratos', sub:'Modelos e vigências', c:'#0EA5E9', d:'M5 3h14v18H5zM8.5 8h7M8.5 12h7M8.5 16h4' },
+      { name:'Clientes', perm:null, beta:true, sub:'Pessoas e empresas', c:'#43B997', d:'M12 5a3.2 3.2 0 100 6.4 3.2 3.2 0 000-6.4M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6' },
+      { name:'Fornecedores', perm:'cadastros.fornecedores', beta:true, sub:'Parceiros e contratos', c:'#F59E0B', d:'M3 8h18v11H3zM8 8V6a4 4 0 018 0v2' },
+      { name:'Imóveis', perm:'cadastros.imoveis', beta:true, sub:'Unidades e lotes', c:'#7C3AED', d:'M4 10.5L12 4l8 6.5M6 9.5V20h12V9.5' },
+      { name:'Contratos', perm:'cadastros.contratos', beta:true, sub:'Modelos e vigências', c:'#0EA5E9', d:'M5 3h14v18H5zM8.5 8h7M8.5 12h7M8.5 16h4' },
     ],
   };
 

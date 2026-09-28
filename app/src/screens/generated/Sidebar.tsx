@@ -162,6 +162,7 @@ export default function Sidebar({ v }: { v: any }) {
             </svg>
             <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
               RH
+              <span style={css(v.betaTagStyle)}>Beta</span>
             </span>
             {!v.collapsed ? (
               <>
@@ -173,16 +174,16 @@ export default function Sidebar({ v }: { v: any }) {
           </div>
           <div style={css(v.rhContentStyle)}>
             <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.rhColaboradores} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Colaboradores
               </a>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.rhFolha} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Folha de Pagamento
               </a>
             </div>
           </div>
         </div>
-        <div style={css(v.navItemStyle)} title="Veículos" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.veiculos} style={css(v.navItemStyle)} title="Veículos" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <path d="M3 16l1.4-5.6A2 2 0 016.3 9h11.4a2 2 0 011.9 1.4L21 16" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
             <rect x="2.5" y="16" width="19" height="3.5" rx="1" stroke="#A1A1AA" strokeWidth="1.5"></rect>
@@ -191,6 +192,7 @@ export default function Sidebar({ v }: { v: any }) {
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             Veículos
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
         <div>
@@ -201,6 +203,7 @@ export default function Sidebar({ v }: { v: any }) {
             </svg>
             <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
               Permutas
+              <span style={css(v.betaTagStyle)}>Beta</span>
             </span>
             {!v.collapsed ? (
               <>
@@ -212,10 +215,10 @@ export default function Sidebar({ v }: { v: any }) {
           </div>
           <div style={css(v.permutasContentStyle)}>
             <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.permutasCadastro} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Cadastro
               </a>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.permutasAcompanhamento} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Acompanhamento
               </a>
             </div>
@@ -229,6 +232,7 @@ export default function Sidebar({ v }: { v: any }) {
             </svg>
             <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
               Vendas
+              <span style={css(v.betaTagStyle)}>Beta</span>
             </span>
             {!v.collapsed ? (
               <>
@@ -240,25 +244,26 @@ export default function Sidebar({ v }: { v: any }) {
           </div>
           <div style={css(v.vendasContentStyle)}>
             <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.vendasPropostas} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Propostas
               </a>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.vendasContratos} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Contratos
               </a>
             </div>
           </div>
         </div>
-        <div style={css(v.navItemStyle)} title="Cobrança" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.cobranca} style={css(v.navItemStyle)} title="Cobrança" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <rect x="4.5" y="3" width="15" height="18" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
             <path d="M8 8h8M8 12h8M8 16h5" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             Cobrança
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
-        <div style={css(v.navItemStyle)} title="Jurídico" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.juridico} style={css(v.navItemStyle)} title="Jurídico" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <path d="M12 3v17M7 20h10" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
             <path d="M12 6L5 9l2.2 5.5a3 3 0 005.6 0L15 9z" stroke="#A1A1AA" strokeWidth="1.4" strokeLinejoin="round"></path>
@@ -266,9 +271,10 @@ export default function Sidebar({ v }: { v: any }) {
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             Jurídico
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
-        <div style={css(v.navItemStyle)} title="CRC" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.crc} style={css(v.navItemStyle)} title="CRC" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <rect x="2.5" y="5" width="19" height="14" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
             <circle cx="8" cy="12" r="2.1" stroke="#A1A1AA" strokeWidth="1.5"></circle>
@@ -276,6 +282,7 @@ export default function Sidebar({ v }: { v: any }) {
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             CRC
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
         <div>
@@ -306,8 +313,9 @@ export default function Sidebar({ v }: { v: any }) {
               <a href="#" onClick={v.goPerfis} style={css(v.perfisItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Perfis
               </a>
-              <a href="#" style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+              <a href="#" onClick={v.beta.auditoria} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Auditoria
+                <span style={css(v.betaTagStyle)}>Beta</span>
               </a>
             </div>
           </div>
@@ -340,31 +348,34 @@ export default function Sidebar({ v }: { v: any }) {
             </div>
           </div>
         </div>
-        <div style={css(v.navItemStyle)} title="Fornecedores" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.fornecedores} style={css(v.navItemStyle)} title="Fornecedores" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <rect x="3" y="8" width="18" height="11" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
             <path d="M8 8V6a4 4 0 018 0v2" stroke="#A1A1AA" strokeWidth="1.5"></path>
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             Fornecedores
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
-        <div style={css(v.navItemStyle)} title="Imóveis" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.imoveis} style={css(v.navItemStyle)} title="Imóveis" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <path d="M4 10.5L12 4l8 6.5" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
             <path d="M6 9.5V20h12V9.5" stroke="#A1A1AA" strokeWidth="1.5" strokeLinejoin="round"></path>
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             Imóveis
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
-        <div style={css(v.navItemStyle)} title="Contratos" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+        <div onClick={v.beta.contratos} style={css(v.navItemStyle)} title="Contratos" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <rect x="5" y="3" width="14" height="18" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
             <path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
           </svg>
           <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
             Contratos
+            <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
         </div>
       </nav>

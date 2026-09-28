@@ -183,17 +183,27 @@ export function renderVals(this: AppLogic) {
 
   const ringBase = "border:1.5px solid transparent;border-radius:13.5px;cursor:pointer;backdrop-filter:blur(12px);background:linear-gradient(rgba(24,26,40,.97),rgba(24,26,40,.97)) padding-box,linear-gradient(rgba(245,245,247,.16),rgba(245,245,247,.16)) border-box;box-shadow:0 10px 30px rgba(0,0,0,.28);will-change:transform;transition:transform .45s cubic-bezier(.16,.84,.28,1),box-shadow .45s ease";
   const tileStyle = "display:flex;flex-direction:column;gap:7px;height:100%;padding:13px;opacity:0;animation:tileIn .42s ease-out both";
-  const isCadFin = it => this.homeModules.cadastros.includes(it) && it.name === 'Financeiro';
+  const betaTagHomeStyle = 'display:inline-block;margin-left:7px;padding:1px 6px;border-radius:20px;font-size:9.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;vertical-align:2px;color:#FBBF24;background:rgba(245,158,11,.16);border:1px solid rgba(245,158,11,.32)';
+  const isCadFin = it =>this.homeModules.cadastros.includes(it) && it.name === 'Financeiro';
   const mkTile = (it, i) => ({
     ...it,
     ringStyle: ringBase,
     tileStyle: tileStyle + `;animation-delay:${60 + i * 34}ms`,
     chipStyle: `width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${it.c}22;border:1px solid ${it.c}55`,
-    open: () => it.name === 'BI' ? pageVals.openFirstBi() : it.name === 'Notas Fiscais' ? pageVals.goNfCadastros() : isCadFin(it) ? pageVals.goCategorias() : this.setState({
-      view: 'app', module: it.name, collapsed: false,
-      page: it.name === 'Configurações' ? (['usuarios', 'departamentos', 'perfis'].find(p => this.pode(this.pagePerm[p])) || 'dashboard') : 'dashboard',
-      configOpen: it.name === 'Configurações' ? true : this.state.configOpen,
-    }),
+    open: () => {
+      if (it.beta) return this.abrirBeta(it.perm);
+      if (it.name === 'BI') return pageVals.openFirstBi();
+      if (it.name === 'Notas Fiscais') return pageVals.goNfCadastros();
+      if (isCadFin(it)) return pageVals.goCategorias();
+      if (it.name === 'Configurações') {
+        const page = ['usuarios', 'departamentos', 'perfis'].find(p => this.pode(this.pagePerm[p]));
+        if (this.semAcesso(!!page)) return;
+        return this.setState({ view: 'app', module: it.name, collapsed: false, page, configOpen: true });
+      }
+      if (it.perm && this.semAcesso(this.podeModulo(it.perm))) return;
+      this.setState({ view: 'app', module: it.name, collapsed: false, page: 'dashboard' });
+    },
+    betaTagStyle: betaTagHomeStyle,
   });
   const showWeather = this.props.showWeather !== false;
   const showIndicators = this.props.showIndicators !== false;
@@ -206,8 +216,8 @@ export function renderVals(this: AppLogic) {
     ? `#161826 url("${s.bgUrl}") center/cover no-repeat`
     : s.bgColor;
 
-  // Menus the signed-in profile cannot view are hidden (app_perfis.permissoes).
-  const hide = (style: string, page: string) => (this.pode(this.pagePerm[page]) ? style : style + ';display:none');
+  // Every menu is shown to every profile; the go* handlers check app_perfis.permissoes on click.
+  const beta = (perm: string | null) => (e?: any) => { if (e && e.preventDefault) e.preventDefault(); this.abrirBeta(perm); };
   const pageVals: any = {
     ...this.usersVals(subItemStyle),
     ...this.deptsVals(),
@@ -223,15 +233,22 @@ export function renderVals(this: AppLogic) {
   pageVals.categoriasItemStyle = s.page === 'categorias'
     ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
     : subItemStyle;
-  // Cadastros › Financeiro only holds Categorias for now: hide the group with it.
-  pageVals.cadFinGroupStyle = this.pode(this.pagePerm.categorias) ? '' : 'display:none';
-  for (const [key, page] of [['categoriasItemStyle', 'categorias'], ['usuariosItemStyle', 'usuarios'], ['departamentosItemStyle', 'departamentos'], ['perfisItemStyle', 'perfis'],
-    ['saldosItemStyle', 'saldos'], ['lancItemStyle', 'lancamentos'], ['progItemStyle', 'programacao'], ['fluxoItemStyle', 'fluxo'], ['nfCadastrosItemStyle', 'nfCadastros']]) {
-    pageVals[key] = hide(pageVals[key], page);
-  }
+  pageVals.cadFinGroupStyle = '';
 
   return {
     ...pageVals,
+    // Menus still in development (Beta): the tag next to the name and the click handlers.
+    betaTagStyle: `display:inline-block;margin-left:6px;padding:0 5px;border-radius:20px;font-size:9px;font-weight:600;line-height:15px;letter-spacing:.05em;text-transform:uppercase;vertical-align:1px;color:#FBBF24;background:rgba(245,158,11,.14);border:1px solid rgba(245,158,11,.3)`,
+    beta: {
+      rhColaboradores: beta('rh.colaboradores'), rhFolha: beta('rh.folha'),
+      veiculos: beta('veiculos'),
+      permutasCadastro: beta('permutas.cadastro'), permutasAcompanhamento: beta('permutas.acompanhamento'),
+      vendasPropostas: beta('vendas.propostas'), vendasContratos: beta('vendas.contratos'),
+      cobranca: beta('cobranca'), juridico: beta('juridico'), crc: beta('crc'),
+      auditoria: beta('configuracoes.auditoria'),
+      clientes: beta(null),
+      fornecedores: beta('cadastros.fornecedores'), imoveis: beta('cadastros.imoveis'), contratos: beta('cadastros.contratos'),
+    },
     ...this.identityVals(),
     isHome: s.view === 'home',
     dateLabel: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
@@ -244,8 +261,7 @@ export function renderVals(this: AppLogic) {
       ? 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.74) 0%,rgba(9,10,16,.46) 46%,rgba(9,10,16,.12) 100%)'
       : 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.34) 0%,rgba(9,10,16,.2) 100%)',
     appShellStyle: `display:${s.view === 'app' ? 'flex' : 'none'};height:100vh;width:100%;overflow:hidden`,
-    operacao: this.homeModules.operacao
-      .filter(it => (it.name !== 'BI' || pageVals.biTileVisible) && (it.name !== 'Notas Fiscais' || pageVals.nfTileVisible)).map(mkTile),
+    operacao: this.homeModules.operacao.map(mkTile),
     cadastros: this.homeModules.cadastros.map((it, i) => mkTile(it, i + this.homeModules.operacao.length)),
     showWeatherChip: showWeather,
     showIndicators, indicators,

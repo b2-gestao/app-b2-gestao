@@ -121,6 +121,7 @@ const SIM = {
   media: { bg: '#FFF7E8', fg: '#92590A' },
   baixa: { bg: '#FEE9E9', fg: '#B91C1C' },
   manual: { bg: '#F2F5FF', fg: '#3148B8' },
+  valor: { bg: '#E9F8F2', fg: '#1F7A5C' },
   vazio: { bg: 'transparent', fg: '#CBD5E1' },
 } as const;
 
@@ -509,20 +510,21 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
               </div>
               {c.linhas.map((l: any, i: number) => {
                 const sim = SIM[l.nivel as keyof typeof SIM];
-                return (
-                  <div key={l.itemNumber} style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}background:${l.selecionado ? '#FBFCFF' : '#FFFFFF'};opacity:${l.semSaldo ? 0.55 : 1};transition:background .15s`)}>
-                    {c.comItens ? (
+                // Uma linha por item da nota ligado ao insumo; quantidade e subtotal só na primeira.
+                return (c.comItens ? l.notas : [null]).map((n: any, k: number) => (
+                  <div key={`${l.itemNumber}-${k}`} style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:10px 14px;${k ? 'box-shadow:inset 0 1px 0 #F8F8FA;' : i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}background:${l.selecionado ? '#FBFCFF' : '#FFFFFF'};opacity:${l.semSaldo ? 0.55 : 1};transition:background .15s`)}>
+                    {n ? (
                       <>
                         <div style={{ minWidth: 0 }}>
-                          <select value={l.indiceNota} onChange={l.onNota} style={css(input + ';height:34px;font-size:12.5px;cursor:pointer')}>
+                          <select value={n.indiceNota} onChange={n.onNota} style={css(input + ';height:34px;font-size:12.5px;cursor:pointer')}>
                             <option value="">— nenhum item da nota —</option>
-                            {c.itensNota.map((n: any) => <option key={n.value} value={n.value}>{n.label}</option>)}
+                            {c.itensNota.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
                           </select>
-                          {l.notaDetalhe ? <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{l.notaDetalhe}</div> : null}
+                          {n.notaDetalhe ? <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.notaDetalhe}</div> : null}
                         </div>
                         <div style={{ textAlign: 'right', fontSize: '12.5px', color: '#374151', fontVariantNumeric: 'tabular-nums' }}>
-                          {l.notaQtd}
-                          {l.notaValor ? <div style={{ fontSize: '11px', color: '#94A3B8' }}>{l.notaValor}</div> : null}
+                          {n.notaQtd}
+                          {n.notaValor ? <div style={{ fontSize: '11px', color: '#94A3B8' }}>{n.notaValor}</div> : null}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', height: '22px', padding: '0 7px', borderRadius: '20px', background: sim.bg, color: sim.fg, fontSize: '11px', fontWeight: 700 }}>{l.similaridade}</span>
@@ -531,21 +533,25 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
                     ) : null}
                     <input type="checkbox" checked={l.selecionado} disabled={l.semSaldo} onChange={l.onSelecionar} aria-label={`Vincular insumo ${l.itemNumber}`} style={{ width: '16px', height: '16px', accentColor: '#4161FF', cursor: l.semSaldo ? 'default' : 'pointer' }} />
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#111827', lineHeight: 1.35 }}>{l.insumo}</div>
-                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>{l.insumoDetalhe}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: k ? '#64748B' : '#111827', lineHeight: 1.35 }}>{l.insumo}</div>
+                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>{k ? '↳ mesmo insumo' : l.insumoDetalhe}</div>
                     </div>
-                    <div style={{ textAlign: 'right', fontSize: '12.5px', color: '#374151', fontVariantNumeric: 'tabular-nums' }}>{l.pendente}</div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
-                      <input
-                        type="number" step="any" min={0} max={l.max} value={l.quantidade} disabled={!l.selecionado} onChange={l.onQuantidade}
-                        aria-invalid={l.problema ? true : undefined}
-                        style={css(input + `;height:32px;width:100px;text-align:right;font-variant-numeric:tabular-nums;border-color:${l.problema ? '#FCA5A5' : '#E7E7EA'};background:${l.selecionado ? '#FFFFFF' : '#F4F4F6'}`)}
-                      />
-                      {l.problema ? <span style={{ fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{l.problema}</span> : null}
-                    </div>
-                    <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: l.selecionado ? '#111827' : '#CBD5E1', fontVariantNumeric: 'tabular-nums' }}>{l.subtotal}</div>
+                    {k ? <><div></div><div></div><div></div></> : (
+                      <>
+                        <div style={{ textAlign: 'right', fontSize: '12.5px', color: '#374151', fontVariantNumeric: 'tabular-nums' }}>{l.pendente}</div>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+                          <input
+                            type="number" step="any" min={0} max={l.max} value={l.quantidade} disabled={!l.selecionado} onChange={l.onQuantidade}
+                            aria-invalid={l.problema ? true : undefined}
+                            style={css(input + `;height:32px;width:100px;text-align:right;font-variant-numeric:tabular-nums;border-color:${l.problema ? '#FCA5A5' : '#E7E7EA'};background:${l.selecionado ? '#FFFFFF' : '#F4F4F6'}`)}
+                          />
+                          {l.problema ? <span style={{ fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{l.problema}</span> : null}
+                        </div>
+                        <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: l.selecionado ? '#111827' : '#CBD5E1', fontVariantNumeric: 'tabular-nums' }}>{l.subtotal}</div>
+                      </>
+                    )}
                   </div>
-                );
+                ));
               })}
             </div>
           </div>

@@ -85,7 +85,7 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
 
   return {
     isPerfis: s.page === 'perfis',
-    goPerfis: (e) => { if (e && e.preventDefault) e.preventDefault(); this.setState({ view: 'app', page: 'perfis', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
+    goPerfis: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('configuracoes.perfis'))) return; this.setState({ view: 'app', page: 'perfis', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
     perfisItemStyle: s.page === 'perfis'
       ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
       : subItemStyle,

@@ -100,6 +100,8 @@ export interface ItemPedidoPreview {
 export interface VinculoSugerido {
   itemNumber: number;
   indiceNota: number | null;
+  /** Todos os itens da nota ligados ao insumo (servidor antigo não envia). */
+  indicesNota?: number[];
   similaridade: number | null;
   quantidade: number;
   selecionado: boolean;

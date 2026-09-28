@@ -26,8 +26,7 @@ const paraNumero = (t: string) => Number.parseFloat(String(t).replace(',', '.'))
 const STATUS_PEDIDO: Record<string, string> = { PENDING: 'Não atendido', PARTIALLY_DELIVERED: 'Parcialmente atendido' };
 
 const CRITERIOS: Record<PreviewNota['criterioSelecao'], string | null> = {
-  valor_total: 'O valor do documento bate com o saldo do pedido: todos os insumos vieram marcados.',
-  similaridade: 'Insumos marcados pela semelhança com os itens da nota. Confira as quantidades.',
+  valor_total: 'O valor do documento bate com o saldo do pedido: todos os insumos vieram marcados.',  similaridade: 'Insumos marcados pela semelhança com os itens da nota. Confira as quantidades.',
   proporcional: 'Documento sem itens: a quantidade foi calculada pelo valor do documento.',
   nenhum: null,
 };
@@ -44,7 +43,8 @@ function sugerirDescricao(nome: string): string {
   return '';
 }
 
-interface Linha { itemNumber: number; indiceNota: number | null; similaridade: number | null; selecionado: boolean; quantidade: string }
+/** indicesNota: itens da nota ligados ao insumo (vários quando o pedido tem um único insumo e o valor bate). */
+interface Linha { itemNumber: number; indicesNota: number[]; similaridade: number | null; selecionado: boolean; quantidade: string }
 interface AnexoExtra { id: string; arquivo: File; descricao: string }
 type StatusEnvio = 'pendente' | 'enviando' | 'anexado' | 'falhou' | 'sem_titulo';
 interface EnvioAnexo extends AnexoExtra { status: StatusEnvio; erro?: string }
@@ -158,7 +158,10 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
         nfTipo: pv.tipoDocumento,
         nfCab: { numero: pv.cabecalho.numero, serie: pv.cabecalho.serie ?? '', dataEmissao: pv.cabecalho.dataEmissao ?? '', dataMovimento: pv.cabecalho.dataMovimento, vencimento: pv.cabecalho.vencimento, obs: '' },
         nfCentro: '', nfDescPrincipal: null, nfAnexos: [], nfRecusados: [], nfSenha: null,
-        nfLinhas: pv.vinculos.map(v => ({ itemNumber: v.itemNumber, indiceNota: v.indiceNota, similaridade: v.similaridade, selecionado: v.selecionado, quantidade: String(v.quantidade) })),
+        nfLinhas: pv.vinculos.map(v => ({
+          itemNumber: v.itemNumber, similaridade: v.similaridade, selecionado: v.selecionado, quantidade: String(v.quantidade),
+          indicesNota: v.indicesNota ?? (v.indiceNota === null ? [] : [v.indiceNota]),
+        })),
       });
     } catch (e: any) {
       set({ nfBusy: '', nfErro: erroDe(e) });
@@ -184,7 +187,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
   }, 0);
   const valorDocumento = preview?.cabecalho.valorTotal ?? 0;
   const diferenca = valorDocumento - valorSelecionado;
-  const associados = new Set(linhas.map(l => l.indiceNota).filter((i): i is number => i !== null));
+  const associados = new Set(linhas.flatMap(l => l.indicesNota));
   const semVinculo = (preview?.itensNota || []).filter(i => !associados.has(i.indice));
   const selecionados = linhas.filter(l => l.selecionado);
   const centro = String(s.nfCentro || '').trim();
@@ -206,22 +209,30 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
     this.setState(st => ({ nfLinhas: (st.nfLinhas || []).map((l: Linha) => (l.itemNumber === itemNumber ? { ...l, ...p } : l)) }));
   const patchSenha = (p: any) => this.setState(st => ({ nfSenha: { ...(st.nfSenha || { liberada: null, pedindo: false, digitada: '', erro: '' }), ...p } }));
 
-  const associarNota = (itemNumber: number, valor: string) => {
+  /** Troca (ou tira, com valor '') o item da nota na posição `posicao` da linha do insumo. */
+  const associarNota = (itemNumber: number, posicao: number, valor: string) => {
     const indice = valor === '' ? null : Number(valor);
-    const itemNota = indice === null ? undefined : notaPorIndice.get(indice);
     const itemPedido = pedidoPorItem.get(itemNumber);
     this.setState(st => ({
       nfLinhas: (st.nfLinhas || []).map((l: Linha) => {
         if (l.itemNumber === itemNumber) {
-          const m: Partial<Linha> = { indiceNota: indice, similaridade: null };
-          if (itemNota?.quantidade && itemPedido) {
+          const indices = l.indicesNota.slice();
+          if (indice === null) indices.splice(posicao, 1);
+          else indices[posicao] = indice;
+          const unicos = indices.filter((i, k) => indices.indexOf(i) === k);
+          const m: Partial<Linha> = { indicesNota: unicos, similaridade: null };
+          // Quantidade da nota só quando o insumo fica com um único item da nota.
+          const itemNota = unicos.length === 1 ? notaPorIndice.get(unicos[0]) : undefined;
+          if (indice !== null && itemNota?.quantidade && itemPedido) {
             m.quantidade = String(Math.min(itemNota.quantidade, itemPedido.quantidadeEmAberto));
             m.selecionado = itemPedido.quantidadeEmAberto > 0;
           }
           return { ...l, ...m };
         }
         // Um item da nota fica associado a um único insumo do pedido.
-        return indice !== null && l.indiceNota === indice ? { ...l, indiceNota: null, similaridade: null } : l;
+        return indice !== null && l.indicesNota.includes(indice)
+          ? { ...l, indicesNota: l.indicesNota.filter(i => i !== indice), similaridade: null }
+          : l;
       }),
     }));
   };
@@ -376,13 +387,12 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
 
   return {
     // ---- sidebar / navegação ----
-    nfGroupStyle: podeVer ? '' : 'display:none',
+    nfGroupStyle: '',
     toggleNf: () => this.setState(st => ({ nfOpen: !st.nfOpen })),
     nfChevron: (!s.collapsed && s.nfOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     nfContentStyle: `display:grid;grid-template-rows:${(!s.collapsed && s.nfOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     nfCadastrosItemStyle: s.page === 'nfCadastros' ? subItemStyle + activeItem : subItemStyle,
-    goNfCadastros: (e?: any) => { if (e && e.preventDefault) e.preventDefault(); irPara({}); },
-    nfTileVisible: podeVer,
+    goNfCadastros: (e?: any) => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(podeVer)) return; irPara({}); },
     isNfCadastros: s.page === 'nfCadastros',
 
     nf: {
@@ -503,28 +513,38 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
 
         // insumos
         comItens,
-        criterio: CRITERIOS[preview.criterioSelecao],
+        criterio: preview.criterioSelecao === 'valor_total' && linhas.some(l => l.indicesNota.length > 1)
+          ? 'O valor do documento bate com o saldo do pedido: todos os itens da nota foram vinculados ao único insumo.'
+          : CRITERIOS[preview.criterioSelecao],
         semItensDica: comItens ? '' : `${NOMES_TIPO[tipo]} não traz itens: marque os insumos do pedido que ele atende.`,
         marcarTodos: () => marcarTodos(true),
         desmarcarTodos: () => marcarTodos(false),
         itensNota: preview.itensNota.map(n => ({ value: String(n.indice), label: `${n.codigo ? `${n.codigo} · ` : ''}${n.descricao}` })),
         linhas: linhas.map(l => {
           const item = pedidoPorItem.get(l.itemNumber)!;
-          const nota = l.indiceNota === null ? undefined : notaPorIndice.get(l.indiceNota);
           const qtd = paraNumero(l.quantidade);
           const sim = l.similaridade;
+          const temNota = l.indicesNota.length > 0;
+          // Vários itens da nota num insumo só: vínculo pelo valor total, não por semelhança.
+          const agrupado = l.indicesNota.length > 1;
           return {
             itemNumber: l.itemNumber,
             selecionado: l.selecionado,
             semSaldo: item.quantidadeEmAberto <= 0,
             onSelecionar: (e: any) => patchLinha(l.itemNumber, { selecionado: e.target.checked }),
-            indiceNota: l.indiceNota === null ? '' : String(l.indiceNota),
-            onNota: (e: any) => associarNota(l.itemNumber, e.target.value),
-            notaDetalhe: nota ? detalheNota(nota) : '',
-            notaQtd: nota ? `${fmtNum(nota.quantidade)} ${nota.unidade ?? ''}`.trim() : '—',
-            notaValor: nota ? fmtMoeda(nota.valorTotal) : '',
-            similaridade: l.indiceNota !== null && sim === null ? 'manual' : sim === null ? '—' : `${Math.round(sim * 100)}%`,
-            nivel: l.indiceNota !== null && sim === null ? 'manual' : sim === null ? 'vazio' : sim >= 0.7 ? 'alta' : sim >= 0.5 ? 'media' : 'baixa',
+            // Uma sub-linha por item da nota ligado ao insumo (ao menos uma, para escolher).
+            notas: (temNota ? l.indicesNota : [null]).map((indice, posicao) => {
+              const nota = indice === null ? undefined : notaPorIndice.get(indice);
+              return {
+                indiceNota: indice === null ? '' : String(indice),
+                onNota: (e: any) => associarNota(l.itemNumber, posicao, e.target.value),
+                notaDetalhe: nota ? detalheNota(nota) : '',
+                notaQtd: nota ? `${fmtNum(nota.quantidade)} ${nota.unidade ?? ''}`.trim() : '—',
+                notaValor: nota ? fmtMoeda(nota.valorTotal) : '',
+              };
+            }),
+            similaridade: agrupado ? 'valor' : temNota && sim === null ? 'manual' : sim === null ? '—' : `${Math.round(sim * 100)}%`,
+            nivel: agrupado ? 'valor' : temNota && sim === null ? 'manual' : sim === null ? 'vazio' : sim >= 0.7 ? 'alta' : sim >= 0.5 ? 'media' : 'baixa',
             insumo: `${item.codigoInsumo ? `${item.codigoInsumo} — ` : ''}${item.descricao}`,
             insumoDetalhe: `Item ${item.itemNumber} · ${fmtMoeda(item.precoUnitario)}/${item.unidade ?? 'un'}${item.quantidadeEmAberto <= 0 ? ' · sem saldo' : ''}`,
             pendente: `${fmtNum(item.quantidadeEmAberto)} ${item.unidade ?? ''}`.trim(),
