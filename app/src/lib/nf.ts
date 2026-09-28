@@ -74,6 +74,10 @@ export interface AnaliseDocumento {
   pedidos: PedidoAberto[];
   pedidosOutraEmpresa: number;
   bloqueios: string[];
+  /** Servidor antigo não envia. */
+  avisos?: string[];
+  /** A empresa não foi achada pelo CNPJ nem pelo nome (servidor antigo não envia). */
+  empresaNaoLocalizada?: boolean;
 }
 
 export interface ItemNotaPreview {
@@ -230,9 +234,12 @@ export const nfApi = {
   },
   /** Lê o PDF e traz os pedidos em aberto do fornecedor para a empresa. Nada é gravado. */
   analisar: (pdfBase64: string) => supabase ? fn<AnaliseDocumento>('analisar', { pdfBase64 }) : demo.espera(demo.analise()),
+  /** Refaz a busca de pedidos com a empresa informada pelo usuário (código no Sienge), sem reler o PDF. */
+  pedidos: (documento: DocumentoLido, empresaId: number) =>
+    supabase ? fn<AnaliseDocumento>('pedidos', { documento, empresaId }) : demo.espera(demo.analise()),
   /** O documento já lido volta para o servidor: o PDF não é lido de novo. */
-  preview: (documento: DocumentoLido, purchaseOrderId: string) =>
-    supabase ? fn<PreviewNota>('preview', { documento, purchaseOrderId }) : demo.espera(demo.preview(purchaseOrderId)),
+  preview: (documento: DocumentoLido, purchaseOrderId: string, empresaId?: number | null) =>
+    supabase ? fn<PreviewNota>('preview', { documento, purchaseOrderId, empresaId: empresaId || undefined }) : demo.espera(demo.preview(purchaseOrderId)),
   liberarVencimento: (senha: string) => supabase ? fn<{ ok: true }>('liberar_vencimento', { senha }) : demo.espera({ ok: true as const }),
   cadastrar: (corpo: ConfirmacaoCorpo) => supabase ? fn<ConfirmacaoResultado>('cadastrar', corpo as any) : demo.espera(demo.cadastrar(corpo)),
   /** Um anexo por chamada, depois que o Sienge gerou o título. */

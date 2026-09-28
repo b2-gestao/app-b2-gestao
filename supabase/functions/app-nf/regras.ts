@@ -24,7 +24,7 @@ import {
   toleranciaValor,
   vincularEntregas,
 } from "./sienge.ts";
-import type { Empreendimento, EntregaPrevista, EntregaVinculada, FormatoPedido, PedidoCompra, TipoDocumento } from "./sienge.ts";
+import type { Empreendimento, Empresa, EntregaPrevista, EntregaVinculada, FormatoPedido, PedidoCompra, TipoDocumento } from "./sienge.ts";
 import type { NotaFiscalExtraida } from "./extracao.ts";
 
 // ---------- contratos com a tela ----------
@@ -69,6 +69,9 @@ export interface AnaliseDocumento {
   pedidos: PedidoAberto[];
   pedidosOutraEmpresa: number;
   bloqueios: string[];
+  avisos: string[];
+  /** A empresa não foi achada pelo CNPJ nem pelo nome: a tela oferece informar o código manualmente. */
+  empresaNaoLocalizada: boolean;
 }
 
 export interface ItemNotaPreview {
@@ -345,6 +348,67 @@ function similaridadeTexto(a: string, b: string): number {
   return (2 * comuns) / (ta.length + tb.length);
 }
 
+// ---------- empresa pelo nome ----------
+
+/** Termos societários e conectivos que não distinguem uma empresa da outra. */
+const TERMOS_IGNORADOS_EMPRESA = new Set(["LTDA", "SA", "EIRELI", "ME", "EPP", "CIA", "LIMITADA", "E", "DE", "DA", "DO", "DAS", "DOS"]);
+
+const SIMILARIDADE_EMPRESA = 0.8;
+const FOLGA_EMPRESA = 0.15;
+
+/**
+ * Tokens da razão social. Diferente de tokens(), mantém palavras de uma letra: numerais romanos
+ * distinguem SPEs ("RIO VERDE I" x "RIO VERDE II").
+ */
+function tokensEmpresa(texto: string): string[] {
+  return texto
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toUpperCase()
+    .replace(/\bS\s*[/.]\s*A\b/g, "SA")
+    .split(/[^A-Z0-9]+/)
+    .filter((t) => t && !TERMOS_IGNORADOS_EMPRESA.has(t));
+}
+
+/** Dice sobre os tokens da razão social; aceita nome truncado por prefixo ("INCORP" ~ "INCORPORADORA"). */
+function similaridadeEmpresa(a: string[], b: string[]): number {
+  if (a.length === 0 || b.length === 0) return 0;
+  const usados = new Set<number>();
+  let comuns = 0;
+  for (const x of a) {
+    const j = b.findIndex((y, i) => !usados.has(i) && tokensCasam(x, y));
+    if (j >= 0) {
+      usados.add(j);
+      comuns += 1;
+    }
+  }
+  return (2 * comuns) / (a.length + b.length);
+}
+
+/**
+ * Empresa do Sienge pelo nome lido no PDF (razão social ou nome fantasia). Só aceita um resultado
+ * claro: nome igual e único, ou o mais parecido bem à frente do segundo — há várias SPEs com nomes
+ * parecidos e é melhor bloquear do que vincular à empresa errada.
+ */
+function buscarEmpresaPorNome(nome: string, empresas: Empresa[]): Empresa | null {
+  const alvo = tokensEmpresa(nome);
+  if (alvo.length === 0) return null;
+  const chave = alvo.join(" ");
+  const nomes = (e: Empresa) => [e.name, e.tradeName].filter((n): n is string => !!n?.trim()).map(tokensEmpresa);
+
+  const iguais = empresas.filter((e) => nomes(e).some((n) => n.join(" ") === chave));
+  if (iguais.length === 1) return iguais[0];
+  if (iguais.length > 1) return null;
+
+  const ranking = empresas
+    .map((empresa) => ({ empresa, score: Math.max(0, ...nomes(empresa).map((n) => similaridadeEmpresa(alvo, n))) }))
+    .sort((a, b) => b.score - a.score);
+  const [primeira, segunda] = ranking;
+  if (!primeira || primeira.score < SIMILARIDADE_EMPRESA) return null;
+  if (segunda && primeira.score - segunda.score < FOLGA_EMPRESA) return null;
+  return primeira.empresa;
+}
+
 function pontuar(nota: ItemNotaPreview, pedido: ItemPedidoPreview): number {
   const codigoNota = nota.codigo?.trim().toUpperCase();
   const codigoPedido = pedido.codigoInsumo?.trim().toUpperCase();
@@ -460,10 +524,29 @@ const PAPEIS: Record<TipoDocumento, { vendedor: string; comprador: string }> = {
 /** Situações em que o pedido ainda aceita nota: não atendido e parcialmente atendido. */
 const STATUS_EM_ABERTO = ["PENDING", "PARTIALLY_DELIVERED"] as const;
 
-/** Fornecedor = credor com o CNPJ/CPF de quem vende; empresa = empresa com o CNPJ de quem compra. */
-async function identificarPartes(documento: DocumentoLido): Promise<{ fornecedor: Parte | null; empresa: Parte | null; bloqueios: string[] }> {
+interface Partes {
+  fornecedor: Parte | null;
+  empresa: Parte | null;
+  bloqueios: string[];
+  avisos: string[];
+}
+
+function parteEmpresa(empresa: Empresa): Parte {
+  return { id: empresa.id, nome: empresa.name ?? empresa.tradeName ?? "", cnpj: formatarDocumento(empresa.cnpj) };
+}
+
+function descreverParte(parte: Parte): string {
+  return `${parte.id} — ${parte.nome}${parte.cnpj ? ` (${parte.cnpj})` : ""}`;
+}
+
+/**
+ * Fornecedor = credor com o CNPJ/CPF de quem vende. Empresa = a informada pelo usuário (código no
+ * Sienge); senão a do CNPJ de quem compra; senão a do nome de quem compra.
+ */
+async function identificarPartes(documento: DocumentoLido, empresaIdManual?: number | null): Promise<Partes> {
   const papeis = PAPEIS[documento.tipoDocumento];
   const bloqueios: string[] = [];
+  const avisos: string[] = [];
   const docFornecedor = apenasDigitos(documento.fornecedorCnpj);
   const docComprador = apenasDigitos(documento.destinatarioCnpj);
   const [credor, empresas] = await Promise.all([
@@ -483,17 +566,30 @@ async function identificarPartes(documento: DocumentoLido): Promise<{ fornecedor
   }
 
   let empresa: Parte | null = null;
-  if (!docComprador) {
-    bloqueios.push(`Não foi possível ler o CNPJ do ${papeis.comprador} no PDF.`);
-  } else {
-    const encontrada = empresas.find((e) => mesmoDocumento(e.cnpj, docComprador));
-    if (!encontrada) {
-      bloqueios.push(`O CNPJ do ${papeis.comprador} (${formatarDocumento(docComprador)}) não corresponde a nenhuma empresa do Sienge.`);
-    } else {
-      empresa = { id: encontrada.id, nome: encontrada.name ?? encontrada.tradeName ?? "", cnpj: formatarDocumento(encontrada.cnpj) };
-    }
+  if (empresaIdManual) {
+    const escolhida = empresas.find((e) => e.id === empresaIdManual);
+    if (!escolhida) throw new ErroAplicacao("requisicao_invalida", `Nenhuma empresa com o código ${empresaIdManual} no Sienge.`, 400);
+    empresa = parteEmpresa(escolhida);
+    avisos.push(`Empresa informada manualmente: ${descreverParte(empresa)}.`);
+    return { fornecedor, empresa, bloqueios, avisos };
   }
-  return { fornecedor, empresa, bloqueios };
+
+  const porCnpj = docComprador ? empresas.find((e) => mesmoDocumento(e.cnpj, docComprador)) : undefined;
+  if (porCnpj) return { fornecedor, empresa: parteEmpresa(porCnpj), bloqueios, avisos };
+
+  const motivo = docComprador
+    ? `o CNPJ do ${papeis.comprador} (${formatarDocumento(docComprador)}) não corresponde a nenhuma empresa do Sienge`
+    : `não foi possível ler o CNPJ do ${papeis.comprador} no PDF`;
+  const nome = documento.destinatarioNome?.trim();
+  const porNome = nome ? buscarEmpresaPorNome(nome, empresas) : null;
+  if (porNome) {
+    empresa = parteEmpresa(porNome);
+    avisos.push(`A empresa foi localizada pelo nome do ${papeis.comprador} ("${nome}") porque ${motivo}: ${descreverParte(empresa)}. Confira.`);
+  } else {
+    const texto = motivo.charAt(0).toUpperCase() + motivo.slice(1);
+    bloqueios.push(nome ? `${texto}, e nenhuma empresa corresponde ao nome "${nome}".` : `${texto}.`);
+  }
+  return { fornecedor, empresa, bloqueios, avisos };
 }
 
 /** Pedidos autorizados e em aberto do fornecedor, só da empresa do documento (a empresa do pedido é a da obra). */
@@ -532,9 +628,10 @@ async function listarPedidosEmAberto(fornecedorId: number, empresaId: number): P
 }
 
 /** Fornecedor e empresa do documento, e os pedidos em aberto entre os dois. Nada é gravado. */
-export async function buscarPedidosDoDocumento(documento: DocumentoLido): Promise<AnaliseDocumento> {
-  const { fornecedor, empresa, bloqueios } = await identificarPartes(documento);
-  if (!fornecedor || !empresa) return { documento, fornecedor, empresa, pedidos: [], pedidosOutraEmpresa: 0, bloqueios };
+export async function buscarPedidosDoDocumento(documento: DocumentoLido, empresaIdManual?: number | null): Promise<AnaliseDocumento> {
+  const { fornecedor, empresa, bloqueios, avisos } = await identificarPartes(documento, empresaIdManual);
+  const empresaNaoLocalizada = !empresa;
+  if (!fornecedor || !empresa) return { documento, fornecedor, empresa, pedidos: [], pedidosOutraEmpresa: 0, bloqueios, avisos, empresaNaoLocalizada };
 
   const { pedidos, outraEmpresa } = await listarPedidosEmAberto(fornecedor.id, empresa.id);
   if (pedidos.length === 0) {
@@ -543,13 +640,19 @@ export async function buscarPedidosDoDocumento(documento: DocumentoLido): Promis
         (outraEmpresa > 0 ? ` Há ${outraEmpresa} pedido(s) em aberto deste fornecedor para outras empresas.` : ""),
     );
   }
-  return { documento, fornecedor, empresa, pedidos, pedidosOutraEmpresa: outraEmpresa, bloqueios };
+  return { documento, fornecedor, empresa, pedidos, pedidosOutraEmpresa: outraEmpresa, bloqueios, avisos, empresaNaoLocalizada };
 }
 
 // ---------- pré-visualização ----------
 
 /** Recebe o documento já lido na análise: o PDF não é lido de novo ao escolher o pedido. */
-export async function montarPreview(entrada: { documento: DocumentoLido; purchaseOrderId: string; vencimentoEditavel: boolean }): Promise<PreviewNota> {
+export async function montarPreview(entrada: {
+  documento: DocumentoLido;
+  purchaseOrderId: string;
+  vencimentoEditavel: boolean;
+  /** Código da empresa informado pelo usuário quando o PDF não identificou a empresa. */
+  empresaId?: number | null;
+}): Promise<PreviewNota> {
   const config = configSienge();
   const { documento } = entrada;
   const numeroPedido = normalizarNumeroPedido(entrada.purchaseOrderId, config.formatoPedido);
@@ -558,13 +661,13 @@ export async function montarPreview(entrada: { documento: DocumentoLido; purchas
   const [{ itens: itensPedido }, obra, partes] = await Promise.all([
     carregarItensComSaldo(pedido.id),
     pedido.buildingId ? buscarEmpreendimento(pedido.buildingId) : Promise.resolve(null),
-    identificarPartes(documento),
+    identificarPartes(documento, entrada.empresaId),
   ]);
 
   const tipo = documento.tipoDocumento;
   const { fornecedor, empresa } = partes;
   const bloqueios = [...partes.bloqueios];
-  const avisos: string[] = [];
+  const avisos = [...partes.avisos];
 
   if (fornecedor && fornecedor.id !== pedido.supplierId) {
     bloqueios.push(

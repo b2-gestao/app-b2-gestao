@@ -391,7 +391,19 @@ function Pedido({ nf }: { nf: any }) {
           ['Empresa', a.empresa, a.empresaCnpj],
         ]} />
         {a.bloqueios.length ? <Alerta tom="erro" titulo="Não há pedido para vincular" itens={a.bloqueios} /> : null}
+        {a.avisos.length ? <Alerta tom="aviso" titulo="Confira" itens={a.avisos} /> : null}
+        {a.podeInformarEmpresa ? (
+          <Alerta tom="info" titulo="Empresa não localizada">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+              <span>Não localizamos a empresa pelo CNPJ nem pelo nome. Deseja informar a empresa manualmente?</span>
+              <button onClick={a.informarEmpresa} disabled={travado} style={css(btnSec + ';height:32px' + (travado ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>
+                Sim, informar empresa
+              </button>
+            </div>
+          </Alerta>
+        ) : null}
       </Secao>
+      {a.empresaModal ? <EmpresaModal m={a.empresaModal} /> : null}
 
       {a.pedidos.length ? (
         <Secao
@@ -758,6 +770,39 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
         <button onClick={nf.verHistorico} disabled={r.enviando} style={css(btnSec + ';height:38px' + (r.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Ver notas cadastradas</button>
       </div>
     </section>
+  );
+}
+
+/** Código da empresa no Sienge, quando o PDF não permitiu identificá-la pelo CNPJ nem pelo nome. */
+function EmpresaModal({ m }: { m: any }) {
+  const bloqueado = m.enviando || !m.codigo;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') m.fechar(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [m]);
+  return (
+    <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
+      <div role="dialog" aria-modal="true" aria-label="Informar empresa" onClick={e => e.stopPropagation()}
+        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
+          <div style={{ fontWeight: 700, fontSize: '15.5px', color: '#111827' }}>Informar empresa</div>
+          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px' }}>Digite o código da empresa no Sienge para buscar os pedidos em aberto.</div>
+        </div>
+        <form onSubmit={e => { e.preventDefault(); if (!bloqueado) m.confirmar(); }} style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <Campo rotulo="Código da empresa">
+            <input value={m.codigo} onChange={m.onCodigo} disabled={m.enviando} inputMode="numeric" autoFocus placeholder="Ex.: 190" style={css(input)} />
+          </Campo>
+          {m.erro ? <Alerta tom="erro" titulo={m.erro} /> : null}
+        </form>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: '#FCFCFD' }}>
+          <button onClick={m.fechar} disabled={m.enviando} style={css(btnSec + ';height:38px' + (m.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
+          <button onClick={m.confirmar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
+            {m.enviando ? <><Spinner /> Buscando…</> : 'Continuar'}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 

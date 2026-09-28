@@ -20,7 +20,8 @@
 //
 // Ações ({ acao, ... }):
 //   analisar            { pdfBase64 }                         → AnaliseDocumento (lê o PDF; nada é gravado)
-//   preview             { documento, purchaseOrderId }        → PreviewNota (nada é gravado)
+//   pedidos             { documento, empresaId }              → AnaliseDocumento com a empresa informada pelo usuário (não relê o PDF)
+//   preview             { documento, purchaseOrderId, empresaId? } → PreviewNota (nada é gravado)
 //   liberar_vencimento  { senha }                             → { ok }
 //   cadastrar           ConfirmacaoCorpo                      → ConfirmacaoResultado (grava no Sienge + histórico)
 //   anexar              { billId, pdfBase64, nomeArquivo, descricao, cadastroId? } → { ok }
@@ -111,6 +112,12 @@ async function vencimento(manual: unknown): Promise<string> {
   const valida = data(escolhida, "a data de vencimento");
   if (valida < hojeBrasil()) invalido("O vencimento não pode ser anterior a hoje.");
   return valida;
+}
+
+/** Código da empresa informado manualmente; ausente ou inválido vira null. */
+function codigoEmpresa(valor: unknown): number | null {
+  const id = Number(valor);
+  return Number.isInteger(id) && id > 0 ? id : null;
 }
 
 async function validarConfirmacao(corpo: Record<string, unknown>): Promise<ConfirmacaoRequest> {
@@ -231,6 +238,14 @@ Deno.serve(async (req) => {
         return json(await buscarPedidosDoDocumento(documento));
       }
 
+      case "pedidos": {
+        const documento = notaFiscalExtraidaSchema.safeParse(corpo.documento);
+        if (!documento.success) invalido("Envie o documento lido na análise em documento.");
+        const empresaId = codigoEmpresa(corpo.empresaId);
+        if (!empresaId) invalido("Informe o código da empresa.");
+        return json(await buscarPedidosDoDocumento(documento.data, empresaId));
+      }
+
       case "preview": {
         const documento = notaFiscalExtraidaSchema.safeParse(corpo.documento);
         if (!documento.success) invalido("Envie o documento lido na análise em documento.");
@@ -238,6 +253,7 @@ Deno.serve(async (req) => {
           documento: documento.data,
           purchaseOrderId: textoObrigatorio(corpo.purchaseOrderId, "o número do pedido de compra"),
           vencimentoEditavel: !!senhaVencimento(),
+          empresaId: codigoEmpresa(corpo.empresaId),
         }));
       }
 

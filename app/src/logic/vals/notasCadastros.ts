@@ -55,8 +55,11 @@ const ROTULOS_ENVIO: Record<StatusEnvio, string> = { pendente: 'Na fila', envian
 export const NF_INICIAL = {
   nfEtapa: 'lista', nfArquivo: null, nfBusy: '', nfErro: '', nfAnalise: null, nfPreview: null, nfPedidoId: null,
   nfTipo: null, nfCab: null, nfCentro: '', nfLinhas: [], nfDescPrincipal: null, nfAnexos: [], nfRecusados: [],
-  nfSenha: null, nfResultado: null, nfEnvios: [], nfChamado: null,
+  nfSenha: null, nfResultado: null, nfEnvios: [], nfChamado: null, nfEmpresaManual: null, nfEmpresaModal: null,
 };
+
+/** Modal para informar o código da empresa quando o PDF não a identificou (null = fechado). */
+interface EmpresaModalState { codigo: string; erro: string; enviando: boolean }
 
 /** Modal do chamado de conferência do título no TomTicket (null = fechado e ainda não criado). */
 interface ChamadoState {
@@ -142,7 +145,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
       const pdfBase64 = await lerComoBase64(arquivo);
       this._nfPdf = pdfBase64;
       const analise = await nfApi.analisar(pdfBase64);
-      set({ nfAnalise: analise, nfEtapa: 'pedido', nfBusy: '' });
+      set({ nfAnalise: analise, nfEtapa: 'pedido', nfBusy: '', nfEmpresaManual: null, nfEmpresaModal: null });
     } catch (e: any) {
       set({ nfBusy: '', nfErro: erroDe(e) });
     }
@@ -152,7 +155,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
     if (busy || !s.nfAnalise) return;
     set({ nfBusy: 'pedido:' + p.id, nfErro: '' });
     try {
-      const pv = await nfApi.preview(s.nfAnalise.documento, String(p.id));
+      const pv = await nfApi.preview(s.nfAnalise.documento, String(p.id), s.nfEmpresaManual);
       set({
         nfPreview: pv, nfPedidoId: String(p.id), nfEtapa: 'conferencia', nfBusy: '',
         nfTipo: pv.tipoDocumento,
@@ -165,6 +168,24 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
       });
     } catch (e: any) {
       set({ nfBusy: '', nfErro: erroDe(e) });
+    }
+  };
+
+  // ---------- empresa informada manualmente ----------
+  const empresaModal: EmpresaModalState | null = s.nfEmpresaModal;
+  const patchEmpresaModal = (p: Partial<EmpresaModalState>) =>
+    this.setState(st => ({ nfEmpresaModal: st.nfEmpresaModal ? { ...st.nfEmpresaModal, ...p } : null }));
+
+  const confirmarEmpresa = async () => {
+    if (!empresaModal || empresaModal.enviando || !s.nfAnalise) return;
+    const codigo = Number(empresaModal.codigo);
+    if (!Number.isInteger(codigo) || codigo <= 0) { patchEmpresaModal({ erro: 'Informe o código da empresa no Sienge.' }); return; }
+    patchEmpresaModal({ enviando: true, erro: '' });
+    try {
+      const analise = await nfApi.pedidos(s.nfAnalise.documento, codigo);
+      set({ nfAnalise: analise, nfEmpresaManual: codigo, nfEmpresaModal: null, nfErro: '' });
+    } catch (e: any) {
+      patchEmpresaModal({ enviando: false, erro: erroDe(e) });
     }
   };
 
@@ -450,6 +471,17 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
           empresa: a.empresa ? `${a.empresa.id} — ${a.empresa.nome}` : (a.documento.destinatarioNome ?? '—'),
           empresaCnpj: a.empresa?.cnpj || '',
           bloqueios: a.bloqueios as string[],
+          avisos: (a.avisos ?? []) as string[],
+          podeInformarEmpresa: (a.empresaNaoLocalizada ?? !a.empresa) as boolean,
+          informarEmpresa: () => set({ nfEmpresaModal: { codigo: '', erro: '', enviando: false } }),
+          empresaModal: empresaModal ? {
+            codigo: empresaModal.codigo,
+            onCodigo: (e: any) => patchEmpresaModal({ codigo: e.target.value.replace(/\D/g, ''), erro: '' }),
+            erro: empresaModal.erro,
+            enviando: empresaModal.enviando,
+            fechar: () => { if (!empresaModal.enviando) set({ nfEmpresaModal: null }); },
+            confirmar: confirmarEmpresa,
+          } : null,
           outraEmpresa: a.pedidosOutraEmpresa as number,
           pedidos: (a.pedidos as PedidoAberto[]).map(p => ({
             id: p.id,
@@ -464,7 +496,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
           })),
         };
       })() : null,
-      voltarEnvio: () => set({ nfEtapa: 'envio', nfAnalise: null, nfErro: '' }),
+      voltarEnvio: () => set({ nfEtapa: 'envio', nfAnalise: null, nfErro: '', nfEmpresaManual: null, nfEmpresaModal: null }),
 
       // 3. conferência
       conf: preview ? {
@@ -483,7 +515,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
         fornecedorCnpj: preview.fornecedorNota.cnpj || '',
         empresaRotulo: `Empresa (CNPJ do ${papeis.comprador})`,
         empresa: preview.empresa ? `${preview.empresa.id} — ${preview.empresa.nome}` : 'Não encontrada',
-        empresaCnpj: preview.destinatarioNota.cnpj || '',
+        empresaCnpj: preview.destinatarioNota.cnpj || preview.empresa?.cnpj || '',
         pedido: preview.pedido.numero,
         pedidoObra: preview.pedido.obraId ? `Obra ${preview.pedido.obraId} — ${preview.pedido.obraNome ?? ''}` : '',
         valor: fmtMoeda(valorDocumento),
