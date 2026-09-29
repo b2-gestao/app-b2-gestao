@@ -47,6 +47,19 @@
   @keyframes rainFall{0%{transform:translateY(-2px);opacity:0}30%{opacity:1}100%{transform:translateY(7px);opacity:0}}
   @keyframes heatWave{0%,100%{transform:translateX(0)}50%{transform:translateX(2.5px)}}
   @keyframes tileIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  /* Botão "Analisar com IA": gradiente que flui, brilho que atravessa e faísca que pisca. */
+  @keyframes iaFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+  @keyframes iaSweep{0%,55%{transform:translateX(-160%) skewX(-22deg)}100%{transform:translateX(260%) skewX(-22deg)}}
+  @keyframes iaHalo{0%,100%{box-shadow:0 6px 16px -6px rgba(109,40,217,.6),0 0 0 0 rgba(139,92,246,.38)}50%{box-shadow:0 6px 16px -6px rgba(109,40,217,.6),0 0 0 6px rgba(139,92,246,0)}}
+  @keyframes iaTwinkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.22) rotate(18deg)}}
+  .ia-cta{position:relative;overflow:hidden;flex:none;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 15px 0 12px;border:0;border-radius:999px;color:#FFFFFF;font-size:12.5px;font-weight:600;font-family:inherit;letter-spacing:.01em;cursor:pointer;background:linear-gradient(110deg,#6D28D9 0%,#4161FF 45%,#C026D3 100%);background-size:220% 100%;text-shadow:0 1px 1px rgba(40,10,90,.25);animation:iaFlow 6s ease-in-out infinite,iaHalo 2.6s ease-in-out infinite;transition:transform .18s cubic-bezier(.3,1.5,.6,1),filter .18s}
+  .ia-cta::after{content:"";position:absolute;top:0;bottom:0;left:0;width:38%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:iaSweep 3.4s ease-in-out infinite}
+  .ia-cta svg{flex:none;overflow:visible;animation:iaTwinkle 2.6s ease-in-out infinite;transform-origin:50% 50%}
+  .ia-cta:hover{transform:translateY(-1px);filter:brightness(1.08) saturate(1.1)}
+  .ia-cta:hover::after{animation-duration:1.4s}
+  .ia-cta:active{transform:scale(.96)}
+  .ia-cta:focus-visible{outline:2px solid #A78BFA;outline-offset:2px}
+  @media (prefers-reduced-motion:reduce){.ia-cta,.ia-cta::after,.ia-cta svg{animation:none}}
   @property --ring-a{syntax:'<angle>';initial-value:0deg;inherits:false}
   @keyframes ringSpin{to{--ring-a:360deg}}
   @keyframes overlayIn{from{opacity:0}to{opacity:1}}
@@ -1354,8 +1367,8 @@
           <div style="font-size:13px;font-weight:600;color:#7C5A17">Saldo insuficiente na conta Itaú · Obras Ltda para cobrir os pagamentos de hoje — faltam R$ 18.400</div>
           <div style="font-size:11.5px;color:#8A6A2C;margin-top:1px">Análise com IA · 3 pontos de atenção na programação de hoje</div>
         </div>
-        <button onClick="{{ iaOpenProg }}" style="flex:none;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:1px solid #E9C77E;background:#FFFFFF;color:#8A6A2C;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:border-color .15s,transform .15s" style-hover="border-color:#B7791F" style-active="transform:scale(.97)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        <button onClick="{{ iaOpenProg }}" class="ia-cta">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3.5l1.9 5.1L17 10.5l-5.1 1.9L10 17.5l-1.9-5.1L3 10.5l5.1-1.9L10 3.5z"/><path d="M18.5 14l.85 2.15L21.5 17l-2.15.85L18.5 20l-.85-2.15L15.5 17l2.15-.85L18.5 14z" opacity=".85"/></svg>
           {{ iaProgBtnLabel }}
         </button>
       </div>
@@ -1555,8 +1568,8 @@
           <div style="font-size:13px;font-weight:600;color:#7C5A17">Saldo projetado fica negativo em 28/09 · R$ 142 mil abaixo do necessário</div>
           <div style="font-size:11.5px;color:#8A6A2C;margin-top:1px">Análise com IA · projeção dos próximos 10 dias</div>
         </div>
-        <button onClick="{{ iaOpenFluxo }}" style="flex:none;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 13px;border-radius:8px;border:1px solid #E9C77E;background:#FFFFFF;color:#8A6A2C;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:border-color .15s,transform .15s" style-hover="border-color:#B7791F" style-active="transform:scale(.97)">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>
+        <button onClick="{{ iaOpenFluxo }}" class="ia-cta">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M10 3.5l1.9 5.1L17 10.5l-5.1 1.9L10 17.5l-1.9-5.1L3 10.5l5.1-1.9L10 3.5z"/><path d="M18.5 14l.85 2.15L21.5 17l-2.15.85L18.5 20l-.85-2.15L15.5 17l2.15-.85L18.5 14z" opacity=".85"/></svg>
           {{ iaFluxoBtnLabel }}
         </button>
       </div>

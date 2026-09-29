@@ -6,6 +6,7 @@
 import {
   alterarVencimento,
   anexarNoTitulo,
+  buscarCredor,
   buscarCredorPorDocumento,
   buscarEmpreendimento,
   buscarNotaFiscal,
@@ -176,6 +177,13 @@ export function apenasDigitos(texto: string | null | undefined): string {
 function mesmoDocumento(a: string | null | undefined, b: string | null | undefined): boolean {
   const x = apenasDigitos(a);
   return x.length > 0 && x === apenasDigitos(b);
+}
+
+/** Matriz e filiais: CNPJs com a mesma raiz (8 primeiros dígitos). CPF não tem filial. */
+function mesmaRaizCnpj(a: string | null | undefined, b: string | null | undefined): boolean {
+  const x = apenasDigitos(a);
+  const y = apenasDigitos(b);
+  return x.length === 14 && y.length === 14 && x.slice(0, 8) === y.slice(0, 8);
 }
 
 function formatarMoeda(valor: number): string {
@@ -527,6 +535,8 @@ const STATUS_EM_ABERTO = ["PENDING", "PARTIALLY_DELIVERED"] as const;
 interface Partes {
   fornecedor: Parte | null;
   empresa: Parte | null;
+  /** Fora de `bloqueios`: some quando o pedido é de outra filial do mesmo CNPJ (ver montarPreview). */
+  bloqueioFornecedor: string | null;
   bloqueios: string[];
   avisos: string[];
 }
@@ -555,12 +565,12 @@ async function identificarPartes(documento: DocumentoLido, empresaIdManual?: num
   ]);
 
   let fornecedor: Parte | null = null;
+  let bloqueioFornecedor: string | null = null;
   if (!docFornecedor) {
-    bloqueios.push(`Não foi possível ler o CNPJ/CPF do ${papeis.vendedor} no PDF.`);
+    bloqueioFornecedor = `Não foi possível ler o CNPJ/CPF do ${papeis.vendedor} no PDF.`;
   } else if (!credor) {
-    bloqueios.push(
-      `Nenhum fornecedor com CNPJ/CPF ${formatarDocumento(docFornecedor)} (${papeis.vendedor} do documento) está cadastrado no Sienge.`,
-    );
+    bloqueioFornecedor =
+      `Nenhum fornecedor com CNPJ/CPF ${formatarDocumento(docFornecedor)} (${papeis.vendedor} do documento) está cadastrado no Sienge.`;
   } else {
     fornecedor = { id: credor.id, nome: credor.name ?? credor.tradeName ?? "", cnpj: formatarDocumento(credor.cnpj ?? credor.cpf) };
   }
@@ -571,11 +581,11 @@ async function identificarPartes(documento: DocumentoLido, empresaIdManual?: num
     if (!escolhida) throw new ErroAplicacao("requisicao_invalida", `Nenhuma empresa com o código ${empresaIdManual} no Sienge.`, 400);
     empresa = parteEmpresa(escolhida);
     avisos.push(`Empresa informada manualmente: ${descreverParte(empresa)}.`);
-    return { fornecedor, empresa, bloqueios, avisos };
+    return { fornecedor, empresa, bloqueioFornecedor, bloqueios, avisos };
   }
 
   const porCnpj = docComprador ? empresas.find((e) => mesmoDocumento(e.cnpj, docComprador)) : undefined;
-  if (porCnpj) return { fornecedor, empresa: parteEmpresa(porCnpj), bloqueios, avisos };
+  if (porCnpj) return { fornecedor, empresa: parteEmpresa(porCnpj), bloqueioFornecedor, bloqueios, avisos };
 
   const motivo = docComprador
     ? `o CNPJ do ${papeis.comprador} (${formatarDocumento(docComprador)}) não corresponde a nenhuma empresa do Sienge`
@@ -589,7 +599,7 @@ async function identificarPartes(documento: DocumentoLido, empresaIdManual?: num
     const texto = motivo.charAt(0).toUpperCase() + motivo.slice(1);
     bloqueios.push(nome ? `${texto}, e nenhuma empresa corresponde ao nome "${nome}".` : `${texto}.`);
   }
-  return { fornecedor, empresa, bloqueios, avisos };
+  return { fornecedor, empresa, bloqueioFornecedor, bloqueios, avisos };
 }
 
 /** Pedidos autorizados e em aberto do fornecedor, só da empresa do documento (a empresa do pedido é a da obra). */
@@ -629,7 +639,8 @@ async function listarPedidosEmAberto(fornecedorId: number, empresaId: number): P
 
 /** Fornecedor e empresa do documento, e os pedidos em aberto entre os dois. Nada é gravado. */
 export async function buscarPedidosDoDocumento(documento: DocumentoLido, empresaIdManual?: number | null): Promise<AnaliseDocumento> {
-  const { fornecedor, empresa, bloqueios, avisos } = await identificarPartes(documento, empresaIdManual);
+  const { fornecedor, empresa, bloqueioFornecedor, bloqueios, avisos } = await identificarPartes(documento, empresaIdManual);
+  if (bloqueioFornecedor) bloqueios.unshift(bloqueioFornecedor);
   const empresaNaoLocalizada = !empresa;
   if (!fornecedor || !empresa) return { documento, fornecedor, empresa, pedidos: [], pedidosOutraEmpresa: 0, bloqueios, avisos, empresaNaoLocalizada };
 
@@ -665,14 +676,34 @@ export async function montarPreview(entrada: {
   ]);
 
   const tipo = documento.tipoDocumento;
-  const { fornecedor, empresa } = partes;
+  const { empresa } = partes;
+  let { fornecedor } = partes;
   const bloqueios = [...partes.bloqueios];
   const avisos = [...partes.avisos];
 
-  if (fornecedor && fornecedor.id !== pedido.supplierId) {
-    bloqueios.push(
-      `O fornecedor do documento (${fornecedor.id} — ${fornecedor.nome}) é diferente do fornecedor do pedido ${numeroPedido.exibicao} (${pedido.supplierId}).`,
-    );
+  // Nota emitida por outra filial (ou pela matriz) do credor do pedido: mesma raiz de CNPJ.
+  // A nota é gravada no credor do pedido, que é o único a que os insumos podem ser vinculados.
+  if (!fornecedor || fornecedor.id !== pedido.supplierId) {
+    const credorPedido = await buscarCredor(pedido.supplierId);
+    const docCredorPedido = credorPedido?.cnpj ?? credorPedido?.cpf;
+    const pedidoParte: Parte | null = credorPedido
+      ? { id: credorPedido.id, nome: credorPedido.name ?? credorPedido.tradeName ?? "", cnpj: formatarDocumento(docCredorPedido) }
+      : null;
+    if (pedidoParte && mesmaRaizCnpj(documento.fornecedorCnpj, docCredorPedido)) {
+      avisos.push(
+        `O documento foi emitido por ${formatarDocumento(documento.fornecedorCnpj)}${fornecedor ? ` (${fornecedor.id} — ${fornecedor.nome})` : ""}, ` +
+          `filial do fornecedor do pedido ${numeroPedido.exibicao}: ${descreverParte(pedidoParte)}. A nota será cadastrada no fornecedor do pedido.`,
+      );
+      fornecedor = pedidoParte;
+    } else if (partes.bloqueioFornecedor) {
+      bloqueios.unshift(partes.bloqueioFornecedor);
+    } else if (fornecedor) {
+      bloqueios.push(
+        `O fornecedor do documento (${fornecedor.id} — ${fornecedor.nome}) é diferente do fornecedor do pedido ${numeroPedido.exibicao} ` +
+          `(${pedidoParte ? descreverParte(pedidoParte) : pedido.supplierId}) ` +
+          `e o CNPJ não é de uma filial dele.`,
+      );
+    }
   }
   if (typeof obra?.companyId !== "number") {
     bloqueios.push("Não foi possível identificar a empresa da obra do pedido para conferir com o documento.");
@@ -838,7 +869,8 @@ export async function confirmarCadastro(
   const criada = await criarNotaFiscal({
     documentId: config.documentIds[entrada.tipoDocumento],
     number: entrada.cabecalho.numero,
-    series: entrada.cabecalho.serie ?? undefined,
+    // A série no Sienge tem até 3 caracteres (ex.: a "Série da DPS" de NFS-e, 70002, não cabe).
+    series: entrada.cabecalho.serie && entrada.cabecalho.serie.length <= 3 ? entrada.cabecalho.serie : undefined,
     supplierId: pedido.supplierId,
     companyId: obra.companyId,
     movementTypeId: config.movementTypeId ?? undefined,

@@ -85,8 +85,8 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     },
     { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
-    { label: 'Aporte necessário', val: f2(totAporte), sub: totAporte ? 'Empresas com saldo insuficiente' : 'Nenhuma empresa precisa de aporte', style: cardBase(3), valStyle: `font-size:21px;font-weight:700;color:${totAporte ? '#7C3AED' : '#111827'};font-variant-numeric:tabular-nums` },
-    { label: 'Saldo após pagamentos', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do dia', style: cardBase(4), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
+    { label: 'Total a pagar', val: f2(totTit + totMan), sub: 'Títulos + lançamentos manuais', style: cardBase(3), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
+    { label: 'Aporte necessário total', val: f2(totAporte), sub: totAporte ? 'Soma da coluna Aporte necessário' : 'Nenhuma empresa precisa de aporte', style: cardBase(4), valStyle: `font-size:21px;font-weight:700;color:${totAporte > 0 ? '#DC2626' : '#16A34A'};font-variant-numeric:tabular-nums` },
   ].map(c => ({ note: '', noteTip: '', noteStyle: noteStyle(false), ...c }));
 
   const ia = this.live && s.page === 'programacao' ? this.iaBanner('prog', progInsights(this)) : null;

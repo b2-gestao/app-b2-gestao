@@ -39,6 +39,19 @@ a:hover{color:#3153F4}
 @keyframes modalIn{from{opacity:0;transform:translateY(14px) scale(.985)}to{opacity:1;transform:none}}
 @keyframes toastIn{from{opacity:0;transform:translate(-50%,10px)}to{opacity:1;transform:translate(-50%,0)}}
 @keyframes rowIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+/* Botão "Analisar com IA": gradiente que flui, brilho que atravessa e faísca que pisca. */
+@keyframes iaFlow{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+@keyframes iaSweep{0%,55%{transform:translateX(-160%) skewX(-22deg)}100%{transform:translateX(260%) skewX(-22deg)}}
+@keyframes iaHalo{0%,100%{box-shadow:0 6px 16px -6px rgba(109,40,217,.6),0 0 0 0 rgba(139,92,246,.38)}50%{box-shadow:0 6px 16px -6px rgba(109,40,217,.6),0 0 0 6px rgba(139,92,246,0)}}
+@keyframes iaTwinkle{0%,100%{transform:scale(1) rotate(0)}50%{transform:scale(1.22) rotate(18deg)}}
+.ia-cta{position:relative;overflow:hidden;flex:none;display:inline-flex;align-items:center;gap:7px;height:32px;padding:0 15px 0 12px;border:0;border-radius:999px;color:#FFFFFF;font-size:12.5px;font-weight:600;font-family:inherit;letter-spacing:.01em;cursor:pointer;background:linear-gradient(110deg,#6D28D9 0%,#4161FF 45%,#C026D3 100%);background-size:220% 100%;text-shadow:0 1px 1px rgba(40,10,90,.25);animation:iaFlow 6s ease-in-out infinite,iaHalo 2.6s ease-in-out infinite;transition:transform .18s cubic-bezier(.3,1.5,.6,1),filter .18s}
+.ia-cta::after{content:"";position:absolute;top:0;bottom:0;left:0;width:38%;pointer-events:none;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:iaSweep 3.4s ease-in-out infinite}
+.ia-cta svg{flex:none;overflow:visible;animation:iaTwinkle 2.6s ease-in-out infinite;transform-origin:50% 50%}
+.ia-cta:hover{transform:translateY(-1px);filter:brightness(1.08) saturate(1.1)}
+.ia-cta:hover::after{animation-duration:1.4s}
+.ia-cta:active{transform:scale(.96)}
+.ia-cta:focus-visible{outline:2px solid #A78BFA;outline-offset:2px}
+@media (prefers-reduced-motion:reduce){.ia-cta,.ia-cta::after,.ia-cta svg{animation:none}}
 input::placeholder{color:#A8B0BD}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#4161FF;box-shadow:0 0 0 3px rgba(65,97,255,.14)}
 

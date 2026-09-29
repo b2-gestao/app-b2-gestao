@@ -51,9 +51,10 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                 {v.iaProgSub}
               </div>
             </div>
-            <button onClick={v.iaOpenProg} style={{ "flex": "none", "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "32px", "padding": "0 13px", "borderRadius": "8px", "border": "1px solid #E9C77E", "background": "#FFFFFF", "color": "#8A6A2C", "fontSize": "12.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,transform .15s" }} className={hv("border-color:#B7791F", "transform:scale(.97)", undefined)}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"></path>
+            <button onClick={v.iaOpenProg} className="ia-cta">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 3.5l1.9 5.1L17 10.5l-5.1 1.9L10 17.5l-1.9-5.1L3 10.5l5.1-1.9L10 3.5z"></path>
+                <path d="M18.5 14l.85 2.15L21.5 17l-2.15.85L18.5 20l-.85-2.15L15.5 17l2.15-.85L18.5 14z" opacity=".85"></path>
               </svg>
               {v.iaProgBtnLabel}
             </button>

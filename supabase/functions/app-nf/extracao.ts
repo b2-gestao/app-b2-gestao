@@ -51,7 +51,8 @@ Identifique o tipo e extraia os campos abaixo. Responda SOMENTE com JSON no sche
   - NFSE: número da NFS-e (não o número do RPS nem o código de verificação), só dígitos, sem zeros à esquerda.
   - FATURA: número da fatura ou, se não houver, o número do documento/nota impresso nela.
   - BOLETO: "Número do documento" do boleto, como impresso (não o nosso número nem a linha digitável).
-- serie: série da nota como impressa (ex: "0", "1"). null para fatura, boleto ou se não houver.
+- serie: série da nota como impressa (ex: "0", "1"), até 3 caracteres. null para fatura, boleto ou se não houver.
+  NFSE: não use a "Série da DPS" nem a série do RPS; sem série própria da NFS-e, devolva null.
 - dataEmissao: yyyy-MM-dd. NFE/NFSE/FATURA: data de emissão. BOLETO: data do documento. null se não houver.
 - dataVencimento: yyyy-MM-dd. FATURA/BOLETO: vencimento. NFE: vencimento da 1ª duplicata, se houver. Senão, null.
 - valorTotal:

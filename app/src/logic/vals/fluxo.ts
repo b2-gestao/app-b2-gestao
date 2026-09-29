@@ -44,7 +44,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   // Empresas sem recebíveis (engrenagem). Live data already comes zeroed from fluxoLive.
   const semRec: Record<number, string> = Object.fromEntries((s.fxSemRec || []).map(x => [x.cd, x.motivo]));
 
-  const buildLines = (semReceitas, e0, aportes, recFiltered?) => {
+  const buildLines = (semReceitas, e0, aportes, recFiltered?, aporteNecessario?: number[]) => {
     const e = recFiltered ? e0 : Object.assign({}, e0, { receitas: applyRecFilter(e0) });
     const saldoCells = seriesFor(e.caixa, e.receitas, e.pagamentos, e.inputs, aportes);
     const caixaRow = [e.caixa].concat(saldoCells.slice(0, N - 1));
@@ -63,10 +63,19 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     ];
     if (aportes) lines.push(mk('(−)', 'Aportes enviados às SPEs', aportes.map(v => v ? -v : null), '#7C3AED'));
     lines.push(mk('(=)', 'Saldo final', saldoCells, '#111827', 700));
+    // Informative: what the holding must send that day (to this SPE, or to all of them in the
+    // consolidado, where aportes between companies cancel out). It does not enter the saldo above.
+    if (aporteNecessario) lines.push(mk('(i)', 'Aporte necessário', aporteNecessario.map(v => v > 0.004 ? v : null), '#7C3AED', 600));
     return lines;
   };
 
-  const baseGroups = L ? L.groups : [
+  // Demo: aporte an SPE needs each day = growth of its shortfall (same rule as fluxoLive).
+  const needsOf = e => {
+    let prev = 0;
+    return seriesFor(e.caixa, applyRecFilter(e), e.pagamentos, e.inputs).map(v => { const d = Math.max(0, -v); const a = Math.max(0, d - prev); prev = d; return a; });
+  };
+
+  const baseGroups: any[] = L ? L.groups : [
     { cd: 2, name: 'Habitat Construtora e Incorp.', tag: 'Holding · origem dos aportes', open: s.fxOpen_2 !== false, key: 2, badge: 'Necessidade de caixa em 9 dias', data: demo(holding), aportes: demoAt([5152.95, 4870, 384307.91, 0, 0, 958963.02, 315230.90, 1141843.20, 204778.59, 0], 0) },
     { cd: 238, name: 'SPE Rio Verde VII – Zoe', tag: 'SPE', open: s.fxOpen_238 !== false, key: 238, badge: 'Recebe aporte em 5 dias', data: demo(zoe), aportes: null },
     { cd: 191, name: 'SPE Rio Verde I – Laguna', tag: 'SPE', open: s.fxOpen_191 !== false, key: 191, badge: 'Recebe aporte em 1 dia', data: demo(laguna), aportes: null },
@@ -83,7 +92,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     badgeStyle: `display:${g.badge ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:#FFF0DD;border-radius:20px;padding:3px 9px;white-space:nowrap`,
     semRecStyle: `display:${semRec[g.cd] != null ? 'inline-flex' : 'none'};font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:#F1F1F3;color:#64748B;white-space:nowrap;cursor:help`,
     semRecTitle: semRec[g.cd] != null ? `Parcelas a receber desconsideradas · ${semRec[g.cd]}` : '',
-    lines: buildLines(semRec[g.cd] != null, g.data, g.aportes),
+    lines: buildLines(semRec[g.cd] != null, g.data, g.aportes, false, g.aportes ? undefined : (L ? g.aporteNec : needsOf(g.data))),
   }));
 
   let sumCaixa = 0, sumRec = 0, sumPag = 0, sumInputs = 0, sumFinal = 0;
@@ -108,6 +117,8 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   };
   const consCells = seriesFor(consData.caixa, consData.receitas, consData.pagamentos, consData.inputs);
   const consNeg = consCells.findIndex(v => v < 0);
+  // Demo: the holding's sample aportes stand in for what the SPEs need each day.
+  const aporteDia: number[] = L ? L.aportesDia : (baseGroups.find(g => g.aportes)?.aportes || days.map(() => 0));
   const consOpen = s.fxOpen_cons !== false;
   const consGroup = {
     cd: 'Σ', key: 'cons', name: perEmp.length === 1 ? perEmp[0].name : `Consolidado · ${perEmp.length} empresas`,
@@ -119,7 +130,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     badge: consNeg >= 0 ? `Saldo consolidado negativo em ${days[consNeg]}` : '',
     badgeStyle: `display:${consNeg >= 0 ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:#FFF0DD;border-radius:20px;padding:3px 9px;white-space:nowrap`,
     semRecStyle: 'display:none', semRecTitle: '',
-    lines: buildLines(false, consData, null, true),
+    lines: buildLines(false, consData, null, true, aporteDia),
   };
   const fxGroups = view === 'Por SPE' ? perEmp : (perEmp.length ? [consGroup] : []);
 
@@ -131,7 +142,12 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     { label: `Saldo final (${days[N - 1]})`, val: `R$ ${f2(sumFinal)}`, sub: `${perEmp.length} de ${emps.length} empresas no filtro`, style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:300ms', valStyle: `font-size:20px;font-weight:700;color:${sumFinal < 0 ? '#DC2626' : '#111827'};font-variant-numeric:tabular-nums` },
   ];
 
-  const ddFxEmp = { toggle: () => this.setState(st => ({ ddOpen: st.ddOpen === 'fxEmp' ? null : 'fxEmp' })), isOpen: s.ddOpen === 'fxEmp', label: `${fxEmpSel.length} selecionadas`, btnStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxEmp' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxEmp', s, '', [], () => {}).panelStyle };
+  // Same searchable multi-select as Programação diária; selection is stored by company code (fxEmpSel), the dropdown works by name.
+  const fxEmpNames: string[] = emps.filter(e => fxEmpSel.includes(e.cd)).map(e => e.name);
+  const cdOf = (name: string) => emps.find(e => e.name === name)?.cd;
+  const ddFxEmp = this.mkMultiDropdown('fxEmp', s, fxEmpNames, emps.map(e => ({ name: e.name })),
+    name => this.setState(st => { const cd = cdOf(name); const cur: any[] = st.fxEmpSel || emps.map(x => x.cd); return { fxEmpSel: cur.includes(cd) ? cur.filter(c => c !== cd) : cur.concat(cd) }; }),
+    list => this.setState({ fxEmpSel: list.map(cdOf).filter(c => c != null) }));
   const ddFxRec = { toggle: () => this.setState({ ddOpen: s.ddOpen === 'fxRec' ? null : 'fxRec' }), isOpen: s.ddOpen === 'fxRec', label: fxRecSel.length === recAll.length ? 'Todas' : `${fxRecSel.length} selecionadas`, btnStyle: this.mkDropdown('fxRec', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxRec' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxRec', s, '', [], () => {}).panelStyle };
   const chkItem = (sel, label, on, toggle) => ({
     // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button and close the panel.

@@ -86,9 +86,10 @@ export default function FluxoPage({ v }: { v: any }) {
                 {v.iaFluxoSub}
               </div>
             </div>
-            <button onClick={v.iaOpenFluxo} style={{ "flex": "none", "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "32px", "padding": "0 13px", "borderRadius": "8px", "border": "1px solid #E9C77E", "background": "#FFFFFF", "color": "#8A6A2C", "fontSize": "12.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,transform .15s" }} className={hv("border-color:#B7791F", "transform:scale(.97)", undefined)}>
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
-                <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round"></path>
+            <button onClick={v.iaOpenFluxo} className="ia-cta">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M10 3.5l1.9 5.1L17 10.5l-5.1 1.9L10 17.5l-1.9-5.1L3 10.5l5.1-1.9L10 3.5z"></path>
+                <path d="M18.5 14l.85 2.15L21.5 17l-2.15.85L18.5 20l-.85-2.15L15.5 17l2.15-.85L18.5 14z" opacity=".85"></path>
               </svg>
               {v.iaFluxoBtnLabel}
             </button>
@@ -135,20 +136,33 @@ export default function FluxoPage({ v }: { v: any }) {
               {v.ddFxEmp.isOpen ? (
                 <>
                   <div style={css(v.ddFxEmp.panelStyle)}>
-                    {(v.fxEmpItems || []).map((it: any, _i0: number) => (
-                      <Fragment key={_i0}>
-                        <div onClick={it.onClick} style={css(it.style)} className={hv(it.hoverStyle, undefined, undefined)}>
-                          <span style={css(it.boxStyle)}>
-                            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={css(it.checkStyle)}>
-                              <path d="M5 12.5l4.5 4.5L19 7" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
-                            </svg>
-                          </span>
-                          <span style={{ "overflow": "hidden", "textOverflow": "ellipsis" }}>
-                            {it.label}
-                          </span>
-                        </div>
-                      </Fragment>
-                    ))}
+                    {v.ddFxEmp.hasSearch ? (
+                      <>
+                        <input value={v.ddFxEmp.query} onChange={v.ddFxEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                      </>
+                    ) : null}
+                    <button onClick={v.ddFxEmp.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
+                      {v.ddFxEmp.allOnLabel}
+                    </button>
+                    <div style={css(v.ddFxEmp.listStyle)}>
+                      <div style={css(v.ddFxEmp.noResultStyle)}>
+                        Nenhuma empresa encontrada
+                      </div>
+                      {(v.ddFxEmp.items || []).map((it: any, _i0: number) => (
+                        <Fragment key={_i0}>
+                          <div onClick={it.onClick} style={css(it.style)} className={hv(it.hoverStyle, undefined, undefined)}>
+                            <span style={css(it.boxStyle)}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={css(it.checkStyle)}>
+                                <path d="M5 12.5l4.5 4.5L19 7" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
+                              </svg>
+                            </span>
+                            <span style={{ "overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap" }}>
+                              {it.name}
+                            </span>
+                          </div>
+                        </Fragment>
+                      ))}
+                    </div>
                   </div>
                 </>
               ) : null}

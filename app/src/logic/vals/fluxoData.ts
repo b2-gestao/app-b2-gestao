@@ -123,10 +123,12 @@ export function fluxoLive(this: AppLogic) {
 
   const aportes = new Array(dates.length).fill(0);
   const speBadges: Record<number, string> = {};
+  const speNeeds: Record<number, number[]> = {};
   for (const e of shown) {
     if (e.kind === 'holding') continue;
     const cells = running(e.data);
-    needs(cells).forEach((v, i) => { aportes[i] += v; });
+    speNeeds[e.cd] = needs(cells);
+    speNeeds[e.cd].forEach((v, i) => { aportes[i] += v; });
     const first = cells.findIndex(v => v < 0);
     if (first >= 0) speBadges[e.cd] = `Recebe aporte ${inDays(first)}`;
   }
@@ -141,6 +143,7 @@ export function fluxoLive(this: AppLogic) {
     badge: e.kind === 'holding' ? (holdingNeg >= 0 ? `Necessidade de caixa ${inDays(holdingNeg)}` : '') : (speBadges[e.cd] || ''),
     data: e.data,
     aportes: e.kind === 'holding' ? aportes : null,
+    aporteNec: e.kind === 'holding' ? null : speNeeds[e.cd],
   }));
 
   const br = (d: string) => { const [y, m, dd] = d.split('-'); return `${dd}/${m}/${y}`; };
@@ -149,6 +152,8 @@ export function fluxoLive(this: AppLogic) {
     emps,
     groups,
     totalAportes: holding ? aportes.reduce((t, v) => t + v, 0) : 0,
+    /** Aporte the selected SPEs need each day, whether or not the holding is in the filter. */
+    aportesDia: aportes,
     days: dates.map(shortDate),
     dows: dates.map(d => { const [y, m, dd] = d.split('-').map(Number); return DOWS[new Date(y, m - 1, dd).getDay()]; }),
     periodLabel: `${br(from)} – ${br(to)}`,

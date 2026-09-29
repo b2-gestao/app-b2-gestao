@@ -402,8 +402,19 @@ function Pedido({ nf }: { nf: any }) {
             </div>
           </Alerta>
         ) : null}
+        {a.podeInformarPedido ? (
+          <Alerta tom="info" titulo="Pedido não listado">
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
+              <span>Se o pedido foi feito para outra filial deste fornecedor, informe o número do pedido. Gostaria de inserir o pedido manualmente?</span>
+              <button onClick={a.informarPedido} disabled={travado} style={css(btnSec + ';height:32px' + (travado ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>
+                Sim, informar pedido
+              </button>
+            </div>
+          </Alerta>
+        ) : null}
       </Secao>
       {a.empresaModal ? <EmpresaModal m={a.empresaModal} /> : null}
+      {a.pedidoModal ? <PedidoModal m={a.pedidoModal} /> : null}
 
       {a.pedidos.length ? (
         <Secao
@@ -792,6 +803,41 @@ function EmpresaModal({ m }: { m: any }) {
         <form onSubmit={e => { e.preventDefault(); if (!bloqueado) m.confirmar(); }} style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <Campo rotulo="Código da empresa">
             <input value={m.codigo} onChange={m.onCodigo} disabled={m.enviando} inputMode="numeric" autoFocus placeholder="Ex.: 190" style={css(input)} />
+          </Campo>
+          {m.erro ? <Alerta tom="erro" titulo={m.erro} /> : null}
+        </form>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: '#FCFCFD' }}>
+          <button onClick={m.fechar} disabled={m.enviando} style={css(btnSec + ';height:38px' + (m.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
+          <button onClick={m.confirmar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
+            {m.enviando ? <><Spinner /> Buscando…</> : 'Continuar'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Número do pedido digitado quando ele não aparece na lista (nota emitida por filial do credor). */
+function PedidoModal({ m }: { m: any }) {
+  const bloqueado = m.enviando || !m.numero;
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') m.fechar(); };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [m]);
+  return (
+    <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
+      <div role="dialog" aria-modal="true" aria-label="Informar pedido de compra" onClick={e => e.stopPropagation()}
+        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
+          <div style={{ fontWeight: 700, fontSize: '15.5px', color: '#111827' }}>Informar pedido de compra</div>
+          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px' }}>
+            Digite o número do pedido no Sienge. Se ele for de outra filial do mesmo fornecedor (mesma raiz de CNPJ), a nota é cadastrada no fornecedor do pedido.
+          </div>
+        </div>
+        <form onSubmit={e => { e.preventDefault(); if (!bloqueado) m.confirmar(); }} style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          <Campo rotulo="Número do pedido">
+            <input value={m.numero} onChange={m.onNumero} disabled={m.enviando} inputMode="numeric" autoFocus placeholder="Ex.: 1234" style={css(input)} />
           </Campo>
           {m.erro ? <Alerta tom="erro" titulo={m.erro} /> : null}
         </form>

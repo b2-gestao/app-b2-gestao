@@ -369,6 +369,10 @@ export async function buscarCredorPorDocumento(documento: string): Promise<Credo
   return credores.find((c) => c.active !== false) ?? credores[0] ?? null;
 }
 
+export function buscarCredor(creditorId: number): Promise<Credor | null> {
+  return siengeGetOpcional<Credor>(`/v1/creditors/${creditorId}`);
+}
+
 let cacheEmpresas: { em: number; empresas: Empresa[] } | null = null;
 
 export async function listarEmpresas(): Promise<Empresa[]> {

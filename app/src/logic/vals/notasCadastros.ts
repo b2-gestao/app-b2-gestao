@@ -56,10 +56,13 @@ export const NF_INICIAL = {
   nfEtapa: 'lista', nfArquivo: null, nfBusy: '', nfErro: '', nfAnalise: null, nfPreview: null, nfPedidoId: null,
   nfTipo: null, nfCab: null, nfCentro: '', nfLinhas: [], nfDescPrincipal: null, nfAnexos: [], nfRecusados: [],
   nfSenha: null, nfResultado: null, nfEnvios: [], nfChamado: null, nfEmpresaManual: null, nfEmpresaModal: null,
+  nfPedidoModal: null,
 };
 
 /** Modal para informar o código da empresa quando o PDF não a identificou (null = fechado). */
 interface EmpresaModalState { codigo: string; erro: string; enviando: boolean }
+/** Modal para digitar o pedido quando nenhum aparece na lista (ex.: nota emitida por filial do credor). */
+interface PedidoModalState { numero: string; erro: string; enviando: boolean }
 
 /** Modal do chamado de conferência do título no TomTicket (null = fechado e ainda não criado). */
 interface ChamadoState {
@@ -151,23 +154,46 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
     }
   };
 
+  const abrirConferencia = async (purchaseOrderId: string) => {
+    const pv = await nfApi.preview(s.nfAnalise.documento, purchaseOrderId, s.nfEmpresaManual);
+    set({
+      nfPreview: pv, nfPedidoId: purchaseOrderId, nfEtapa: 'conferencia', nfBusy: '', nfPedidoModal: null,
+      nfTipo: pv.tipoDocumento,
+      nfCab: { numero: pv.cabecalho.numero, serie: pv.cabecalho.serie ?? '', dataEmissao: pv.cabecalho.dataEmissao ?? '', dataMovimento: pv.cabecalho.dataMovimento, vencimento: pv.cabecalho.vencimento, obs: '' },
+      nfCentro: '', nfDescPrincipal: null, nfAnexos: [], nfRecusados: [], nfSenha: null,
+      nfLinhas: pv.vinculos.map(v => ({
+        itemNumber: v.itemNumber, similaridade: v.similaridade, selecionado: v.selecionado, quantidade: String(v.quantidade),
+        indicesNota: v.indicesNota ?? (v.indiceNota === null ? [] : [v.indiceNota]),
+      })),
+    });
+  };
+
   const escolherPedido = async (p: PedidoAberto) => {
     if (busy || !s.nfAnalise) return;
     set({ nfBusy: 'pedido:' + p.id, nfErro: '' });
     try {
-      const pv = await nfApi.preview(s.nfAnalise.documento, String(p.id), s.nfEmpresaManual);
-      set({
-        nfPreview: pv, nfPedidoId: String(p.id), nfEtapa: 'conferencia', nfBusy: '',
-        nfTipo: pv.tipoDocumento,
-        nfCab: { numero: pv.cabecalho.numero, serie: pv.cabecalho.serie ?? '', dataEmissao: pv.cabecalho.dataEmissao ?? '', dataMovimento: pv.cabecalho.dataMovimento, vencimento: pv.cabecalho.vencimento, obs: '' },
-        nfCentro: '', nfDescPrincipal: null, nfAnexos: [], nfRecusados: [], nfSenha: null,
-        nfLinhas: pv.vinculos.map(v => ({
-          itemNumber: v.itemNumber, similaridade: v.similaridade, selecionado: v.selecionado, quantidade: String(v.quantidade),
-          indicesNota: v.indicesNota ?? (v.indiceNota === null ? [] : [v.indiceNota]),
-        })),
-      });
+      await abrirConferencia(String(p.id));
     } catch (e: any) {
       set({ nfBusy: '', nfErro: erroDe(e) });
+    }
+  };
+
+  // ---------- pedido informado manualmente ----------
+  const pedidoModal: PedidoModalState | null = s.nfPedidoModal;
+  const patchPedidoModal = (p: Partial<PedidoModalState>) =>
+    this.setState(st => ({ nfPedidoModal: st.nfPedidoModal ? { ...st.nfPedidoModal, ...p } : null }));
+
+  const confirmarPedido = async () => {
+    if (!pedidoModal || pedidoModal.enviando || busy || !s.nfAnalise) return;
+    const numeroPedido = pedidoModal.numero.trim();
+    if (!numeroPedido) { patchPedidoModal({ erro: 'Informe o número do pedido de compra.' }); return; }
+    patchPedidoModal({ enviando: true, erro: '' });
+    set({ nfBusy: 'pedido:manual', nfErro: '' });
+    try {
+      await abrirConferencia(numeroPedido);
+    } catch (e: any) {
+      set({ nfBusy: '' });
+      patchPedidoModal({ enviando: false, erro: erroDe(e) });
     }
   };
 
@@ -482,6 +508,17 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
             fechar: () => { if (!empresaModal.enviando) set({ nfEmpresaModal: null }); },
             confirmar: confirmarEmpresa,
           } : null,
+          // Sem pedido na lista (ex.: nota emitida por filial do credor do pedido): digitar o número.
+          podeInformarPedido: (a.pedidos as PedidoAberto[]).length === 0 && !!a.empresa,
+          informarPedido: () => set({ nfPedidoModal: { numero: '', erro: '', enviando: false } }),
+          pedidoModal: pedidoModal ? {
+            numero: pedidoModal.numero,
+            onNumero: (e: any) => patchPedidoModal({ numero: e.target.value.replace(/[^\d/]/g, ''), erro: '' }),
+            erro: pedidoModal.erro,
+            enviando: pedidoModal.enviando,
+            fechar: () => { if (!pedidoModal.enviando) set({ nfPedidoModal: null }); },
+            confirmar: confirmarPedido,
+          } : null,
           outraEmpresa: a.pedidosOutraEmpresa as number,
           pedidos: (a.pedidos as PedidoAberto[]).map(p => ({
             id: p.id,
@@ -496,7 +533,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
           })),
         };
       })() : null,
-      voltarEnvio: () => set({ nfEtapa: 'envio', nfAnalise: null, nfErro: '', nfEmpresaManual: null, nfEmpresaModal: null }),
+      voltarEnvio: () => set({ nfEtapa: 'envio', nfAnalise: null, nfErro: '', nfEmpresaManual: null, nfEmpresaModal: null, nfPedidoModal: null }),
 
       // 3. conferência
       conf: preview ? {
