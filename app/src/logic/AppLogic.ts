@@ -433,11 +433,15 @@ export class AppLogic extends Component<any, any> {
   // `value` (default: name) is what goes into `selected`; id + name are only shown/searched.
   mkPicker(key, s, selected, catalog, onToggle, onSetMany?) {
     const open = s.pickerOpen === key;
-    const query = (s.pickerQuery || '').trim().toLowerCase();
-    const filtered = query ? catalog.filter(c => c.id.toLowerCase().includes(query) || c.name.toLowerCase().includes(query)) : catalog;
+    // Search ignores case and accents ("goiania" finds GOIÂNIA); every word must appear in the id or name.
+    const norm = (t: string) => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const words = norm((s.pickerQuery || '').trim()).split(/\s+/).filter(Boolean);
+    const filtered = words.length ? catalog.filter(c => { const hay = norm(c.id + ' ' + c.name); return words.every(w => hay.includes(w)); }) : catalog;
     const val = c => c.value || c.name;
     const sel = new Set(selected);
     const allVisibleOn = filtered.length > 0 && filtered.every(c => sel.has(val(c)));
+    // With a search, the button acts on (and says) the matching items only.
+    const alvo = words.length ? ` os ${filtered.length} da busca` : ' todos';
     return {
       isOpen: open,
       query: s.pickerQuery || '',
@@ -446,7 +450,7 @@ export class AppLogic extends Component<any, any> {
       panelStyle: 'position:relative;z-index:79;width:100%;background:#FAFAFB;border-radius:10px;border:1px solid #EEEEF1;padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
       listStyle: 'max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:2px',
       noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:12px 10px;font-size:12px;color:#94A3B8;text-align:center`,
-      allOnLabel: allVisibleOn ? 'Limpar seleção' : 'Selecionar todos',
+      allOnLabel: !filtered.length ? 'Selecionar todos' : allVisibleOn ? `Desmarcar${alvo}` : `Selecionar${alvo}`,
       toggleAllVisible: e => {
         e.stopPropagation();
         const visible = filtered.map(val);
