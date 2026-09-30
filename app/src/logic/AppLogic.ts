@@ -12,7 +12,7 @@ import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { baixarCsv } from '../lib/download';
-import { todayIso, isoDate, usuariosApi, cadastrosApi, apoioApi, invoke } from '../lib/api';
+import { todayIso, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import { nfApi } from '../lib/nf';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
@@ -290,10 +290,10 @@ export class AppLogic extends Component<any, any> {
     return Array.from(this.empresaLabelUnico()).map(([id, n], i) => ({ id: String(id), n, c: pal[i % pal.length] }));
   }
 
-  /** Centros de custo as "id · nome": Supabase catalog in live mode. */
+  /** Active centros de custo as "id · nome": Supabase catalog in live mode (app_centros_custo.ativo). */
   userCentros(): string[] {
     if (!this.live) return this.uCentros;
-    return (this.state.dbCentros || []).map(c => `${c.id} · ${c.nome}`);
+    return (this.state.dbCentros || []).filter(c => c.ativo !== false).map(c => `${c.id} · ${c.nome}`);
   }
 
   /** Loads app_usuarios into the Users screen (shape of the prototype's seed). */
@@ -1211,18 +1211,6 @@ export class AppLogic extends Component<any, any> {
         values[label] = null;
       }
     }));
-    // Se INCC-M ainda está vazio, tenta com IA
-    if (values['INCC-M'] == null) {
-      try {
-        if (!this.props.session) throw new Error('sem sessão');
-        const { indicadores: indAi } = await invoke<{ indicadores: Record<string, any> }>('app-indicadores-ia');
-        if (indAi?.['INCC-M']?.valor != null) {
-          values['INCC-M'] = indAi['INCC-M'].valor;
-        }
-      } catch {
-        /* IA também não conseguiu */
-      }
-    }
     // Nothing came back (offline): keep showing the cached values, if any.
     if (Object.values(values).every(n => n == null || isNaN(n)) && cached) return;
     const econValues = Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])]));

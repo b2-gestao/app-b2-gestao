@@ -16,6 +16,8 @@ export interface CentroCusto {
   id: number;
   nome: string;
   id_empresa: number | null;
+  /** False when the Sienge name marks it DESATIVADO/INATIVO/ENCERRADO (Sienge has no status field). */
+  ativo: boolean;
 }
 
 export interface ContaCorrente {
