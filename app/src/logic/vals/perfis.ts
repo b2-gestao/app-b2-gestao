@@ -20,7 +20,12 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
   // Live writes go to app_perfis; renaming cascades to app_usuarios.funcao, so users reload too.
   const write = (fn: () => Promise<unknown>, okMsg: string, onError?: (m: string) => void) =>
     this.cadastroAcao(fn, okMsg, async () => { await this.loadCadastros(); await this.loadUsuarios(); }, onError);
-  const toDb = (r: any) => ({ nome: r.name, descricao: r.desc || null, ativo: r.active, permissoes: r.perms });
+  const toDb = (r: any) => ({ nome: r.name, descricao: r.desc || null, ativo: r.active, permissoes: r.perms, todas_empresas: !!r.todasEmpresas, empresas: r.empresas || [] });
+
+  // Empresas do perfil: ids no cadastro, nomes no formulário (como no modal de usuário).
+  const empCat = this.userEmpresas();
+  const empLabelById = new Map(empCat.map(e => [Number(e.id), e.n]));
+  const empIdByLabel = new Map(empCat.map(e => [e.n, Number(e.id)]));
 
   const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
 
@@ -47,7 +52,12 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
         this.setPerfis(list => list.map(x => x.id === p.id ? Object.assign({}, x, { active: !x.active }) : x));
         this.toast(p.active ? `${p.name} foi inativado.` : `${p.name} foi reativado.`);
       },
-      edit: () => this.setState({ perfilModalOpen: true, editingPerfilId: p.id, pFormErr: '', pForm: { name: p.name, desc: p.desc, active: p.active, perms: Object.assign({}, p.perms) } }),
+      edit: () => this.setState({ perfilModalOpen: true, editingPerfilId: p.id, pFormErr: '', pForm: {
+        name: p.name, desc: p.desc, active: p.active, perms: Object.assign({}, p.perms), todasEmpresas: !!p.todasEmpresas,
+        empresas: (p.empresas || []).filter(id => empLabelById.has(Number(id))).map(id => empLabelById.get(Number(id))),
+        // Empresas que quem edita não enxerga: ficam como estão ao salvar.
+        empFora: (p.empresas || []).filter(id => !empLabelById.has(Number(id))),
+      } }),
     };
   });
 
@@ -80,6 +90,26 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     }
   });
 
+  const curPerfil = all.find(x => x.id === s.editingPerfilId);
+  const pfSistema = !!(curPerfil && (curPerfil.sistema || (!this.live && curPerfil.id === 'p1')));
+  const pfTodas = pfSistema || !!form.todasEmpresas;
+  const pfEmps: string[] = form.empresas || [];
+  const chipOn = color => `display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ${color};background:${color}12;color:${color};transition:all .15s;user-select:none`;
+  const empColorByName: any = {}; empCat.forEach(e => { empColorByName[e.n] = e.c; });
+  const togglePfEmp = name => this.setState((st: any) => {
+    const f = st.pForm || this.emptyPerfilForm();
+    const cur: string[] = f.empresas || [];
+    return { pForm: Object.assign({}, f, { empresas: cur.indexOf(name) >= 0 ? cur.filter(x => x !== name) : cur.concat([name]) }), pFormErr: '' };
+  });
+  const pEmpChips = pfEmps.map(n => ({
+    name: n,
+    style: chipOn(empColorByName[n] || '#4161FF'),
+    dotStyle: `width:8px;height:8px;border-radius:3px;background:${empColorByName[n] || '#4161FF'}`,
+    toggle: () => togglePfEmp(n),
+  }));
+  const pPickEmp = this.mkPicker('pemp', s, pfEmps, empCat.map(e => ({ id: e.id, name: e.n })), togglePfEmp,
+    list => this.patchPerfilForm({ empresas: list }));
+
   const editing = !!s.editingPerfilId;
   const errName = s.pFormErr && !form.name.trim();
 
@@ -111,7 +141,7 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     openNewPerfil: () => this.setState({ perfilModalOpen: true, editingPerfilId: null, pForm: this.emptyPerfilForm(), pFormErr: '' }),
     perfilModalTitle: editing ? 'Editar perfil' : 'Novo perfil',
     perfilModalSub: editing ? 'Altere o nome, a descrição ou as permissões do perfil.' : 'Defina o nome e as permissões de acesso do novo perfil.',
-    savePerfilLabel: editing ? 'Salvar alterações' : 'Cadastrar perfil',
+    savePerfilLabel: s.pSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar perfil',
 
     pfName: form.name, pfDesc: form.desc,
     pfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s`,
@@ -122,6 +152,17 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     pfActiveLabel: form.active ? 'Ativo' : 'Inativo',
     pfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#258B6C' : '#64748B'}`,
     togglePfActive: () => this.patchPerfilForm({ active: !form.active }),
+
+    pEmpChips, pPickEmp,
+    pfEmpCountLabel: pfTodas ? 'Todas as empresas' : `${pfEmps.length} de ${empCat.length} selecionadas`,
+    pfEmpHint: pfSistema ? 'Perfil do sistema: sempre vê todas as empresas.'
+      : pfTodas ? 'Inclui as empresas que forem criadas no Sienge.'
+        : 'Quem usa este perfil só vê as empresas abaixo (mais as adicionais do usuário).',
+    pfTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${pfSistema ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${pfTodas ? '#43B997' : '#D8D8E0'};opacity:${pfSistema ? .6 : 1}`,
+    pfTodasKnobStyle: `position:absolute;top:2.5px;left:${pfTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    togglePfTodas: () => { if (pfSistema) return; this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchPerfilForm({ todasEmpresas: !form.todasEmpresas }); },
+    pfEmpAddStyle: pfTodas ? 'display:none' : 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer',
+    pfEmpChipsStyle: `display:${pfTodas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
 
     permRows,
     permGrantedLabel: `${grantedCount(form.perms)} de ${totalPaths} itens liberados`,
@@ -146,13 +187,18 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     savePerfil: () => {
       if (!form.name.trim()) { this.setState({ pFormErr: 'Informe o nome do perfil.' }); return; }
       const id = s.editingPerfilId;
-      const rec = { name: form.name.trim(), desc: (form.desc || '').trim(), active: form.active, perms: form.perms };
+      const rec = {
+        name: form.name.trim(), desc: (form.desc || '').trim(), active: form.active, perms: form.perms, todasEmpresas: pfTodas,
+        empresas: pfEmps.map(n => empIdByLabel.get(n)).filter(n => typeof n === 'number').concat(form.empFora || []),
+      };
       if (this.live) {
         const cur = all.find(x => x.id === id);
         if (cur?.sistema && (rec.name !== cur.name || !rec.active)) { this.setState({ pFormErr: `O perfil ${cur.name} é do sistema: não pode ser renomeado nem inativado.` }); return; }
         if (!this.pode(perm, true)) { this.setState({ pFormErr: 'Seu perfil não tem permissão para alterar perfis.' }); return; }
+        if (s.pSaving) return;
+        this.setState({ pSaving: true });
         write(() => cadastrosApi.salvarPerfil(id || null, toDb(rec)), id ? 'Cadastro atualizado.' : 'Perfil cadastrado.', m => this.setState({ pFormErr: m }))
-          .then(ok => ok && this.setState({ perfilModalOpen: false, editingPerfilId: null, pForm: null, pFormErr: '' }));
+          .then(ok => { this.setState({ pSaving: false }); if (ok) this.setState({ perfilModalOpen: false, editingPerfilId: null, pForm: null, pFormErr: '' }); });
         return;
       }
       if (id) {

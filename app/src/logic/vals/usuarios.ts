@@ -6,11 +6,22 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const q = s.uSearch.trim().toLowerCase();
   const statusKey = { 'Todos': null, 'Ativos': 'ativo', 'Inativos': 'inativo', 'Pendentes': 'pendente' }[s.uStatus];
 
+  // Acesso efetivo = perfil ∪ empresas adicionais do usuário (mesma regra de app_pode_empresa).
+  const perfis = s.perfis || this.seedPerfis();
+  const empLabelById = new Map(this.userEmpresas().map(e => [Number(e.id), e.n]));
+  const perfilDe = role => perfis.find(p => p.name === role);
+  const empresasDoPerfil = p => ((p && p.empresas) || []).map(id => empLabelById.get(Number(id)) || `Empresa ${id}`);
+  const acesso = u => {
+    const p = perfilDe(u.role);
+    if (u.todasEmpresas || (p && (p.sistema || p.todasEmpresas))) return { todas: true, list: [] as string[] };
+    return { todas: false, list: Array.from(new Set(empresasDoPerfil(p).concat(u.empresas))) };
+  };
+
   const filtered = all.filter(u => {
     if (q && !(u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.phone.replace(/\D/g, '').includes(q.replace(/\D/g, '')) && q.replace(/\D/g, ''))) return false;
     if (s.uRole !== 'Todas as funções' && u.role !== s.uRole) return false;
     if (s.uDept !== 'Todos os departamentos' && u.dept !== s.uDept) return false;
-    if (s.uEmpF !== 'Todas as empresas' && u.empresas.indexOf(s.uEmpF) < 0) return false;
+    if (s.uEmpF !== 'Todas as empresas') { const a = acesso(u); if (!a.todas && a.list.indexOf(s.uEmpF) < 0) return false; }
     if (statusKey && u.status !== statusKey) return false;
     return true;
   });
@@ -33,11 +44,12 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     const color = palette[(u.id.charCodeAt(1) + u.name.length) % palette.length];
     const meta = statusMeta[u.status];
     const on = u.status === 'ativo';
+    const emp = acesso(u);
     return {
       name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept,
       initials: (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase(),
-      empCount: u.empresas.length, ccCount: u.centros.length,
-      empList: u.empresas.join('\n'), ccList: u.centros.join('\n'),
+      empCount: emp.todas ? 'Todas' : emp.list.length, ccCount: u.centros.length,
+      empList: emp.todas ? 'Todas as empresas' : emp.list.join('\n'), ccList: u.centros.join('\n'),
       statusLabel: meta.label,
       toggleTitle: on ? 'Inativar usuário' : 'Ativar usuário',
       rowStyle: `display:grid;grid-template-columns:minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 #F4F4F6;opacity:${u.status === 'inativo' ? .62 : 1};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
@@ -56,7 +68,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
       },
       edit: () => this.setState({
         modalOpen: true, editingId: u.id, formErr: '',
-        uForm: { name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept, empresas: u.empresas.slice(), centros: u.centros.slice(), active: u.status !== 'inativo' },
+        uForm: { name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept, todas: !!u.todasEmpresas, empresas: u.empresas.slice(), centros: u.centros.slice(), active: u.status !== 'inativo' },
       }),
       sendDefine: () => {
         if (this.live) { this.usuarioAcao('reenviar_convite', { id: u.id }, `Link de definição de senha enviado para ${u.email}.`); return; }
@@ -87,17 +99,32 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     dotStyle: `width:8px;height:8px;border-radius:3px;background:${empColorByName[n] || '#4161FF'}`,
     toggle: () => this.patchForm({ empresas: form.empresas.filter(x => x !== n) }),
   }));
-  const ccChips = form.centros.map(c => ({
+  // Só os primeiros viram chip: com centenas selecionados a lista tomaria o modal inteiro.
+  const ccMax = 40;
+  const ccChips = form.centros.slice(0, ccMax).map(c => ({
     name: c,
     style: chipOn(true, '#7C3AED'),
     toggle: () => this.patchForm({ centros: form.centros.filter(x => x !== c) }),
   }));
+  if (form.centros.length > ccMax) ccChips.push({
+    name: `+ ${form.centros.length - ccMax} centros · limpar todos`,
+    style: chipOn(false, '#7C3AED'),
+    toggle: () => this.patchForm({ centros: [] }),
+  });
   const empCatalog = empresas.map(e => ({ id: e.id, name: e.n }));
-  const ccCatalog = centros.map(c => { const [id, ...rest] = c.split(' · '); return { id, name: rest.join(' · ') }; });
+  // value = "id · nome": o que fica em form.centros e de onde o id é lido ao salvar.
+  const ccCatalog = centros.map(c => { const [id, ...rest] = c.split(' · '); return { id, name: rest.join(' · '), value: c }; });
   const pickEmp = this.mkPicker('emp', s, form.empresas, empCatalog,
-    name => this.patchForm({ empresas: form.empresas.indexOf(name) >= 0 ? form.empresas.filter(x => x !== name) : form.empresas.concat([name]) }));
+    name => this.patchForm({ empresas: form.empresas.indexOf(name) >= 0 ? form.empresas.filter(x => x !== name) : form.empresas.concat([name]) }),
+    list => this.patchForm({ empresas: list }));
   const pickCc = this.mkPicker('cc', s, form.centros, ccCatalog,
-    name => this.patchForm({ centros: form.centros.indexOf(name) >= 0 ? form.centros.filter(x => x !== name) : form.centros.concat([name]) }));
+    name => this.patchForm({ centros: form.centros.indexOf(name) >= 0 ? form.centros.filter(x => x !== name) : form.centros.concat([name]) }),
+    list => this.patchForm({ centros: list }));
+
+  const fPerfil = perfilDe(form.role);
+  const fPerfilTodas = !!(fPerfil && (fPerfil.sistema || fPerfil.todasEmpresas));
+  const fPerfilEmps = empresasDoPerfil(fPerfil);
+  const fEmpAddBtn = 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer';
 
   const editing = !!s.editingId;
   const fieldBase = 'height:38px;padding:0 12px;border-radius:8px;background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s;border:1px solid ';
@@ -161,7 +188,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     openNew: () => this.setState({ modalOpen: true, editingId: null, uForm: this.emptyForm(), formErr: '' }),
     modalTitle: editing ? 'Editar usuário' : 'Novo usuário',
     modalSub: editing ? 'Altere os dados e salve para atualizar o acesso.' : 'O usuário recebe um link de definição de senha ao ser salvo.',
-    saveLabel: editing ? 'Salvar alterações' : 'Cadastrar usuário',
+    saveLabel: s.uSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar usuário',
 
     fName: form.name, fEmail: form.email, fPhone: form.phone, fRole: form.role, fDept: form.dept,
     fNameStyle: fieldBase + (errName ? '#FCA5A5' : '#E7E7EA'),
@@ -181,7 +208,17 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     empChips, ccChips, pickEmp, pickCc,
     pickerOverlayStyle: `display:${s.pickerOpen ? 'block' : 'none'};position:fixed;inset:0;z-index:78;background:transparent`,
     closePicker: () => this.setState({ pickerOpen: null, pickerQuery: '' }),
-    fEmpCountLabel: `${form.empresas.length} de ${empNames.length} selecionadas`,
+    fEmpCountLabel: form.todas ? 'Todas as empresas' : `${form.empresas.length} de ${empNames.length} selecionadas`,
+    fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.todas ? '#43B997' : '#D8D8E0'}`,
+    fTodasKnobStyle: `position:absolute;top:2.5px;left:${form.todas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    toggleFTodas: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ todas: !form.todas }); },
+    fEmpAddStyle: form.todas ? 'display:none' : fEmpAddBtn,
+    fEmpChipsStyle: `display:${form.todas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
+    fPerfilEmpLabel: !fPerfil ? ''
+      : fPerfilTodas ? `O perfil ${form.role} já libera todas as empresas.`
+        : fPerfilEmps.length ? `O perfil ${form.role} já libera ${fPerfilEmps.length} empresa${fPerfilEmps.length > 1 ? 's' : ''}.`
+          : `O perfil ${form.role} não libera nenhuma empresa.`,
+    fPerfilEmpTitle: fPerfilTodas ? '' : fPerfilEmps.join('\n'),
     fCcCountLabel: `${form.centros.length} de ${centros.length} selecionados`,
 
     formErr: s.formErr,
@@ -204,16 +241,16 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
         if (s.uSaving) return;
         const payload = {
           nome: form.name.trim(), email: form.email.trim(), telefone: form.phone.trim() === '—' ? '' : form.phone.trim(), funcao: form.role, departamento: form.dept === '—' ? '' : form.dept,
-          empresas: this.empresaIdsFromLabels(form.empresas), centros_custo: form.centros.map(c => parseInt(c, 10)).filter(n => n > 0), ativo: form.active,
+          todas_empresas: !!form.todas, empresas: this.empresaIdsFromLabels(form.empresas), centros_custo: form.centros.map(c => parseInt(c, 10)).filter(n => n > 0), ativo: form.active,
         };
         this.setState({ uSaving: true });
-        this.usuarioAcao(id ? 'atualizar' : 'convidar', id ? { id, ...payload } : payload, id ? 'Cadastro atualizado.' : 'Usuário cadastrado · link de definição de senha enviado.', err => this.setState({ formErr: err }))
+        this.usuarioAcao(id ? 'atualizar' : 'convidar', id ? { id, ...payload } : payload, id ? 'Cadastro atualizado.' : 'Usuário cadastrado · link de definição de senha enviado.', err => { this.setState({ formErr: err }); this.toast(err); })
           .then(ok => { this.setState({ uSaving: false }); if (ok) this.setState({ modalOpen: false, editingId: null, uForm: null, formErr: '', uPage: id ? s.uPage : 1 }); });
         return;
       }
       const rec = {
         name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || '—',
-        role: form.role, dept: form.dept, empresas: form.empresas, centros: form.centros,
+        role: form.role, dept: form.dept, todasEmpresas: !!form.todas, empresas: form.empresas, centros: form.centros,
       };
       if (id) {
         this.setUsers(list => list.map(x => x.id === id ? Object.assign({}, x, rec, { status: form.active ? (x.status === 'pendente' ? 'pendente' : 'ativo') : 'inativo' }) : x));

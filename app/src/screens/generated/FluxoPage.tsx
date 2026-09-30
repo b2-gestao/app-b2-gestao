@@ -197,8 +197,16 @@ export default function FluxoPage({ v }: { v: any }) {
             <div style={{ "overflowX": "auto" }}>
               <div style={css(v.fxTableStyle)}>
                 <div style={css(v.fxGridStyle)}>
-                  <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
-                    {v.fxScopeLabel}
+                  <div style={{ "display": "flex", "flexDirection": "column" }}>
+                    <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                      {v.fxScopeLabel}
+                    </div>
+                    <button onClick={v.fxCompactToggle} title="Mostrar só o aporte necessário de cada empresa" style={css(v.fxCompactStyle)} className={hv("border-color:#C4B5FD;color:#7C3AED", undefined, undefined)}>
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                        <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
+                      </svg>
+                      {v.fxCompactLabel}
+                    </button>
                   </div>
                   {(v.fxDayHeaders || []).map((d: any, _i0: number) => (
                     <Fragment key={_i0}>

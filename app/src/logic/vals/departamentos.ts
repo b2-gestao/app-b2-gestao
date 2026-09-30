@@ -78,7 +78,7 @@ export function deptsVals(this: AppLogic) {
     openNewDept: () => this.setState({ deptModalOpen: true, editingDeptId: null, dForm: this.emptyDeptForm(), deptFormErr: '' }),
     deptModalTitle: editing ? 'Editar departamento' : 'Novo departamento',
     deptModalSub: editing ? 'Altere os dados e salve para atualizar o cadastro.' : 'Cadastre um novo departamento para vincular aos usuários.',
-    saveDeptLabel: editing ? 'Salvar alterações' : 'Cadastrar departamento',
+    saveDeptLabel: s.dSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar departamento',
 
     dfName: form.name, dfDesc: form.desc,
     dfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s`,
@@ -120,9 +120,11 @@ export function deptsVals(this: AppLogic) {
       const rec = { name: form.name.trim(), desc: form.desc.trim(), active: form.active };
       if (this.live) {
         if (!this.pode(perm, true)) { this.setState({ deptFormErr: 'Seu perfil não tem permissão para alterar departamentos.' }); return; }
+        if (s.dSaving) return;
+        this.setState({ dSaving: true });
         write(() => cadastrosApi.salvarDepartamento(id || null, { nome: rec.name, descricao: rec.desc || null, ativo: rec.active }),
           id ? 'Cadastro atualizado.' : 'Departamento cadastrado.', m => this.setState({ deptFormErr: m }))
-          .then(ok => ok && this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null, deptFormErr: '' }));
+          .then(ok => { this.setState({ dSaving: false }); if (ok) this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null, deptFormErr: '' }); });
         return;
       }
       if (id) {

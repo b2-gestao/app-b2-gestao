@@ -145,17 +145,28 @@ export default function UserModal({ v }: { v: any }) {
           <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px", "position": "relative" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
-                Empresas vinculadas
+                Empresas adicionais
               </span>
               <span style={{ "fontSize": "11px", "color": "#94A3B8" }}>
                 {v.fEmpCountLabel}
               </span>
-              <button onClick={v.pickEmp.toggle} style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "5px", "fontSize": "11px", "fontWeight": "600", "color": "#4161FF", "background": "#EAF1FF", "border": "none", "borderRadius": "20px", "padding": "5px 12px 5px 10px", "fontFamily": "inherit", "cursor": "pointer" }}>
+              <button onClick={v.pickEmp.toggle} style={css(v.fEmpAddStyle)}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5v14M5 12h14" stroke="#4161FF" strokeWidth="2.2" strokeLinecap="round"></path>
                 </svg>
                 Adicionar empresa
               </button>
+            </div>
+            <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
+              <div onClick={v.toggleFTodas} style={css(v.fTodasTrackStyle)}>
+                <span style={css(v.fTodasKnobStyle)}></span>
+              </div>
+              <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#374151" }}>
+                Acesso a todas as empresas
+              </span>
+              <span title={v.fPerfilEmpTitle} style={{ "marginLeft": "auto", "fontSize": "11.5px", "color": "#94A3B8" }}>
+                {v.fPerfilEmpLabel}
+              </span>
             </div>
             {v.pickEmp.isOpen ? (
               <>
@@ -195,7 +206,7 @@ export default function UserModal({ v }: { v: any }) {
                 </div>
               </>
             ) : null}
-            <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "7px" }}>
+            <div style={css(v.fEmpChipsStyle)}>
               {(v.empChips || []).map((ch: any, _i0: number) => (
                 <Fragment key={_i0}>
                   <div onClick={ch.toggle} style={css(ch.style)}>
