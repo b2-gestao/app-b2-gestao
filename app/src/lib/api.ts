@@ -16,6 +16,8 @@ export interface CentroCusto {
   id: number;
   nome: string;
   id_empresa: number | null;
+  /** False when the Sienge name marks it DESATIVADO/INATIVO/ENCERRADO (Sienge has no status field). */
+  ativo: boolean;
 }
 
 export interface ContaCorrente {
@@ -136,6 +138,9 @@ export interface UsuarioApp {
   telefone: string | null;
   funcao: string;
   departamento: string | null;
+  /** Exceção do usuário: vê todas as empresas mesmo que o perfil não libere. */
+  todas_empresas: boolean;
+  /** Empresas adicionais às do perfil. */
   empresas: number[];
   centros_custo: number[];
   status: 'ativo' | 'inativo' | 'pendente';
@@ -194,6 +199,9 @@ export interface Perfil {
   ativo: boolean;
   permissoes: Record<string, { view: boolean; edit: boolean }>;
   sistema: boolean;
+  /** Acesso por empresa: todas, ou só as de `empresas` (mais as adicionais do usuário). */
+  todas_empresas: boolean;
+  empresas: number[];
 }
 export interface Departamento { id: string; nome: string; descricao: string | null; ativo: boolean }
 export interface Categoria { id: string; nome: string; descricao: string | null; ativo: boolean }
@@ -238,7 +246,7 @@ export interface EmpresaSemReceber { company_id: number; motivo: string }
 export interface BiPainel { id: string; nome: string; url: string; ordem: number; ativo: boolean; ocultar_rodape: boolean }
 
 export const cadastrosApi = {
-  perfis: () => run<Perfil[]>(db().from('app_perfis').select('id, nome, descricao, ativo, permissoes, sistema').order('nome')),
+  perfis: () => run<Perfil[]>(db().from('app_perfis').select('id, nome, descricao, ativo, permissoes, sistema, todas_empresas, empresas').order('nome')),
   salvarPerfil: (id: string | null, p: Omit<Perfil, 'id' | 'sistema'>) =>
     run(id ? db().from('app_perfis').update(p).eq('id', id) : db().from('app_perfis').insert(p)),
   excluirPerfil: (id: string) => run(db().from('app_perfis').delete().eq('id', id)),

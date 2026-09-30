@@ -823,6 +823,8 @@ export interface ContextoCadastro {
 export async function confirmarCadastro(
   entrada: ConfirmacaoRequest,
   pdf: Uint8Array,
+  /** Acesso do usuário à empresa da obra do pedido (app_pode_empresa). */
+  podeEmpresa?: (empresaId: number) => Promise<boolean>,
 ): Promise<ConfirmacaoResultado & { contexto: ContextoCadastro }> {
   const config = configSienge();
   const numeroPedido = normalizarNumeroPedido(entrada.purchaseOrderId, config.formatoPedido);
@@ -841,6 +843,9 @@ export async function confirmarCadastro(
   const obra = pedido.buildingId ? await buscarEmpreendimento(pedido.buildingId) : null;
   if (typeof obra?.companyId !== "number") {
     throw new ErroAplicacao("configuracao_invalida", "Não foi possível identificar a empresa da obra do pedido.", 422);
+  }
+  if (podeEmpresa && !(await podeEmpresa(obra.companyId))) {
+    throw new ErroAplicacao("requisicao_invalida", `Seu usuário não tem acesso à empresa ${obra.companyId}, da obra do pedido ${numeroPedido.exibicao}.`, 403);
   }
 
   const existentes = await listarNotasFiscais({

@@ -168,7 +168,7 @@ export class AppLogic extends Component<any, any> {
     try {
       const [perfis, depts] = await Promise.all([cadastrosApi.perfis(), cadastrosApi.departamentos()]);
       this.setState({
-        perfis: perfis.map(p => ({ id: p.id, name: p.nome, desc: p.descricao || '', active: p.ativo, perms: { ...this.emptyPermMap(), ...(p.permissoes || {}) }, sistema: p.sistema })),
+        perfis: perfis.map(p => ({ id: p.id, name: p.nome, desc: p.descricao || '', active: p.ativo, perms: { ...this.emptyPermMap(), ...(p.permissoes || {}) }, sistema: p.sistema, todasEmpresas: p.todas_empresas, empresas: p.empresas || [] })),
         depts: depts.map(d => ({ id: d.id, name: d.nome, desc: d.descricao || '', active: d.ativo })),
       });
     } catch (e: any) {
@@ -275,29 +275,38 @@ export class AppLogic extends Component<any, any> {
     return n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z ]/g, '').split(' ').filter(Boolean);
   }
 
+  /** Label per empresa id for the access pickers: repeated labels get the id, so each one maps back to a single empresa. */
+  empresaLabelUnico(): Map<number, string> {
+    const all = Object.values(this.empresaById()) as any[];
+    const vezes = new Map<string, number>();
+    all.forEach(e => vezes.set(e.label, (vezes.get(e.label) || 0) + 1));
+    return new Map(all.map(e => [e.id, (vezes.get(e.label) || 0) > 1 ? `${e.label} (${e.id})` : e.label]));
+  }
+
   /** Empresas offered in the user form/filters: Supabase catalog in live mode. */
   userEmpresas(): { id: string; n: string; c: string }[] {
     if (!this.live) return this.empresas;
     const pal = ['#4161FF', '#43B997', '#7C3AED', '#F59E0B', '#EC4899', '#0EA5E9'];
-    return Object.values(this.empresaById()).map((e: any, i) => ({ id: String(e.id), n: e.label, c: pal[i % pal.length] }));
+    return Array.from(this.empresaLabelUnico()).map(([id, n], i) => ({ id: String(id), n, c: pal[i % pal.length] }));
   }
 
-  /** Centros de custo as "id · nome": Supabase catalog in live mode. */
+  /** Active centros de custo as "id · nome": Supabase catalog in live mode (app_centros_custo.ativo). */
   userCentros(): string[] {
     if (!this.live) return this.uCentros;
-    return (this.state.dbCentros || []).map(c => `${c.id} · ${c.nome}`);
+    return (this.state.dbCentros || []).filter(c => c.ativo !== false).map(c => `${c.id} · ${c.nome}`);
   }
 
   /** Loads app_usuarios into the Users screen (shape of the prototype's seed). */
   async loadUsuarios() {
     try {
       const rows = await usuariosApi.listar();
-      const emp = this.empresaById();
+      const emp = this.empresaLabelUnico();
       const cc = Object.fromEntries((this.state.dbCentros || []).map(c => [c.id, `${c.id} · ${c.nome}`]));
       this.setState({
         users: rows.map(r => ({
           id: r.id, name: r.nome, email: r.email, phone: r.telefone || '—', role: r.funcao, dept: r.departamento || '—',
-          empresas: r.empresas.map(id => emp[id]?.label || `Empresa ${id}`),
+          todasEmpresas: r.todas_empresas,
+          empresas: r.empresas.map(id => emp.get(id) || `Empresa ${id}`),
           centros: r.centros_custo.map(id => cc[id] || `${id} · Centro ${id}`),
           status: r.status,
         })),
@@ -321,7 +330,7 @@ export class AppLogic extends Component<any, any> {
   }
 
   empresaIdsFromLabels(labels: string[]): number[] {
-    const byLabel = new Map(Object.values(this.empresaById()).map((e: any) => [e.label, e.id]));
+    const byLabel = new Map(Array.from(this.empresaLabelUnico()).map(([id, label]) => [label, id]));
     return labels.map(l => byLabel.get(l)).filter((n): n is number => typeof n === 'number');
   }
 
@@ -421,32 +430,44 @@ export class AppLogic extends Component<any, any> {
   }
 
   // Simulates fetching + searching a Supabase table (Empresas / centro_custos) to link records by id or name.
-  mkPicker(key, s, selected, catalog, onToggle) {
+  // `value` (default: name) is what goes into `selected`; id + name are only shown/searched.
+  mkPicker(key, s, selected, catalog, onToggle, onSetMany?) {
     const open = s.pickerOpen === key;
-    const query = (s.pickerQuery || '').trim().toLowerCase();
-    const filtered = query ? catalog.filter(c => c.id.toLowerCase().includes(query) || c.name.toLowerCase().includes(query)) : catalog;
+    // Search ignores case and accents ("goiania" finds GOIÂNIA); every word must appear in the id or name.
+    const norm = (t: string) => String(t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+    const words = norm((s.pickerQuery || '').trim()).split(/\s+/).filter(Boolean);
+    const filtered = words.length ? catalog.filter(c => { const hay = norm(c.id + ' ' + c.name); return words.every(w => hay.includes(w)); }) : catalog;
+    const val = c => c.value || c.name;
+    const sel = new Set(selected);
+    const allVisibleOn = filtered.length > 0 && filtered.every(c => sel.has(val(c)));
+    // With a search, the button acts on (and says) the matching items only.
+    const alvo = words.length ? ` os ${filtered.length} da busca` : ' todos';
     return {
       isOpen: open,
       query: s.pickerQuery || '',
       onQuery: e => this.setState({ pickerQuery: e.target.value }),
       toggle: e => { e.stopPropagation(); this.setState(st => ({ pickerOpen: st.pickerOpen === key ? null : key, pickerQuery: '' })); },
-      panelStyle: 'width:100%;background:#FAFAFB;border-radius:10px;border:1px solid #EEEEF1;padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
+      panelStyle: 'position:relative;z-index:79;width:100%;background:#FAFAFB;border-radius:10px;border:1px solid #EEEEF1;padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
       listStyle: 'max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:2px',
       noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:12px 10px;font-size:12px;color:#94A3B8;text-align:center`,
-      allOnLabel: selected.length === catalog.length ? 'Limpar seleção' : 'Selecionar todos',
+      allOnLabel: !filtered.length ? 'Selecionar todos' : allVisibleOn ? `Desmarcar${alvo}` : `Selecionar${alvo}`,
       toggleAllVisible: e => {
         e.stopPropagation();
-        const visibleNames = filtered.map(c => c.name);
-        const allVisibleOn = visibleNames.every(n => selected.indexOf(n) >= 0);
-        if (allVisibleOn) visibleNames.forEach(n => onToggle(n));
-        else visibleNames.forEach(n => { if (selected.indexOf(n) < 0) onToggle(n); });
+        const visible = filtered.map(val);
+        // Batch update: calling onToggle in a loop reuses the same stale `selected`, so only the last toggle would stick.
+        if (onSetMany) {
+          const vis = new Set(visible);
+          onSetMany(allVisibleOn ? selected.filter(n => !vis.has(n)) : selected.concat(visible.filter(n => !sel.has(n))));
+        }
+        else if (allVisibleOn) visible.forEach(n => onToggle(n));
+        else visible.forEach(n => { if (!sel.has(n)) onToggle(n); });
       },
       items: filtered.map(c => {
-        const on = selected.indexOf(c.name) >= 0;
+        const on = sel.has(val(c));
         return {
           id: c.id,
           name: c.name,
-          onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(c.name); },
+          onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(val(c)); },
           style: `display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : '#374151'};background:${on ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s`,
           hoverStyle: `background:${on ? '#EAF1FF' : '#F4F4F6'}`,
           idBadgeStyle: `flex:none;margin-top:1px;min-width:30px;padding:2px 6px;border-radius:5px;background:${on ? '#DCE6FF' : '#F1F1F4'};color:${on ? '#2445E8' : '#94A3B8'};font-size:10px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums`,
@@ -786,7 +807,7 @@ export class AppLogic extends Component<any, any> {
     if (this._perfilSeed) return this._perfilSeed;
     const all = this.permPaths();
     this._perfilSeed = [
-      { id: 'p1', name: 'Administrador', desc: 'Acesso total a todos os módulos e submódulos do sistema.', active: true, perms: this.permCombine([all, true]) },
+      { id: 'p1', name: 'Administrador', desc: 'Acesso total a todos os módulos e submódulos do sistema.', active: true, perms: this.permCombine([all, true]), todasEmpresas: true },
       { id: 'p2', name: 'Financeiro', desc: 'Gestão de caixa, lançamentos e fluxo financeiro.', active: true, perms: this.permCombine([['financeiro.saldos', 'financeiro.lancamentos', 'financeiro.programacao', 'financeiro.fluxo'], true]) },
       { id: 'p3', name: 'Comercial', desc: 'Propostas, contratos de venda e relacionamento com cliente.', active: true, perms: this.permCombine([['vendas.propostas', 'vendas.contratos', 'crc'], true], [['financeiro.saldos'], false]) },
       { id: 'p4', name: 'Suporte financeiro', desc: 'Consulta ao caixa do setor financeiro, sem acesso ao CRC.', active: false, perms: this.permCombine([['financeiro.saldos'], false]) },
@@ -799,7 +820,7 @@ export class AppLogic extends Component<any, any> {
   }
 
   emptyPerfilForm() {
-    return { name: '', desc: '', active: true, perms: this.emptyPermMap() };
+    return { name: '', desc: '', active: true, perms: this.emptyPermMap(), todasEmpresas: false, empresas: [], empFora: [] };
   }
 
   patchPerfilForm(patch) {
@@ -968,7 +989,7 @@ export class AppLogic extends Component<any, any> {
   emptyForm() {
     const roles = this.uRoles;
     const role = roles.includes('Analista Financeiro') ? 'Analista Financeiro' : (roles[2] || roles[0] || '');
-    return { name: '', email: '', phone: '', role, dept: this.uDepts[0] || '', empresas: [], centros: [], active: true };
+    return { name: '', email: '', phone: '', role, dept: this.uDepts[0] || '', todas: false, empresas: [], centros: [], active: true };
   }
 
   patchForm(patch) {
@@ -1194,18 +1215,6 @@ export class AppLogic extends Component<any, any> {
         values[label] = null;
       }
     }));
-    // Se INCC-M ainda está vazio, tenta com IA
-    if (values['INCC-M'] == null) {
-      try {
-        if (!this.props.session) throw new Error('sem sessão');
-        const { indicadores: indAi } = await apoioApi.invoke<{ indicadores: Record<string, any> }>('app-indicadores-ia');
-        if (indAi?.['INCC-M']?.valor != null) {
-          values['INCC-M'] = indAi['INCC-M'].valor;
-        }
-      } catch {
-        /* IA também não conseguiu */
-      }
-    }
     // Nothing came back (offline): keep showing the cached values, if any.
     if (Object.values(values).every(n => n == null || isNaN(n)) && cached) return;
     const econValues = Object.fromEntries(Object.keys(this.indicatorSeries).map(k => [k, pct(values[k])]));

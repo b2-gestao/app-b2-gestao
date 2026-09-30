@@ -54,6 +54,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
       labelStyle: `font-size:12.5px;color:${color || '#374151'};font-weight:${weight || 500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis`,
       rowStyle: `display:grid;grid-template-columns:${gridCols};gap:0;padding:7px 18px;box-shadow:inset 0 -1px 0 #F7F7F9`,
       cells: vals.map(v => ({ val: v == null ? '–' : f2(v), style: `text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:${v < 0 ? '#DC2626' : (color || '#374151')};font-weight:${weight || 400}` })),
+      compact: false,
     });
     const lines = [
       mk('(=)', 'Caixa inicial', caixaRow, '#111827', 600),
@@ -61,11 +62,12 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
       mk('(−)', 'Pagamentos (títulos)', e.pagamentos.map(v => v ? -v : null), '#DC2626'),
       mk('(+/−)', 'Input (lançamentos manuais)', e.inputs.map(v => v || null), '#7C3AED'),
     ];
-    if (aportes) lines.push(mk('(−)', 'Aportes enviados às SPEs', aportes.map(v => v ? -v : null), '#7C3AED'));
-    lines.push(mk('(=)', 'Saldo final', saldoCells, '#111827', 700));
+    // Aporte lines are the ones kept by the "Visão compacta".
+    if (aportes) lines.push({ ...mk('(−)', 'Aportes enviados às SPEs', aportes.map(v => v ? -v : null), '#7C3AED'), compact: true });
     // Informative: what the holding must send that day (to this SPE, or to all of them in the
-    // consolidado, where aportes between companies cancel out). It does not enter the saldo above.
-    if (aporteNecessario) lines.push(mk('(i)', 'Aporte necessário', aporteNecessario.map(v => v > 0.004 ? v : null), '#7C3AED', 600));
+    // consolidado, where aportes between companies cancel out). It does not enter the saldo below.
+    if (aporteNecessario) lines.push({ ...mk('(i)', 'Aporte necessário', aporteNecessario.map(v => v > 0.004 ? v : null), '#7C3AED', 600), compact: true });
+    lines.push(mk('(=)', 'Saldo final', saldoCells, '#111827', 700));
     return lines;
   };
 
@@ -132,7 +134,20 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     semRecStyle: 'display:none', semRecTitle: '',
     lines: buildLines(false, consData, null, true, aporteDia),
   };
-  const fxGroups = view === 'Por SPE' ? perEmp : (perEmp.length ? [consGroup] : []);
+  // Visão compacta: each company shows only its header and aporte line; clicking the header
+  // expands that one company to the full lines.
+  const compact = !!s.fxCompact;
+  const compactify = g => {
+    if (!compact) return g;
+    const full = !!s['fxCmpOpen_' + g.key];
+    const cl = g.lines.filter(l => l.compact);
+    return {
+      ...g, open: full || cl.length > 0, lines: full ? g.lines : cl,
+      toggle: () => this.setState({ ['fxCmpOpen_' + g.key]: !full }),
+      chevStyle: `transition:transform .18s;transform:rotate(${full ? 90 : 0}deg)`,
+    };
+  };
+  const fxGroups = (view === 'Por SPE' ? perEmp : (perEmp.length ? [consGroup] : [])).map(compactify);
 
   const fxCards = [
     { label: `Caixa inicial (${days[0]})`, val: 'R$ ' + f2(sumCaixa), sub: 'Saldos bancários do dia', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:100ms', valStyle: 'font-size:20px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
@@ -235,6 +250,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     fxRecItems: recAll.map(r => chkItem(fxRecSel, r, fxRecSel.includes(r), () => this.setState({ fxRecSel: fxRecSel.includes(r) ? fxRecSel.filter(x => x !== r) : fxRecSel.concat(r) }))),
     fxCards,
     fxScopeLabel: `${perEmp.length} de ${emps.length} empresas no filtro`,
+    fxCompactToggle: () => this.setState({ fxCompact: !compact }),
+    fxCompactLabel: compact ? 'Visão completa' : 'Visão compacta',
+    fxCompactStyle: `align-self:flex-start;display:inline-flex;align-items:center;gap:5px;margin-top:6px;height:22px;padding:0 8px;border-radius:6px;border:1px solid ${compact ? '#DDD6FE' : '#E7E7EA'};background:${compact ? '#F5F0FF' : 'transparent'};color:${compact ? '#7C3AED' : '#64748B'};font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,
     fxDayHeaders: days.map((d, i) => ({ date: d, dow: dows[i], style: `text-align:right;padding-right:2px` })),
     fxGroups,
     fxEmptyStyle: `display:${perEmp.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:48px 20px`,

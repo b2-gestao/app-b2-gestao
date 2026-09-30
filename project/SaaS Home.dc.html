@@ -1627,7 +1627,13 @@
         <div style="overflow-x:auto">
           <div style="{{ fxTableStyle }}">
             <div style="{{ fxGridStyle }}">
-              <div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;font-weight:600">{{ fxScopeLabel }}</div>
+              <div style="display:flex;flex-direction:column">
+                <div style="font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;font-weight:600">{{ fxScopeLabel }}</div>
+                <button onClick="{{ fxCompactToggle }}" title="Mostrar só o aporte necessário de cada empresa" style="{{ fxCompactStyle }}" style-hover="border-color:#C4B5FD;color:#7C3AED">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+                  {{ fxCompactLabel }}
+                </button>
+              </div>
               <sc-for list="{{ fxDayHeaders }}" as="d" hint-placeholder-count="10">
                 <div style="{{ d.style }}">
                   <div style="font-size:11.5px;font-weight:700;color:#111827">{{ d.date }}</div>
@@ -2096,12 +2102,17 @@
 
         <div style="display:flex;flex-direction:column;gap:9px;padding-top:16px;box-shadow:inset 0 1px 0 #EEEEF1">
           <div style="display:flex;align-items:baseline;gap:10px;position:relative">
-            <span style="font-size:11px;font-weight:600;color:#374151">Empresas vinculadas</span>
+            <span style="font-size:11px;font-weight:600;color:#374151">Empresas adicionais</span>
             <span style="font-size:11px;color:#94A3B8">{{ fEmpCountLabel }}</span>
-            <button onClick="{{ pickEmp.toggle }}" style="margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer">
+            <button onClick="{{ pickEmp.toggle }}" style="{{ fEmpAddStyle }}">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#4161FF" stroke-width="2.2" stroke-linecap="round"/></svg>
               Adicionar empresa
             </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div onClick="{{ toggleFTodas }}" style="{{ fTodasTrackStyle }}"><span style="{{ fTodasKnobStyle }}"></span></div>
+            <span style="font-size:12.5px;font-weight:600;color:#374151">Acesso a todas as empresas</span>
+            <span title="{{ fPerfilEmpTitle }}" style="margin-left:auto;font-size:11.5px;color:#94A3B8">{{ fPerfilEmpLabel }}</span>
           </div>
           <sc-if value="{{ pickEmp.isOpen }}" hint-placeholder-val="{{ false }}">
               <div style="{{ pickEmp.panelStyle }}">
@@ -2121,7 +2132,7 @@
                 </div>
               </div>
           </sc-if>
-          <div style="display:flex;flex-wrap:wrap;gap:7px">
+          <div style="{{ fEmpChipsStyle }}">
             <sc-for list="{{ empChips }}" as="ch" hint-placeholder-count="0">
               <div onClick="{{ ch.toggle }}" style="{{ ch.style }}">
                 <span style="{{ ch.dotStyle }}"></span>{{ ch.name }}
@@ -2280,6 +2291,50 @@
           <span style="font-size:11px;font-weight:600;color:#374151">Descrição</span>
           <textarea value="{{ pfDesc }}" onChange="{{ onPfDesc }}" placeholder="Ex.: Acesso ao módulo financeiro e submenus de caixa..." style="min-height:64px;padding:10px 12px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;resize:vertical;transition:border-color .15s,box-shadow .15s"></textarea>
         </label>
+
+        <div style="{{ pickerOverlayStyle }}" onClick="{{ closePicker }}"></div>
+
+        <div style="display:flex;flex-direction:column;gap:9px;padding-top:16px;box-shadow:inset 0 1px 0 #EEEEF1">
+          <div style="display:flex;align-items:baseline;gap:10px;position:relative">
+            <span style="font-size:11px;font-weight:600;color:#374151">Empresas liberadas</span>
+            <span style="font-size:11px;color:#94A3B8">{{ pfEmpCountLabel }}</span>
+            <button onClick="{{ pPickEmp.toggle }}" style="{{ pfEmpAddStyle }}">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="#4161FF" stroke-width="2.2" stroke-linecap="round"/></svg>
+              Adicionar empresa
+            </button>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+            <div onClick="{{ togglePfTodas }}" style="{{ pfTodasTrackStyle }}"><span style="{{ pfTodasKnobStyle }}"></span></div>
+            <span style="font-size:12.5px;font-weight:600;color:#374151">Acesso a todas as empresas</span>
+            <span style="margin-left:auto;font-size:11.5px;color:#94A3B8">{{ pfEmpHint }}</span>
+          </div>
+          <sc-if value="{{ pPickEmp.isOpen }}" hint-placeholder-val="{{ false }}">
+              <div style="{{ pPickEmp.panelStyle }}">
+                <div style="display:flex;gap:8px">
+                  <input value="{{ pPickEmp.query }}" onChange="{{ pPickEmp.onQuery }}" placeholder="Buscar por nome ou ID…" autoFocus="{{ true }}" style="flex:1;height:32px;padding:0 10px;border-radius:7px;border:1px solid #E7E7EA;background:#FAFAFB;font-size:12.5px;font-family:inherit;color:#111827">
+                  <button onClick="{{ pPickEmp.toggleAllVisible }}" style="flex:none;height:32px;padding:0 10px;border-radius:7px;border:1px solid #E7E7EA;background:#FFFFFF;color:#4161FF;font-size:11.5px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap">{{ pPickEmp.allOnLabel }}</button>
+                </div>
+                <div style="{{ pPickEmp.listStyle }}">
+                  <sc-for list="{{ pPickEmp.items }}" as="it" hint-placeholder-count="10">
+                    <div onClick="{{ it.onClick }}" style="{{ it.style }}" style-hover="{{ it.hoverStyle }}">
+                      <div style="{{ it.checkboxStyle }}"><sc-if value="{{ it.selected }}" hint-placeholder-val="{{ false }}"><svg width="11" height="11" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="#FFFFFF" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></sc-if></div>
+                      <span style="{{ it.idBadgeStyle }}">{{ it.id }}</span>
+                      <span style="flex:1;line-height:1.4;word-break:break-word">{{ it.name }}</span>
+                    </div>
+                  </sc-for>
+                  <div style="{{ pPickEmp.noResultStyle }}">Nenhuma empresa encontrada</div>
+                </div>
+              </div>
+          </sc-if>
+          <div style="{{ pfEmpChipsStyle }}">
+            <sc-for list="{{ pEmpChips }}" as="ch" hint-placeholder-count="0">
+              <div onClick="{{ ch.toggle }}" style="{{ ch.style }}">
+                <span style="{{ ch.dotStyle }}"></span>{{ ch.name }}
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style="flex:none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+              </div>
+            </sc-for>
+          </div>
+        </div>
 
         <div style="display:flex;flex-direction:column;gap:9px;padding-top:16px;box-shadow:inset 0 1px 0 #EEEEF1">
           <div style="display:flex;align-items:baseline;gap:10px">
@@ -2556,7 +2611,7 @@ class Component extends DCLogic {
       query: s.pickerQuery || '',
       onQuery: e => this.setState({ pickerQuery: e.target.value }),
       toggle: e => { e.stopPropagation(); this.setState(st => ({ pickerOpen: st.pickerOpen === key ? null : key, pickerQuery: '' })); },
-      panelStyle: 'width:100%;background:#FAFAFB;border-radius:10px;border:1px solid #EEEEF1;padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
+      panelStyle: 'position:relative;z-index:79;width:100%;background:#FAFAFB;border-radius:10px;border:1px solid #EEEEF1;padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
       listStyle: 'max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:2px',
       noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:12px 10px;font-size:12px;color:#94A3B8;text-align:center`,
       allOnLabel: selected.length === catalog.length ? 'Limpar seleção' : 'Selecionar todos',
@@ -2711,7 +2766,7 @@ class Component extends DCLogic {
     if (this._perfilSeed) return this._perfilSeed;
     const all = this.permPaths();
     this._perfilSeed = [
-      { id: 'p1', name: 'Administrador', desc: 'Acesso total a todos os módulos e submódulos do sistema.', active: true, perms: this.permCombine([all, true]) },
+      { id: 'p1', name: 'Administrador', desc: 'Acesso total a todos os módulos e submódulos do sistema.', active: true, perms: this.permCombine([all, true]), todasEmpresas: true },
       { id: 'p2', name: 'Financeiro', desc: 'Gestão de caixa, lançamentos e fluxo financeiro.', active: true, perms: this.permCombine([['financeiro.saldos', 'financeiro.lancamentos', 'financeiro.programacao', 'financeiro.fluxo'], true]) },
       { id: 'p3', name: 'Comercial', desc: 'Propostas, contratos de venda e relacionamento com cliente.', active: true, perms: this.permCombine([['vendas.propostas', 'vendas.contratos', 'crc'], true], [['financeiro.saldos'], false]) },
       { id: 'p4', name: 'Suporte financeiro', desc: 'Consulta ao caixa do setor financeiro, sem acesso ao CRC.', active: false, perms: this.permCombine([['financeiro.saldos'], false]) },
@@ -2724,7 +2779,7 @@ class Component extends DCLogic {
   }
 
   emptyPerfilForm() {
-    return { name: '', desc: '', active: true, perms: this.emptyPermMap() };
+    return { name: '', desc: '', active: true, perms: this.emptyPermMap(), todasEmpresas: false, empresas: [] };
   }
 
   patchPerfilForm(patch) {
@@ -3417,6 +3472,9 @@ class Component extends DCLogic {
       fxRecItems: recAll.map(r => chkItem(fxRecSel, r, fxRecSel.includes(r), () => this.setState({ fxRecSel: fxRecSel.includes(r) ? fxRecSel.filter(x => x !== r) : fxRecSel.concat(r) }))),
       fxCards,
       fxScopeLabel: `${fxGroups.length} de ${emps.length} empresas no filtro`,
+      fxCompactToggle: () => this.setState({ fxCompact: !s.fxCompact }),
+      fxCompactLabel: s.fxCompact ? 'Visão completa' : 'Visão compacta',
+      fxCompactStyle: `align-self:flex-start;display:inline-flex;align-items:center;gap:5px;margin-top:6px;height:22px;padding:0 8px;border-radius:6px;border:1px solid ${s.fxCompact ? '#DDD6FE' : '#E7E7EA'};background:${s.fxCompact ? '#F5F0FF' : 'transparent'};color:${s.fxCompact ? '#7C3AED' : '#64748B'};font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,
       fxDayHeaders: days.map((d, i) => ({ date: d, dow: dows[i], style: `text-align:right;padding-right:2px` })),
       fxGroups,
       fxEmptyStyle: `display:${fxGroups.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:48px 20px`,
@@ -3537,7 +3595,7 @@ class Component extends DCLogic {
   }
 
   emptyForm() {
-    return { name: '', email: '', phone: '', role: this.uRoles[2], dept: this.uDepts[0], empresas: [], centros: [], active: true };
+    return { name: '', email: '', phone: '', role: this.uRoles[2], dept: this.uDepts[0], todas: false, empresas: [], centros: [], active: true };
   }
 
   patchForm(patch) {
@@ -3554,11 +3612,20 @@ class Component extends DCLogic {
     const q = s.uSearch.trim().toLowerCase();
     const statusKey = { 'Todos': null, 'Ativos': 'ativo', 'Inativos': 'inativo', 'Pendentes': 'pendente' }[s.uStatus];
 
+    // Acesso efetivo = perfil ∪ empresas adicionais do usuário.
+    const perfis = s.perfis || this.seedPerfis();
+    const perfilDe = role => perfis.find(p => p.name === role);
+    const acesso = u => {
+      const p = perfilDe(u.role);
+      if (u.todasEmpresas || (p && p.todasEmpresas)) return { todas: true, list: [] };
+      return { todas: false, list: Array.from(new Set(((p && p.empresas) || []).concat(u.empresas))) };
+    };
+
     const filtered = all.filter(u => {
       if (q && !(u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q) || u.phone.replace(/\D/g, '').includes(q.replace(/\D/g, '')) && q.replace(/\D/g, ''))) return false;
       if (s.uRole !== 'Todas as funções' && u.role !== s.uRole) return false;
       if (s.uDept !== 'Todos os departamentos' && u.dept !== s.uDept) return false;
-      if (s.uEmpF !== 'Todas as empresas' && u.empresas.indexOf(s.uEmpF) < 0) return false;
+      if (s.uEmpF !== 'Todas as empresas') { const a = acesso(u); if (!a.todas && a.list.indexOf(s.uEmpF) < 0) return false; }
       if (statusKey && u.status !== statusKey) return false;
       return true;
     });
@@ -3581,11 +3648,12 @@ class Component extends DCLogic {
       const color = palette[(u.id.charCodeAt(1) + u.name.length) % palette.length];
       const meta = statusMeta[u.status];
       const on = u.status === 'ativo';
+      const emp = acesso(u);
       return {
         name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept,
         initials: (parts[0][0] + (parts[1] ? parts[1][0] : '')).toUpperCase(),
-        empCount: u.empresas.length, ccCount: u.centros.length,
-        empList: u.empresas.join('\n'), ccList: u.centros.join('\n'),
+        empCount: emp.todas ? 'Todas' : emp.list.length, ccCount: u.centros.length,
+        empList: emp.todas ? 'Todas as empresas' : emp.list.join('\n'), ccList: u.centros.join('\n'),
         statusLabel: meta.label,
         toggleTitle: on ? 'Inativar usuário' : 'Ativar usuário',
         rowStyle: `display:grid;grid-template-columns:minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 #F4F4F6;opacity:${u.status === 'inativo' ? .62 : 1};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
@@ -3603,7 +3671,7 @@ class Component extends DCLogic {
         },
         edit: () => this.setState({
           modalOpen: true, editingId: u.id, formErr: '',
-          uForm: { name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept, empresas: u.empresas.slice(), centros: u.centros.slice(), active: u.status !== 'inativo' },
+          uForm: { name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept, todas: !!u.todasEmpresas, empresas: u.empresas.slice(), centros: u.centros.slice(), active: u.status !== 'inativo' },
         }),
         sendDefine: () => {
           this.setUsers(list => list.map(x => x.id === u.id && x.status !== 'inativo' ? Object.assign({}, x, { status: 'pendente' }) : x));
@@ -3642,6 +3710,10 @@ class Component extends DCLogic {
       name => this.patchForm({ empresas: form.empresas.indexOf(name) >= 0 ? form.empresas.filter(x => x !== name) : form.empresas.concat([name]) }));
     const pickCc = this.mkPicker('cc', s, form.centros, ccCatalog,
       name => this.patchForm({ centros: form.centros.indexOf(name) >= 0 ? form.centros.filter(x => x !== name) : form.centros.concat([name]) }));
+
+    const fPerfil = perfilDe(form.role);
+    const fPerfilTodas = !!(fPerfil && fPerfil.todasEmpresas);
+    const fPerfilEmps = (fPerfil && fPerfil.empresas) || [];
 
     const editing = !!s.editingId;
     const fieldBase = 'height:38px;padding:0 12px;border-radius:8px;background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s;border:1px solid ';
@@ -3725,7 +3797,17 @@ class Component extends DCLogic {
       empChips, ccChips, pickEmp, pickCc,
       pickerOverlayStyle: `display:${s.pickerOpen ? 'block' : 'none'};position:fixed;inset:0;z-index:78;background:transparent`,
       closePicker: () => this.setState({ pickerOpen: null, pickerQuery: '' }),
-      fEmpCountLabel: `${form.empresas.length} de ${empNames.length} selecionadas`,
+      fEmpCountLabel: form.todas ? 'Todas as empresas' : `${form.empresas.length} de ${empNames.length} selecionadas`,
+      fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.todas ? '#43B997' : '#D8D8E0'}`,
+      fTodasKnobStyle: `position:absolute;top:2.5px;left:${form.todas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+      toggleFTodas: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ todas: !form.todas }); },
+      fEmpAddStyle: form.todas ? 'display:none' : 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer',
+      fEmpChipsStyle: `display:${form.todas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
+      fPerfilEmpLabel: !fPerfil ? ''
+        : fPerfilTodas ? `O perfil ${form.role} já libera todas as empresas.`
+          : fPerfilEmps.length ? `O perfil ${form.role} já libera ${fPerfilEmps.length} empresa${fPerfilEmps.length > 1 ? 's' : ''}.`
+            : `O perfil ${form.role} não libera nenhuma empresa.`,
+      fPerfilEmpTitle: fPerfilTodas ? '' : fPerfilEmps.join('\n'),
       fCcCountLabel: `${form.centros.length} de ${this.uCentros.length} selecionados`,
 
       formErr: s.formErr,
@@ -3745,7 +3827,7 @@ class Component extends DCLogic {
         const id = s.editingId;
         const rec = {
           name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || '—',
-          role: form.role, dept: form.dept, empresas: form.empresas, centros: form.centros,
+          role: form.role, dept: form.dept, todasEmpresas: !!form.todas, empresas: form.empresas, centros: form.centros,
         };
         if (id) {
           this.setUsers(list => list.map(x => x.id === id ? Object.assign({}, x, rec, { status: form.active ? (x.status === 'pendente' ? 'pendente' : 'ativo') : 'inativo' }) : x));
@@ -3996,7 +4078,7 @@ class Component extends DCLogic {
           this.setPerfis(list => list.map(x => x.id === p.id ? Object.assign({}, x, { active: !x.active }) : x));
           this.toast(p.active ? `${p.name} foi inativado.` : `${p.name} foi reativado.`);
         },
-        edit: () => this.setState({ perfilModalOpen: true, editingPerfilId: p.id, pFormErr: '', pForm: { name: p.name, desc: p.desc, active: p.active, perms: Object.assign({}, p.perms) } }),
+        edit: () => this.setState({ perfilModalOpen: true, editingPerfilId: p.id, pFormErr: '', pForm: { name: p.name, desc: p.desc, active: p.active, perms: Object.assign({}, p.perms), todasEmpresas: !!p.todasEmpresas, empresas: (p.empresas || []).slice() } }),
       };
     });
 
@@ -4028,6 +4110,23 @@ class Component extends DCLogic {
         mod.subs.forEach(sub => permRows.push(permRow(mod.key + '.' + sub.key, sub.label, true)));
       }
     });
+
+    const pfTodas = !!form.todasEmpresas;
+    const pfEmps = form.empresas || [];
+    const chipOn = color => `display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;flex:none;border:1px solid ${color};background:${color}12;color:${color};transition:all .15s;user-select:none`;
+    const empColorByName = {}; this.empresas.forEach(e => { empColorByName[e.n] = e.c; });
+    const togglePfEmp = name => this.setState(st => {
+      const f = st.pForm || this.emptyPerfilForm();
+      const cur = f.empresas || [];
+      return { pForm: Object.assign({}, f, { empresas: cur.indexOf(name) >= 0 ? cur.filter(x => x !== name) : cur.concat([name]) }), pFormErr: '' };
+    });
+    const pEmpChips = pfEmps.map(n => ({
+      name: n,
+      style: chipOn(empColorByName[n] || '#4161FF'),
+      dotStyle: `width:8px;height:8px;border-radius:3px;background:${empColorByName[n] || '#4161FF'}`,
+      toggle: () => togglePfEmp(n),
+    }));
+    const pPickEmp = this.mkPicker('pemp', s, pfEmps, this.empresas.map(e => ({ id: e.id, name: e.n })), togglePfEmp);
 
     const editing = !!s.editingPerfilId;
     const errName = s.pFormErr && !form.name.trim();
@@ -4072,6 +4171,15 @@ class Component extends DCLogic {
       pfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#258B6C' : '#64748B'}`,
       togglePfActive: () => this.patchPerfilForm({ active: !form.active }),
 
+      pEmpChips, pPickEmp,
+      pfEmpCountLabel: pfTodas ? 'Todas as empresas' : `${pfEmps.length} de ${this.empresas.length} selecionadas`,
+      pfEmpHint: pfTodas ? 'Inclui as empresas que forem criadas no Sienge.' : 'Quem usa este perfil só vê as empresas abaixo (mais as adicionais do usuário).',
+      pfTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${pfTodas ? '#43B997' : '#D8D8E0'}`,
+      pfTodasKnobStyle: `position:absolute;top:2.5px;left:${pfTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+      togglePfTodas: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchPerfilForm({ todasEmpresas: !form.todasEmpresas }); },
+      pfEmpAddStyle: pfTodas ? 'display:none' : 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer',
+      pfEmpChipsStyle: `display:${pfTodas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
+
       permRows,
       permGrantedLabel: `${grantedCount(form.perms)} de ${totalPaths} itens liberados`,
 
@@ -4088,7 +4196,7 @@ class Component extends DCLogic {
       savePerfil: () => {
         if (!form.name.trim()) { this.setState({ pFormErr: 'Informe o nome do perfil.' }); return; }
         const id = s.editingPerfilId;
-        const rec = { name: form.name.trim(), desc: (form.desc || '').trim(), active: form.active, perms: form.perms };
+        const rec = { name: form.name.trim(), desc: (form.desc || '').trim(), active: form.active, perms: form.perms, todasEmpresas: pfTodas, empresas: pfEmps.slice() };
         if (id) {
           this.setPerfis(list => list.map(x => x.id === id ? Object.assign({}, x, rec) : x));
           this.toast('Cadastro atualizado.');

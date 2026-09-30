@@ -62,6 +62,85 @@ export default function PerfilModal({ v }: { v: any }) {
             </span>
             <textarea value={v.pfDesc} onChange={v.onPfDesc} placeholder="Ex.: Acesso ao módulo financeiro e submenus de caixa..." style={{ "minHeight": "64px", "padding": "10px 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "resize": "vertical", "transition": "border-color .15s,box-shadow .15s" }}></textarea>
           </label>
+          <div style={css(v.pickerOverlayStyle)} onClick={v.closePicker}></div>
+          <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
+            <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px", "position": "relative" }}>
+              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
+                Empresas liberadas
+              </span>
+              <span style={{ "fontSize": "11px", "color": "#94A3B8" }}>
+                {v.pfEmpCountLabel}
+              </span>
+              <button onClick={v.pPickEmp.toggle} style={css(v.pfEmpAddStyle)}>
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 5v14M5 12h14" stroke="#4161FF" strokeWidth="2.2" strokeLinecap="round"></path>
+                </svg>
+                Adicionar empresa
+              </button>
+            </div>
+            <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
+              <div onClick={v.togglePfTodas} style={css(v.pfTodasTrackStyle)}>
+                <span style={css(v.pfTodasKnobStyle)}></span>
+              </div>
+              <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#374151" }}>
+                Acesso a todas as empresas
+              </span>
+              <span style={{ "marginLeft": "auto", "fontSize": "11.5px", "color": "#94A3B8" }}>
+                {v.pfEmpHint}
+              </span>
+            </div>
+            {v.pPickEmp.isOpen ? (
+              <>
+                <div style={css(v.pPickEmp.panelStyle)}>
+                  <div style={{ "display": "flex", "gap": "8px" }}>
+                    <input value={v.pPickEmp.query} onChange={v.pPickEmp.onQuery} placeholder="Buscar por nome ou ID…" autoFocus={true} style={{ "flex": "1", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827" }} />
+                    <button onClick={v.pPickEmp.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
+                      {v.pPickEmp.allOnLabel}
+                    </button>
+                  </div>
+                  <div style={css(v.pPickEmp.listStyle)}>
+                    {(v.pPickEmp.items || []).map((it: any, _i0: number) => (
+                      <Fragment key={_i0}>
+                        <div onClick={it.onClick} style={css(it.style)} className={hv(it.hoverStyle, undefined, undefined)}>
+                          <div style={css(it.checkboxStyle)}>
+                            {it.selected ? (
+                              <>
+                                <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
+                                  <path d="M5 12.5l4.5 4.5L19 7" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
+                                </svg>
+                              </>
+                            ) : null}
+                          </div>
+                          <span style={css(it.idBadgeStyle)}>
+                            {it.id}
+                          </span>
+                          <span style={{ "flex": "1", "lineHeight": "1.4", "wordBreak": "break-word" }}>
+                            {it.name}
+                          </span>
+                        </div>
+                      </Fragment>
+                    ))}
+                    <div style={css(v.pPickEmp.noResultStyle)}>
+                      Nenhuma empresa encontrada
+                    </div>
+                  </div>
+                </div>
+              </>
+            ) : null}
+            <div style={css(v.pfEmpChipsStyle)}>
+              {(v.pEmpChips || []).map((ch: any, _i0: number) => (
+                <Fragment key={_i0}>
+                  <div onClick={ch.toggle} style={css(ch.style)}>
+                    <span style={css(ch.dotStyle)}></span>
+                    {ch.name}
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
+                      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"></path>
+                    </svg>
+                  </div>
+                </Fragment>
+              ))}
+            </div>
+          </div>
           <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>

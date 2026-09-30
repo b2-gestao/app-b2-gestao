@@ -267,7 +267,10 @@ Deno.serve(async (req) => {
         const entrada = await validarConfirmacao(corpo);
         const nomes = { fornecedor: corpo.fornecedorNome, empresa: corpo.empresaNome, valor: corpo.valor };
         try {
-          const { contexto, ...resultado } = await confirmarCadastro(entrada, bytesDoBase64(entrada.pdfBase64));
+          const { contexto, ...resultado } = await confirmarCadastro(entrada, bytesDoBase64(entrada.pdfBase64), async (empresaId) => {
+            const { data, error } = await cliente.rpc("app_pode_empresa", { p_company: empresaId });
+            return !error && data === true;
+          });
           const anexoFalhou = resultado.avisos.some((a) => a.startsWith("Não foi possível anexar"));
           const cadastroId = await registrar(linhaHistorico(usuario, entrada, contexto, {
             situacao: "cadastrada",
