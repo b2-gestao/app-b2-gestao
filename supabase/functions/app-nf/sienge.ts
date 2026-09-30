@@ -215,6 +215,20 @@ export interface EntregaVinculada {
   keepBalance: boolean;
 }
 
+export interface CriterioAvaliacao {
+  id: number;
+  description?: string;
+  weight?: number;
+}
+
+/** Critérios de avaliação do fornecedor no pedido (defaultList: os do pedido; remainderList: complementares). */
+export interface CriteriosAvaliacao {
+  defaultList?: CriterioAvaliacao[];
+  remainderList?: CriterioAvaliacao[];
+  rangeMin?: number;
+  rangeMax?: number;
+}
+
 export interface ParcelaTitulo {
   installmentNumber: number;
   dueDate?: string;
@@ -232,7 +246,7 @@ const TIMEOUT_MS = 30_000;
 const TENTATIVAS_429 = 3;
 
 type Query = Record<string, string | number | undefined>;
-type Metodo = "GET" | "POST" | "PATCH";
+type Metodo = "GET" | "POST" | "PUT" | "PATCH";
 type Corpo = { json: unknown } | { formData: FormData };
 
 /** Base64 de texto UTF-8 (btoa sozinho quebra com acentos na senha). */
@@ -359,6 +373,18 @@ export function listarItensPedido(purchaseOrderId: number): Promise<ItemPedido[]
 
 export function listarEntregasItem(purchaseOrderId: number, itemNumber: number): Promise<EntregaPrevista[]> {
   return listarTodos<EntregaPrevista>(`/v1/purchase-orders/${purchaseOrderId}/items/${itemNumber}/delivery-schedules`);
+}
+
+export function buscarCriteriosAvaliacao(purchaseOrderId: number): Promise<CriteriosAvaliacao | null> {
+  return siengeGetOpcional<CriteriosAvaliacao>(`/v1/purchase-orders/${purchaseOrderId}/supplier-evaluation-criteria`);
+}
+
+/** PUT: cria a avaliação do pedido ou atualiza a última (pedido faturado em várias notas não duplica). */
+export async function avaliarFornecedor(
+  purchaseOrderId: number,
+  avaliacao: { notes?: string; evaluatedCriteria: Array<{ criterionId: number; value: number }> },
+): Promise<void> {
+  await requisitar("PUT", `/v1/purchase-orders/${purchaseOrderId}/evaluation`, { corpo: { json: avaliacao } });
 }
 
 /** Busca por CNPJ (14 dígitos) ou CPF (11 dígitos), sem máscara. */

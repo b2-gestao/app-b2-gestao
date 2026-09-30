@@ -136,6 +136,8 @@ export interface PreviewNota {
   vinculos: VinculoSugerido[];
   criterioSelecao: CriterioSelecao;
   vencimentoEditavel: boolean;
+  /** Avaliação do fornecedor gravada no pedido com nota padrão; null sem critérios (servidor antigo não envia). */
+  avaliacao?: { nota: number; criterios: string[] } | null;
   bloqueios: string[];
   avisos: string[];
 }
@@ -323,6 +325,7 @@ const demo = {
       ],
       criterioSelecao: 'similaridade',
       vencimentoEditavel: true,
+      avaliacao: { nota: 8, criterios: ['Prazo de entrega', 'Qualidade do material', 'Atendimento'] },
       bloqueios: [],
       avisos: [
         'O valor não bate com o saldo do pedido (valor do documento R$ 6.384,90, saldo em aberto do pedido R$ 13.750,10). Confira quais insumos e quantidades a nota atende.',
