@@ -21,6 +21,7 @@
 //
 // Entrada:  { tela: "prog" | "fluxo", contexto: {...}, regras: [{ label, text }] }
 //           { tela: "modelo" } devolve só { modelo }
+//           { tela: "crc", tipo: "analise" | "resumo", prompt } devolve { texto, modelo } (CRC › Entregas)
 // Saída:    { headline, items: [{ label, text, nivel: "critico" | "atencao" | "info" | "positivo" }], modelo,
 //             cache: boolean, gerado_em: ISO }
 
@@ -69,6 +70,39 @@ Responda somente com JSON no formato:
 {"headline": "frase curta com o ponto mais importante",
  "items": [{"label": "título curto", "text": "explicação em 1 ou 2 frases", "nivel": "critico|atencao|info|positivo"}]}`;
 
+// CRC › Entregas: análise da transcrição da reunião do comitê (tipo "analise", devolve JSON) e
+// resumo para e-mail/WhatsApp (tipo "resumo", devolve texto). O prompt é montado pela tela com as
+// ações do projeto, igual ao HTML de origem; aqui só se confere a permissão e chama o provedor.
+// Sem cache: cada transcrição é única.
+async function crc(cliente: ReturnType<typeof createClient>, b: Record<string, unknown>) {
+  const { data: pode } = await cliente.rpc("app_pode", { p_path: "crc.entregas" });
+  if (pode !== true) return json({ error: "Seu perfil não tem acesso a CRC › Entregas." }, 403);
+  const tipo = b.tipo === "resumo" ? "resumo" : "analise";
+  const prompt = String(b.prompt || "");
+  if (!prompt.trim()) return json({ error: "Prompt vazio." }, 400);
+  if (prompt.length > 150000) return json({ error: "Transcrição grande demais." }, 413);
+
+  const corpo: Record<string, unknown> = { model: MODEL, messages: [{ role: "user", content: prompt }] };
+  if (JSON_MODE && tipo === "analise") corpo.response_format = { type: "json_object" };
+  if (EFFORT) corpo.reasoning_effort = EFFORT;
+  const r = await fetch(`${API_URL}/chat/completions`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${API_KEY}` },
+    body: JSON.stringify(corpo),
+    signal: AbortSignal.timeout(120000),
+  });
+  const resp = await r.json().catch(() => ({}));
+  if (!r.ok) {
+    console.error("app-ia crc: provedor respondeu", r.status, JSON.stringify(resp).slice(0, 500));
+    return json({ error: `Provedor de IA respondeu ${r.status}.` }, 502);
+  }
+  const texto = String(resp?.choices?.[0]?.message?.content || "");
+  const uso = resp?.usage || {};
+  console.log(JSON.stringify({ app_ia: "crc", tipo, modelo: MODEL, tokens_entrada: uso.prompt_tokens ?? null, tokens_saida: uso.completion_tokens ?? null }));
+  if (!texto.trim()) return json({ error: "A IA não retornou resposta." }, 502);
+  return json({ texto, modelo: MODEL });
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
@@ -84,6 +118,7 @@ Deno.serve(async (req) => {
     const b = await req.json().catch(() => ({})) as Record<string, unknown>;
     // Só o nome do modelo, para o app mostrar "A IA está pensando… (modelo)" antes da resposta.
     if (b.tela === "modelo") return json({ modelo: MODEL });
+    if (b.tela === "crc") return await crc(cliente, b);
     const tela = String(b.tela || "");
     if (!TELAS[tela]) return json({ error: "Tela inválida." }, 400);
     const contexto = JSON.stringify(b.contexto ?? {});

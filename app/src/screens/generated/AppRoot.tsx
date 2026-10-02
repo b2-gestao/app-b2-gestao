@@ -24,6 +24,7 @@ import CategoriasPage from '../CategoriasPage';
 import CategoriaModal from '../CategoriaModal';
 import EnviarEmailModal from '../EnviarEmailModal';
 import NotasCadastrosPage from '../NotasCadastrosPage';
+import CrcEntregasPage from '../crc/CrcEntregasPage';
 import Toast from './Toast';
 
 export default function AppRoot({ v }: { v: any }) {
@@ -46,6 +47,7 @@ export default function AppRoot({ v }: { v: any }) {
           <BiPage v={v} />
           <CategoriasPage v={v} />
           <NotasCadastrosPage v={v} />
+          <CrcEntregasPage v={v} />
         </div>
         <UserModal v={v} />
         <DeptModal v={v} />

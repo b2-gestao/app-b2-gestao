@@ -6,13 +6,15 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const q = s.uSearch.trim().toLowerCase();
   const statusKey = { 'Todos': null, 'Ativos': 'ativo', 'Inativos': 'inativo', 'Pendentes': 'pendente' }[s.uStatus];
 
-  // Acesso efetivo = perfil ∪ empresas adicionais do usuário (mesma regra de app_pode_empresa).
+  // Acesso efetivo = perfil ∪ empresas adicionais do usuário (mesma regra de app_pode_empresa);
+  // com restringirEmpresas, só as empresas do cadastro do usuário.
   const perfis = s.perfis || this.seedPerfis();
   const empLabelById = new Map(this.userEmpresas().map(e => [Number(e.id), e.n]));
   const perfilDe = role => perfis.find(p => p.name === role);
   const empresasDoPerfil = p => ((p && p.empresas) || []).map(id => empLabelById.get(Number(id)) || `Empresa ${id}`);
   const acesso = u => {
     const p = perfilDe(u.role);
+    if (u.restringirEmpresas) return { todas: false, list: u.empresas.slice() as string[] };
     if (u.todasEmpresas || (p && (p.sistema || p.todasEmpresas))) return { todas: true, list: [] as string[] };
     return { todas: false, list: Array.from(new Set(empresasDoPerfil(p).concat(u.empresas))) };
   };
@@ -68,7 +70,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
       },
       edit: () => this.setState({
         modalOpen: true, editingId: u.id, formErr: '',
-        uForm: { name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept, todas: !!u.todasEmpresas, empresas: u.empresas.slice(), centros: u.centros.slice(), active: u.status !== 'inativo' },
+        uForm: { name: u.name, email: u.email, phone: u.phone, role: u.role, dept: u.dept, todas: !!u.todasEmpresas, restringir: !!u.restringirEmpresas, empresas: u.empresas.slice(), centros: u.centros.slice(), active: u.status !== 'inativo' },
       }),
       sendDefine: () => {
         if (this.live) { this.usuarioAcao('reenviar_convite', { id: u.id }, `Link de definição de senha enviado para ${u.email}.`); return; }
@@ -124,6 +126,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const fPerfil = perfilDe(form.role);
   const fPerfilTodas = !!(fPerfil && (fPerfil.sistema || fPerfil.todasEmpresas));
   const fPerfilEmps = empresasDoPerfil(fPerfil);
+  const fTodas = !!form.todas && !form.restringir;
   const fEmpAddBtn = 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer';
 
   const editing = !!s.editingId;
@@ -142,7 +145,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     ddOverlayStyle: `display:${s.ddOpen ? 'block' : 'none'};position:fixed;inset:0;z-index:75;background:transparent`,
     closeDropdowns: () => this.setState({ ddOpen: null }),
     isUsuarios: s.page === 'usuarios',
-    isDashboard: !['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo', 'bi', 'categorias', 'nfCadastros'].includes(s.page),
+    isDashboard: !['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo', 'bi', 'categorias', 'nfCadastros', 'crcEntregas'].includes(s.page),
     goUsuarios: (e) => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('configuracoes.usuarios'))) return; this.setState({ view: 'app', page: 'usuarios', module: 'Configurações', configOpen: true, userMenuOpen: false }); },
     usuariosItemStyle: s.page === 'usuarios'
       ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
@@ -208,17 +211,25 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     empChips, ccChips, pickEmp, pickCc,
     pickerOverlayStyle: `display:${s.pickerOpen ? 'block' : 'none'};position:fixed;inset:0;z-index:78;background:transparent`,
     closePicker: () => this.setState({ pickerOpen: null, pickerQuery: '' }),
-    fEmpCountLabel: form.todas ? 'Todas as empresas' : `${form.empresas.length} de ${empNames.length} selecionadas`,
-    fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.todas ? '#43B997' : '#D8D8E0'}`,
-    fTodasKnobStyle: `position:absolute;top:2.5px;left:${form.todas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
-    toggleFTodas: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ todas: !form.todas }); },
-    fEmpAddStyle: form.todas ? 'display:none' : fEmpAddBtn,
-    fEmpChipsStyle: `display:${form.todas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
+    fEmpTitle: form.restringir ? 'Empresas do usuário' : 'Empresas adicionais',
+    fEmpCountLabel: fTodas ? 'Todas as empresas' : `${form.empresas.length} de ${empNames.length} selecionadas`,
+    fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${form.restringir ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${fTodas ? '#43B997' : '#D8D8E0'};opacity:${form.restringir ? .5 : 1}`,
+    fTodasKnobStyle: `position:absolute;top:2.5px;left:${fTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    toggleFTodas: () => { if (form.restringir) return; this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ todas: !form.todas }); },
+    fRestrTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.restringir ? '#F59E0B' : '#D8D8E0'}`,
+    fRestrKnobStyle: `position:absolute;top:2.5px;left:${form.restringir ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    toggleFRestr: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ restringir: !form.restringir, todas: false }); },
+    fRestrHint: form.restringir
+      ? `Ignora o perfil ${form.role}: o usuário vê só as empresas selecionadas abaixo${form.empresas.length ? '' : ' (nenhuma, por enquanto)'}.`
+      : 'Ignora as empresas liberadas pelo perfil e usa só as do cadastro.',
+    fEmpAddStyle: fTodas ? 'display:none' : fEmpAddBtn,
+    fEmpChipsStyle: `display:${fTodas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
     fPerfilEmpLabel: !fPerfil ? ''
+      : form.restringir ? `Restrito: o que o perfil ${form.role} libera não vale.`
       : fPerfilTodas ? `O perfil ${form.role} já libera todas as empresas.`
         : fPerfilEmps.length ? `O perfil ${form.role} já libera ${fPerfilEmps.length} empresa${fPerfilEmps.length > 1 ? 's' : ''}.`
           : `O perfil ${form.role} não libera nenhuma empresa.`,
-    fPerfilEmpTitle: fPerfilTodas ? '' : fPerfilEmps.join('\n'),
+    fPerfilEmpTitle: fPerfilTodas || form.restringir ? '' : fPerfilEmps.join('\n'),
     fCcCountLabel: `${form.centros.length} de ${centros.length} selecionados`,
 
     formErr: s.formErr,
@@ -241,7 +252,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
         if (s.uSaving) return;
         const payload = {
           nome: form.name.trim(), email: form.email.trim(), telefone: form.phone.trim() === '—' ? '' : form.phone.trim(), funcao: form.role, departamento: form.dept === '—' ? '' : form.dept,
-          todas_empresas: !!form.todas, empresas: this.empresaIdsFromLabels(form.empresas), centros_custo: form.centros.map(c => parseInt(c, 10)).filter(n => n > 0), ativo: form.active,
+          todas_empresas: fTodas, restringir_empresas: !!form.restringir, empresas: this.empresaIdsFromLabels(form.empresas), centros_custo: form.centros.map(c => parseInt(c, 10)).filter(n => n > 0), ativo: form.active,
         };
         this.setState({ uSaving: true });
         this.usuarioAcao(id ? 'atualizar' : 'convidar', id ? { id, ...payload } : payload, id ? 'Cadastro atualizado.' : 'Usuário cadastrado · link de definição de senha enviado.', err => { this.setState({ formErr: err }); this.toast(err); })
@@ -250,7 +261,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
       }
       const rec = {
         name: form.name.trim(), email: form.email.trim(), phone: form.phone.trim() || '—',
-        role: form.role, dept: form.dept, todasEmpresas: !!form.todas, empresas: form.empresas, centros: form.centros,
+        role: form.role, dept: form.dept, todasEmpresas: fTodas, restringirEmpresas: !!form.restringir, empresas: form.empresas, centros: form.centros,
       };
       if (id) {
         this.setUsers(list => list.map(x => x.id === id ? Object.assign({}, x, rec, { status: form.active ? (x.status === 'pendente' ? 'pendente' : 'ativo') : 'inativo' }) : x));

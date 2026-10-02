@@ -28,3 +28,5 @@ dist-live
 smoke-shots
 smoke-live-shots
 .env
+.vercel
+.env*

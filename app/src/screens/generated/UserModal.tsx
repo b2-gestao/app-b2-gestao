@@ -145,7 +145,7 @@ export default function UserModal({ v }: { v: any }) {
           <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px", "position": "relative" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
-                Empresas adicionais
+                {v.fEmpTitle}
               </span>
               <span style={{ "fontSize": "11px", "color": "#94A3B8" }}>
                 {v.fEmpCountLabel}
@@ -166,6 +166,17 @@ export default function UserModal({ v }: { v: any }) {
               </span>
               <span title={v.fPerfilEmpTitle} style={{ "marginLeft": "auto", "fontSize": "11.5px", "color": "#94A3B8" }}>
                 {v.fPerfilEmpLabel}
+              </span>
+            </div>
+            <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
+              <div onClick={v.toggleFRestr} style={css(v.fRestrTrackStyle)}>
+                <span style={css(v.fRestrKnobStyle)}></span>
+              </div>
+              <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#374151" }}>
+                Restringir às empresas do cadastro
+              </span>
+              <span style={{ "marginLeft": "auto", "fontSize": "11.5px", "color": "#94A3B8" }}>
+                {v.fRestrHint}
               </span>
             </div>
             {v.pickEmp.isOpen ? (

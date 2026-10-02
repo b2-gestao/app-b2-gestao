@@ -140,7 +140,9 @@ export interface UsuarioApp {
   departamento: string | null;
   /** Exceção do usuário: vê todas as empresas mesmo que o perfil não libere. */
   todas_empresas: boolean;
-  /** Empresas adicionais às do perfil. */
+  /** Ignora o que o perfil libera: vê só as `empresas` do cadastro. */
+  restringir_empresas: boolean;
+  /** Empresas adicionais às do perfil (ou as únicas, com restringir_empresas). */
   empresas: number[];
   centros_custo: number[];
   status: 'ativo' | 'inativo' | 'pendente';

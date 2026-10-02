@@ -6,17 +6,18 @@
 // o perfil de sistema "Administrador" tem tudo) pode usar.
 //
 // Ações (POST { acao, ... }):
-//   convidar        { nome, email, telefone?, funcao, departamento?, todas_empresas, empresas[], centros_custo[], ativo }
+//   convidar        { nome, email, telefone?, funcao, departamento?, todas_empresas, restringir_empresas, empresas[], centros_custo[], ativo }
 //                   → cria o usuário no Auth e envia o e-mail de convite (link de definição de senha)
-//   atualizar       { id, nome, telefone?, funcao, departamento?, todas_empresas, empresas[], centros_custo[], ativo }
+//   atualizar       { id, nome, telefone?, funcao, departamento?, todas_empresas, restringir_empresas, empresas[], centros_custo[], ativo }
 //   definir_status  { id, ativo }   → inativar bloqueia o login (ban) e o acesso aos dados
 //   reenviar_convite{ id }          → novo link de definição de senha (usuário que ainda não entrou)
 //   redefinir_senha { id }          → e-mail de redefinição de senha
 //   excluir         { id }          → remove do Auth (o perfil sai em cascata)
 //
 // Empresas: o acesso vem do perfil (app_perfis.todas_empresas / empresas); aqui ficam as exceções
-// do usuário (todas_empresas e empresas adicionais). Quem não tem acesso a todas as empresas só
-// concede as que ele mesmo tem; as demais empresas do usuário editado ficam como estão.
+// do usuário (todas_empresas e empresas adicionais). restringir_empresas ignora o perfil e deixa
+// só as empresas do cadastro do usuário. Quem não tem acesso a todas as empresas só concede as
+// que ele mesmo tem (e não tira a restrição); as demais empresas do usuário editado ficam como estão.
 //
 // Segredos: SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY (automáticos) e APP_URL
 // (endereço do front-end, para onde o link do e-mail leva).
@@ -69,7 +70,8 @@ async function perfil(b: Record<string, unknown>) {
     telefone: texto(b.telefone, 40) || null,
     funcao,
     departamento: departamento || null,
-    todas_empresas: b.todas_empresas === true,
+    todas_empresas: b.todas_empresas === true && b.restringir_empresas !== true,
+    restringir_empresas: b.restringir_empresas === true,
     empresas: ids(b.empresas),
     centros_custo: ids(b.centros_custo),
   };
@@ -78,8 +80,8 @@ async function perfil(b: Record<string, unknown>) {
 // Limita o que o editor concede ao que ele mesmo tem. `atual` = cadastro antes da edição.
 async function limitarEmpresas(
   editorId: string,
-  dados: { todas_empresas: boolean; empresas: number[] },
-  atual?: { todas_empresas: boolean; empresas: number[] },
+  dados: { todas_empresas: boolean; restringir_empresas: boolean; empresas: number[] },
+  atual?: { todas_empresas: boolean; restringir_empresas: boolean; empresas: number[] },
 ) {
   const { data: todas, error } = await admin.rpc("app_todas_empresas_usuario", { p_user: editorId });
   if (error) throw new Erro(error.message, 500);
@@ -90,7 +92,10 @@ async function limitarEmpresas(
   if (dados.todas_empresas && !atual?.todas_empresas) {
     throw new Erro("Só quem tem acesso a todas as empresas pode liberar todas para outro usuário.", 403);
   }
-  dados.todas_empresas = atual?.todas_empresas === true;
+  dados.todas_empresas = atual?.todas_empresas === true && !dados.restringir_empresas;
+  if (atual?.restringir_empresas && !dados.restringir_empresas) {
+    throw new Erro("Só quem tem acesso a todas as empresas pode tirar a restrição de empresas de um usuário.", 403);
+  }
   const foraDoEscopo = (atual?.empresas ?? []).filter((e) => !escopo.has(e));
   dados.empresas = [...new Set([...dados.empresas.filter((e) => escopo.has(e)), ...foraDoEscopo])];
 }

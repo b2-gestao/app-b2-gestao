@@ -9,6 +9,7 @@ import { progVals } from './vals/programacao';
 import { fluxoVals } from './vals/fluxo';
 import { biVals } from './vals/bi';
 import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
+import { crcEntregasVals } from './vals/crcEntregas';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { baixarCsv } from '../lib/download';
@@ -133,6 +134,8 @@ export class AppLogic extends Component<any, any> {
     biCfgDraft: null,
     // Notas Fiscais › Cadastros: histórico (app_nf_cadastros) e o assistente de cadastro (vals/notasCadastros.ts).
     nfOpen: false,
+    // CRC › Entregas (Comitê de Entrega): estado da tela fica em screens/crc (crcStore.ts).
+    crcOpen: false,
     nfLista: null,
     nfBusca: '',
     nfSituacao: 'Todas',
@@ -240,6 +243,7 @@ export class AppLogic extends Component<any, any> {
     usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
     categorias: 'cadastros.categorias',
     nfCadastros: 'notas.cadastros',
+    crcEntregas: 'crc.entregas',
   };
 
   /** Any menu under a module (e.g. 'rh' → rh.colaboradores, rh.folha) visible to the profile. */
@@ -305,7 +309,7 @@ export class AppLogic extends Component<any, any> {
       this.setState({
         users: rows.map(r => ({
           id: r.id, name: r.nome, email: r.email, phone: r.telefone || '—', role: r.funcao, dept: r.departamento || '—',
-          todasEmpresas: r.todas_empresas,
+          todasEmpresas: r.todas_empresas, restringirEmpresas: !!r.restringir_empresas,
           empresas: r.empresas.map(id => emp.get(id) || `Empresa ${id}`),
           centros: r.centros_custo.map(id => cc[id] || `${id} · Centro ${id}`),
           status: r.status,
@@ -766,7 +770,9 @@ export class AppLogic extends Component<any, any> {
     ] },
     { key: 'cobranca', label: 'Cobrança', subs: [] },
     { key: 'juridico', label: 'Jurídico', subs: [] },
-    { key: 'crc', label: 'CRC', subs: [] },
+    { key: 'crc', label: 'CRC', subs: [
+      { key: 'entregas', label: 'Entregas' },
+    ] },
     { key: 'configuracoes', label: 'Configurações', subs: [
       { key: 'usuarios', label: 'Usuários' },
       { key: 'departamentos', label: 'Departamentos' },
@@ -809,7 +815,7 @@ export class AppLogic extends Component<any, any> {
     this._perfilSeed = [
       { id: 'p1', name: 'Administrador', desc: 'Acesso total a todos os módulos e submódulos do sistema.', active: true, perms: this.permCombine([all, true]), todasEmpresas: true },
       { id: 'p2', name: 'Financeiro', desc: 'Gestão de caixa, lançamentos e fluxo financeiro.', active: true, perms: this.permCombine([['financeiro.saldos', 'financeiro.lancamentos', 'financeiro.programacao', 'financeiro.fluxo'], true]) },
-      { id: 'p3', name: 'Comercial', desc: 'Propostas, contratos de venda e relacionamento com cliente.', active: true, perms: this.permCombine([['vendas.propostas', 'vendas.contratos', 'crc'], true], [['financeiro.saldos'], false]) },
+      { id: 'p3', name: 'Comercial', desc: 'Propostas, contratos de venda e relacionamento com cliente.', active: true, perms: this.permCombine([['vendas.propostas', 'vendas.contratos', 'crc.entregas'], true], [['financeiro.saldos'], false]) },
       { id: 'p4', name: 'Suporte financeiro', desc: 'Consulta ao caixa do setor financeiro, sem acesso ao CRC.', active: false, perms: this.permCombine([['financeiro.saldos'], false]) },
     ];
     return this._perfilSeed;
@@ -989,7 +995,7 @@ export class AppLogic extends Component<any, any> {
   emptyForm() {
     const roles = this.uRoles;
     const role = roles.includes('Analista Financeiro') ? 'Analista Financeiro' : (roles[2] || roles[0] || '');
-    return { name: '', email: '', phone: '', role, dept: this.uDepts[0] || '', todas: false, empresas: [], centros: [], active: true };
+    return { name: '', email: '', phone: '', role, dept: this.uDepts[0] || '', todas: false, restringir: false, empresas: [], centros: [], active: true };
   }
 
   patchForm(patch) {
@@ -1080,7 +1086,7 @@ export class AppLogic extends Component<any, any> {
       { name:'Vendas', perm:'vendas', beta:true, sub:'Propostas e contratos', c:'#F59E0B', d:'M3 17l5-5 4 3 8-9M15 6h5v5' },
       { name:'Cobrança', perm:'cobranca', beta:true, sub:'Carteira e inadimplência', c:'#EC4899', d:'M5 3h14v18H5zM8 8h8M8 12h8M8 16h5' },
       { name:'Jurídico', perm:'juridico', beta:true, sub:'Processos e distratos', c:'#43B997', d:'M12 4v16M7 20h10M5 9h14M5 9l2.5 6h-5zM19 9l2.5 6h-5z' },
-      { name:'CRC', perm:'crc', beta:true, sub:'Relacionamento com cliente', c:'#4161FF', d:'M3 5h18v14H3zM8 9.9a2.1 2.1 0 100 4.2 2.1 2.1 0 000-4.2M13 10h6M13 14h4' },
+      { name:'CRC', perm:'crc', sub:'Relacionamento com cliente', c:'#4161FF', d:'M3 5h18v14H3zM8 9.9a2.1 2.1 0 100 4.2 2.1 2.1 0 000-4.2M13 10h6M13 14h4' },
       { name:'Configurações', sub:'Usuários, perfis, auditoria', c:'#94A3B8', d:'M12 8.5a3.5 3.5 0 100 7 3.5 3.5 0 000-7M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8' },
     ],
     cadastros: [
@@ -1430,5 +1436,6 @@ export class AppLogic extends Component<any, any> {
   fluxoVals(subItemStyle: string): any { return fluxoVals.call(this, subItemStyle); }
   biVals(subItemStyle: string): any { return biVals.call(this, subItemStyle); }
   notasCadastrosVals(subItemStyle: string): any { return notasCadastrosVals.call(this, subItemStyle); }
+  crcEntregasVals(subItemStyle: string): any { return crcEntregasVals.call(this, subItemStyle); }
   renderVals(): any { return renderVals.call(this); }
 }

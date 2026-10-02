@@ -1,0 +1,821 @@
+<div class="app">
+
+<!-- SIDEBAR -->
+<aside class="sidebar" id="sidebar">
+  <div class="sb-brand">
+    <div class="sb-brand-mark">CE</div>
+    <div class="sb-brand-text">Entregas<small>Comitê de Entrega</small></div>
+  </div>
+
+  <div class="sb-scroll">
+    <div class="sb-section">
+      <div class="sb-section-title">Projetos</div>
+      <div id="sbProjectsGroups"></div>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-title">Análise</div>
+      <button class="sb-item active" data-view="dashboard" data-label="Dashboard" onclick="switchView('dashboard')"><span class="sb-item-icon">📊</span><span class="sb-item-label">Dashboard</span></button>
+      <button class="sb-item" data-view="project" data-label="Projeto" onclick="switchView('project')"><span class="sb-item-icon">🏗️</span><span class="sb-item-label">Projeto</span></button>
+      <button class="sb-item" data-view="calendar" data-label="Calendário" onclick="switchView('calendar')"><span class="sb-item-icon">📅</span><span class="sb-item-label">Calendário</span></button>
+      <button class="sb-item" data-view="responsible" data-label="Por Responsável" onclick="switchView('responsible')"><span class="sb-item-icon">👤</span><span class="sb-item-label">Por Responsável</span></button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Reunião</div>
+      <button class="sb-item" data-view="meeting" data-label="Modo Apresentação" onclick="switchView('meeting')"><span class="sb-item-icon">🎯</span><span class="sb-item-label">Modo Apresentação</span></button>
+      <button class="sb-item" data-view="ai" data-label="Análise por IA" onclick="switchView('ai')"><span class="sb-item-icon">🤖</span><span class="sb-item-label">Análise por IA</span></button>
+    </div>
+
+    <div class="sb-section">
+      <div class="sb-section-title">Gestão</div>
+      <button class="sb-item" data-view="templates" data-label="Modelos" onclick="switchView('templates')"><span class="sb-item-icon">📚</span><span class="sb-item-label">Modelos</span></button>
+      <button class="sb-item" data-view="settings" data-label="Configurações" onclick="switchView('settings')"><span class="sb-item-icon">⚙️</span><span class="sb-item-label">Configurações</span></button>
+    </div>
+  </div>
+
+  <div class="sb-foot">
+    <button class="sb-toggle" onclick="toggleSidebar()" data-label="Expandir menu">
+      <span class="sb-toggle-icon" id="sbToggleIcon">◀</span>
+      <span class="sb-toggle-label">Recolher menu</span>
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<div class="main">
+
+<div class="header">
+  <button class="header-mobile-btn" onclick="document.getElementById('sidebar').classList.toggle('mobile-open')">☰</button>
+  <div class="project-picker">
+    <select id="committeeSelect" onchange="switchCommittee(this.value)"></select>
+    <svg width="10" height="10" viewBox="0 0 10 10"><path d="M1 3l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+  </div>
+  <div class="global-search">
+    <input type="text" id="globalSearch" placeholder="Buscar atividades, blocos, responsáveis..." oninput="onGlobalSearch(this.value)" onfocus="onGlobalSearch(this.value)">
+    <div class="gs-results" id="gsResults"></div>
+  </div>
+  <div class="header-actions">
+    <span id="crcSyncStatus" class="crc-sync"></span>
+    <button class="btn secondary sm" onclick="openImportModal()">📥 Importar planilha</button>
+    <button class="btn secondary sm" onclick="openModal('modalNewCommittee')">+ Novo projeto</button>
+    <button class="btn sm" onclick="switchView('ai')">🤖 Analisar reunião</button>
+  </div>
+</div>
+
+<div class="content">
+
+<div id="crcEmpty" class="hidden">
+  <div class="card"><div class="empty-state"><div class="empty-icon">🏗️</div><h3>Nenhum projeto ainda</h3><p>Crie um projeto em <b>+ Novo projeto</b>, importe uma planilha ou traga o backup do arquivo antigo em <b>Configurações › Importar backup</b>.</p><p class="muted">Só aparecem projetos das empresas liberadas para o seu perfil.</p></div></div>
+</div>
+
+<!-- DASHBOARD -->
+<div id="view-dashboard">
+  <div class="page-title">Dashboard executivo</div>
+  <div class="page-sub">Visão consolidada dos projetos em andamento. Clique nos chips para filtrar.</div>
+
+  <div class="dash-toolbar">
+    <div class="dash-tabs" id="dashTabs">
+      <button id="dtConsolidated" class="active" onclick="setDashTab('consolidated')">📊 Consolidado</button>
+      <button id="dtCompare" onclick="setDashTab('compare')">⚖️ Comparar projetos</button>
+      <button id="dtProduction" onclick="setDashTab('production')">👥 Produção por responsável</button>
+    </div>
+    <div class="dash-period-chips" id="dashPeriodChips">
+      <button data-period="7" onclick="setDashPeriod(7)">7 dias</button>
+      <button data-period="30" onclick="setDashPeriod(30)">30 dias</button>
+      <button data-period="90" onclick="setDashPeriod(90)">90 dias</button>
+      <button data-period="365" onclick="setDashPeriod(365)">Ano</button>
+      <button data-period="0" class="active" onclick="setDashPeriod(0)">Todos</button>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn secondary sm" onclick="openEvolutionModal()">📈 Evolução por período</button>
+      <button class="btn sm" onclick="exportDashboard()">📥 Exportar dashboard</button>
+    </div>
+  </div>
+
+  <div id="dashConsolidatedWrap">
+    <div class="chip-filter-bar" id="chipFilterBar"></div>
+
+    <div id="dashPipeline"></div>
+    <div class="kpi-grid" id="dashKpis"></div>
+    <div id="dashDrill"></div>
+
+  <div class="card">
+    <div class="card-head"><h3>Evolução de conclusão por mês</h3><span class="card-sub">últimos 12 meses</span></div>
+    <div class="chart-wrap" id="chartWrap"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Linha do tempo · <span id="timelineTitle" style="color:var(--primary)">–</span></h3><span class="card-sub">marcos do projeto selecionado</span></div>
+    <div id="timelineWrap"></div>
+  </div>
+
+  <div class="split">
+    <div class="card"><div class="card-head"><h3>🔥 Top atrasos</h3></div><div class="dash-list" id="dashDelays"></div></div>
+    <div class="card"><div class="card-head"><h3>⏰ Próximos 15 dias</h3></div><div class="dash-list" id="dashUpcoming"></div></div>
+  </div>
+
+  <div class="card"><div class="card-head"><h3>🏗️ Evolução da obra por projeto</h3></div><div class="card-body p" id="obraProgressList"></div></div>
+  </div><!-- /dashConsolidatedWrap -->
+
+  <div id="dashCompareWrap" class="hidden">
+    <div class="card">
+      <div class="card-head"><h3>⚖️ Comparação de todos os projetos ativos</h3><span class="card-sub">visão lado a lado</span></div>
+      <div style="overflow-x:auto"><table class="multi-proj-table" id="multiProjTable"></table></div>
+    </div>
+    <div class="split">
+      <div class="card"><div class="card-head"><h3>📊 % de conclusão</h3></div><div class="card-body p" id="multiProjPctChart"></div></div>
+      <div class="card"><div class="card-head"><h3>🔥 Atrasos por projeto</h3></div><div class="card-body p" id="multiProjDelaysChart"></div></div>
+    </div>
+    <div class="card"><div class="card-head"><h3>📋 Todas as demandas dos projetos ativos</h3><span class="card-sub" id="multiAllCount"></span></div><div class="dash-list" id="multiAllList"></div></div>
+  </div>
+
+  <div id="dashProductionWrap" class="hidden">
+    <div class="card">
+      <div class="card-head"><h3>👥 Produção por responsável</h3><span class="card-sub">total de atividades atribuídas a cada área</span></div>
+      <div style="overflow-x:auto"><table class="prod-table" id="prodTable"></table></div>
+    </div>
+    <div class="card">
+      <div class="card-head"><h3>🏆 Ranking por conclusão</h3></div>
+      <div class="card-body p" id="prodRankingChart"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PROJECT -->
+<div id="view-project" class="hidden">
+  <div id="commHeaderBar" class="comm-header-bar"></div>
+  <div id="commHeaderExpanded" class="comm-header-expanded"></div>
+
+  <div class="filters">
+    <div class="view-toggle" style="margin-right:8px">
+      <button id="vtList" onclick="setProjectView('list')" class="active">☰ Lista</button>
+      <button id="vtKanban" onclick="setProjectView('kanban')">▦ Kanban</button>
+    </div>
+    <div class="filter-item"><label>Departamento</label><select id="commRespFilter" onchange="renderCommittee()"><option value="">Todos</option></select></div>
+    <div class="filter-item"><label>Status</label><select id="commStatusFilter" onchange="renderCommittee()"><option value="">Todos</option><option>NÃO INICIADO</option><option>EM ANDAMENTO</option><option>CONCLUÍDO</option><option>NÃO SE APLICA</option></select></div>
+    <div class="filter-item"><label>Prazo</label><select id="commPrazoFilter" onchange="renderCommittee()"><option value="">Todos</option><option value="com">Com prazo</option><option value="sem">Sem prazo</option><option value="atraso">Em atraso</option><option value="7d">Vencem ≤7 dias</option></select></div>
+    <div class="filter-item"><label>Buscar</label><input id="commSearch" placeholder="nome da ação..." oninput="renderCommittee()"></div>
+    <button class="btn ghost sm" onclick="clearCommFilters()">Limpar</button>
+    <div style="margin-left:auto;display:flex;gap:6px">
+      <button class="btn secondary sm" onclick="openModal('modalNewBlock')">+ Bloco</button>
+      <button class="btn secondary sm" onclick="openObraUpdate()">🏗️ Atualizar % obra</button>
+    </div>
+  </div>
+
+  <div class="card" id="commBlocksWrap"><div class="card-body" id="commBlocks"></div></div>
+  <div id="commKanban" class="hidden"></div>
+</div>
+
+<!-- CALENDAR -->
+<div id="view-calendar" class="hidden">
+  <div class="page-title">📅 Calendário de programações</div>
+  <div class="page-sub">Visualize todas as atividades por data de vencimento. Aplique filtros para focar em um projeto, responsável ou situação específica.</div>
+
+  <div class="cal-toolbar">
+    <div class="cal-nav">
+      <button onclick="calNav(-1)" title="Anterior">◀</button>
+      <button onclick="calToday()">Hoje</button>
+      <button onclick="calNav(1)" title="Próximo">▶</button>
+    </div>
+    <div class="cal-title" id="calTitle">—</div>
+    <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+      <div class="cal-view-toggle">
+        <button id="cvMonth" onclick="setCalView('month')" class="active">Mês</button>
+        <button id="cvWeek" onclick="setCalView('week')">Semana</button>
+        <button id="cvAgenda" onclick="setCalView('agenda')">Lista</button>
+      </div>
+      <button class="btn secondary sm" onclick="exportCalendarICS()">📥 Exportar .ics</button>
+    </div>
+  </div>
+
+  <div class="cal-filters">
+    <div class="cal-filter-group">
+      <label>Projeto</label>
+      <select id="calProjectFilter" onchange="renderCalendar()">
+        <option value="">Todos os projetos ativos</option>
+      </select>
+    </div>
+    <div class="cal-filter-group">
+      <label>Responsável (área)</label>
+      <select id="calRespFilter" onchange="renderCalendar()">
+        <option value="">Todas as áreas</option>
+      </select>
+    </div>
+    <div class="cal-filter-group">
+      <label>Status</label>
+      <select id="calStatusFilter" onchange="renderCalendar()">
+        <option value="">Todos</option>
+        <option>NÃO INICIADO</option>
+        <option>EM ANDAMENTO</option>
+        <option>CONCLUÍDO</option>
+        <option>NÃO SE APLICA</option>
+      </select>
+    </div>
+    <div class="cal-filter-group">
+      <label>Situação de prazo</label>
+      <select id="calSituationFilter" onchange="renderCalendar()">
+        <option value="">Todas</option>
+        <option value="danger">Em atraso</option>
+        <option value="warn">Vencem em ≤7 dias</option>
+        <option value="ok">No prazo</option>
+        <option value="late">Concluída c/ atraso</option>
+      </select>
+    </div>
+    <div class="cal-filter-group">
+      <label>Somente marcos ⭐</label>
+      <select id="calMilestoneFilter" onchange="renderCalendar()">
+        <option value="">Todas</option>
+        <option value="1">Somente marcos</option>
+        <option value="0">Sem marcos</option>
+      </select>
+    </div>
+    <div class="cal-filter-group">
+      <label>Buscar</label>
+      <input id="calSearch" placeholder="nome da atividade..." oninput="renderCalendar()">
+    </div>
+    <button class="btn ghost sm" onclick="calClearFilters()" style="align-self:flex-end">Limpar</button>
+  </div>
+
+  <div id="calContainer"></div>
+</div>
+
+<!-- RESPONSIBLE -->
+<div id="view-responsible" class="hidden">
+  <div class="page-title">Ações por responsável</div>
+  <div class="page-sub">Visão filtrada por área do projeto atualmente selecionado.</div>
+  <div class="card">
+    <div class="card-head"><h3>Selecione a área</h3><select id="responsibleSelect" onchange="renderResponsible()" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;font-size:13.5px;font-weight:500"></select></div>
+    <div class="card-body" id="responsibleList"></div>
+  </div>
+</div>
+
+<!-- MEETING -->
+<div id="view-meeting" class="hidden">
+  <div class="page-title">Modo apresentação</div>
+  <div class="page-sub">Navegação bloco a bloco para a reunião do comitê. Ideal para projetar em tela.</div>
+  <div class="card">
+    <div class="meeting-nav">
+      <div>
+        <h2 id="meetingBlockTitle">–</h2>
+        <div style="font-size:12.5px;opacity:.85;margin-top:4px" id="meetingBlockSub">–</div>
+      </div>
+      <div class="nav-btns">
+        <button class="btn ghost sm" onclick="meetingPrev()">← Anterior</button>
+        <span id="meetingIdx" style="font-size:13px;color:#fff;padding:0 8px;font-weight:600">–</span>
+        <button class="btn ghost sm" onclick="meetingNext()">Próximo →</button>
+      </div>
+    </div>
+    <div class="meeting-content" id="meetingContent"></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>📝 Registrar decisão da reunião</h3></div>
+    <div class="card-body p">
+      <div class="field"><textarea id="meetingNote" placeholder="Ex.: definido que a Averbação será tratada por Murilo até 30/03..."></textarea></div>
+      <button class="btn" onclick="saveMeetingNote()">Registrar no histórico do bloco</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI -->
+<div id="view-ai" class="hidden">
+  <div class="ai-hero">
+    <h2>🤖 Análise de reunião por IA</h2>
+    <p>Cole a transcrição ou as notas da reunião. A IA identifica conclusões, replanejamentos, novas ações, riscos, decisões, mudanças de etapa e comentários. <b style="color:#a6f4c5">Toda sugestão pode ser editada antes de ser aplicada.</b> Nada muda até você aprovar.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-body p">
+      <div class="field">
+        <label>Transcrição ou notas da reunião</label>
+        <textarea id="aiTranscript" rows="10" placeholder="Cole aqui a transcrição da reunião do comitê..."></textarea>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="btn" onclick="analyzeTranscript()" id="btnAnalyze">🔍 Analisar com IA</button>
+        <button class="btn secondary sm" onclick="startBlankReview()">✏️ Ou preencher manualmente sem IA</button>
+        <span id="aiLoading" class="muted hidden">Analisando...</span>
+      </div>
+      <div style="margin-top:16px;padding-top:16px;border-top:1px dashed var(--border)">
+        <div style="font-size:12px;color:var(--text-2);margin-bottom:8px;font-weight:600">📢 Gerar resumo da reunião para enviar</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn secondary sm" id="btnSummaryEmail" onclick="generateMeetingSummary('email')">📧 Resumo para e-mail</button>
+          <button class="btn secondary sm" id="btnSummaryWpp" onclick="generateMeetingSummary('whatsapp')">💬 Resumo para WhatsApp</button>
+          <span class="muted" style="font-size:12px;align-self:center">Precisa da transcrição preenchida acima.</span>
+        </div>
+        <div id="summaryBox"></div>
+      </div>
+    </div>
+  </div>
+
+  <div id="aiReview"></div>
+</div>
+
+<!-- TEMPLATES -->
+<div id="view-templates" class="hidden">
+  <div class="page-title">Biblioteca de modelos</div>
+  <div class="page-sub">Modelos servem de base para novos projetos. Salve o que aprendeu.</div>
+  <div class="card">
+    <div class="card-head"><h3>Modelos disponíveis</h3><button class="btn sm" onclick="saveCurrentAsTemplate()">💾 Salvar projeto atual como modelo</button></div>
+    <div class="card-body p" id="templatesList"></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="view-settings" class="hidden">
+  <div class="page-title">Configurações</div>
+  <div class="page-sub">Áreas responsáveis, integração com IA e backup dos dados.</div>
+
+  <div class="card">
+    <div class="card-head"><h3>👤 Identificação do usuário</h3></div>
+    <div class="card-body p">
+      <p class="hint" style="margin-top:0">Seu nome aparece nas alterações registradas no histórico das atividades (quem editou, adicionou anexo, mudou status etc). Ele vem do seu login no sistema.</p>
+      <div class="field" style="max-width:380px"><label>Meu nome</label><input id="userNameInput" disabled></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>Áreas responsáveis</h3><span class="card-sub" id="respCount"></span></div>
+    <div class="card-body p">
+      <div class="resp-toolbar">
+        <input id="respSearch" placeholder="🔍 Buscar área..." oninput="renderResps()">
+        <input id="respNewName" placeholder="Nova área (ex: OBRA)" onkeydown="if(event.key==='Enter')quickAddResp()">
+        <button class="btn sm" onclick="quickAddResp()">+ Adicionar</button>
+      </div>
+      <p class="hint" style="margin-top:0">Áreas com barra azul à esquerda estão em uso e não podem ser excluídas.</p>
+      <div class="resp-grid" id="respList"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>🤖 Integração com IA</h3></div>
+    <div class="card-body p">
+      <p class="hint" style="margin-top:0">A análise de transcrição e os resumos de reunião usam a IA configurada no sistema (a mesma da análise financeira). Não é preciso cadastrar chave aqui.</p>
+      <button class="btn secondary sm" onclick="testApiKey()">🧪 Testar IA</button>
+      <span id="apiTestResult" class="muted" style="margin-left:10px"></span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><h3>💾 Backup e dados</h3></div>
+    <div class="card-body p">
+      <p class="hint" style="margin-top:0">Os dados ficam salvos no banco do sistema. O backup em JSON tem o mesmo formato do arquivo "Gestão de Entrega" antigo: use "Importar backup" para trazer os projetos que estavam no navegador.</p>
+      <button class="btn secondary sm" onclick="exportData()">⬇️ Exportar backup (JSON)</button>
+      <button class="btn secondary sm" onclick="document.getElementById('importFile').click()">⬆️ Importar backup</button>
+      <input type="file" id="importFile" accept=".json" style="display:none" onchange="importData(event)">
+    </div>
+  </div>
+</div>
+
+</div><!-- content -->
+</div><!-- main -->
+</div><!-- app -->
+
+<!-- MODAL: novo projeto -->
+<div class="modal-backdrop" id="modalNewCommittee">
+  <div class="modal">
+    <div class="modal-head"><h2>Novo projeto</h2><button class="close-x" onclick="closeModal('modalNewCommittee')">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nome do empreendimento</label><input id="ncName" placeholder="Ex: Casa Laguna"></div>
+      <div class="field"><label>Empresa (Sienge)</label><select id="ncEmpresa"></select></div>
+      <div class="field-row">
+        <div class="field"><label>Data prevista de entrega</label><input id="ncDelivery" type="date"></div>
+        <div class="field"><label>Início do projeto</label><input id="ncStart" type="date"></div>
+      </div>
+      <div class="field"><label>Como começar?</label>
+        <select id="ncFrom" onchange="toggleCloneOptions()">
+          <option value="blank">Em branco</option>
+          <option value="template">A partir de um modelo (estrutura pronta, sem dados)</option>
+          <option value="clone">Clonar de um projeto existente</option>
+        </select>
+      </div>
+      <div class="field hidden" id="ncTemplateWrap"><label>Escolher modelo</label><select id="ncTemplate"></select></div>
+      <div class="field hidden" id="ncCloneWrap">
+        <label>Clonar de qual projeto?</label>
+        <select id="ncClone"></select>
+        <div class="hint" style="margin-top:10px">O que trazer:</div>
+        <div class="checklist">
+          <label><input type="checkbox" checked disabled> Estrutura de blocos e ações</label>
+          <label><input type="checkbox" id="cloneResp" checked> Responsáveis (áreas)</label>
+          <label><input type="checkbox" id="cloneDates"> Datas planejadas</label>
+          <label><input type="checkbox" id="cloneObs"> Observações e notas</label>
+          <label><input type="checkbox" id="cloneHist"> Histórico de replanejamentos</label>
+          <label><input type="checkbox" id="cloneStatus"> Status atuais</label>
+        </div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalNewCommittee')">Cancelar</button>
+      <button class="btn" onclick="createCommittee()">Criar projeto</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: editar ação -->
+<div class="modal-backdrop" id="modalEditAction">
+  <div class="modal lg">
+    <div class="modal-head">
+      <div style="flex:1;min-width:0">
+        <h2 id="eaTitle">Editar ação</h2>
+        <div class="ea-title-meta" id="eaTitleMeta"></div>
+      </div>
+      <button class="close-x" onclick="closeModal('modalEditAction')">×</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Identificação -->
+      <div class="ea-card">
+        <div class="ea-card-head">📌 Identificação</div>
+        <div class="ea-card-body">
+          <div class="grid-3-2" style="margin-bottom:12px">
+            <div class="field" style="margin-bottom:0"><label>Nome da atividade</label><input id="eaName"></div>
+            <div class="field" style="margin-bottom:0"><label>Responsáveis (áreas)</label>
+              <div class="chip-select-wrap chip-select-compact">
+                <div class="chip-select-chips" id="eaRespsChips"></div>
+                <div class="chip-select-add">
+                  <select id="eaRespAdd"></select>
+                  <button class="btn xs secondary" onclick="addRespChip('ea')" type="button">+</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <label class="milestone-inline">
+            <input type="checkbox" id="eaMilestone">
+            <span>⭐ <b>Exibir na linha do tempo</b> — marque para atividades-chave da visão executiva</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Status e prazos -->
+      <div class="ea-card">
+        <div class="ea-card-head">📅 Status e prazos</div>
+        <div class="ea-card-body">
+          <div class="grid-3">
+            <div class="field"><label>Status</label>
+              <select id="eaStatus"><option>NÃO INICIADO</option><option>EM ANDAMENTO</option><option>CONCLUÍDO</option><option>NÃO SE APLICA</option></select>
+            </div>
+            <div class="field"><label>Início planejado</label><input id="eaStart" type="date"></div>
+            <div class="field"><label>Término planejado</label><input id="eaEnd" type="date"></div>
+          </div>
+          <div class="grid-2">
+            <div class="field" style="margin-bottom:0"><label>Data real de conclusão</label><input id="eaActual" type="date"></div>
+            <div class="field" style="margin-bottom:0"><label>Motivo (se alterou a data)</label><input id="eaReason" placeholder="Ex: atraso da concessionária"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações rápidas: anexos + observação -->
+      <div class="ea-card">
+        <div class="ea-card-head">⚡ Ações</div>
+        <div class="ea-card-body">
+          <div class="ea-quick-row">
+            <button type="button" class="ea-quick-btn" onclick="openAttachFromEdit()">
+              <div class="ea-quick-icon">📎</div>
+              <div class="ea-quick-body">
+                <div class="ea-quick-title" id="eaAttBtnTitle">Adicionar anexo</div>
+                <div class="ea-quick-sub" id="eaAttBtnSub">Documentos, imagens, PDFs</div>
+              </div>
+              <div class="ea-quick-arrow">→</div>
+            </button>
+            <button type="button" class="ea-quick-btn" onclick="openObsFromEdit()">
+              <div class="ea-quick-icon">💬</div>
+              <div class="ea-quick-body">
+                <div class="ea-quick-title" id="eaObsBtnTitle">Adicionar observação</div>
+                <div class="ea-quick-sub" id="eaObsBtnSub">Fica registrada no histórico</div>
+              </div>
+              <div class="ea-quick-arrow">→</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histórico -->
+      <div class="ea-card">
+        <div class="ea-card-head">🕒 Histórico</div>
+        <div class="ea-card-body" id="eaHistory" style="max-height:340px;overflow-y:auto"></div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn danger" onclick="deleteAction()" style="margin-right:auto">🗑️ Excluir ação</button>
+      <button class="btn secondary" onclick="closeModal('modalEditAction')">Cancelar</button>
+      <button class="btn" onclick="saveAction()">Salvar alterações</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: nova observação/comentário -->
+<div class="modal-backdrop" id="modalNewObs">
+  <div class="modal">
+    <div class="modal-head"><h2 id="obsTitle">Adicionar observação</h2><button class="close-x" onclick="closeModal('modalNewObs')">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nova observação/comentário</label><textarea id="obsInput" rows="5" placeholder="Descreva a observação. Vai para o histórico ao registrar."></textarea></div>
+      <p class="hint" style="margin-top:0">Cada observação fica registrada no histórico com seu nome e data/hora.</p>
+      <div id="obsPrev" class="ea-current-obs hidden" style="margin-top:12px">
+        <div class="l">Última observação registrada</div>
+        <div class="t" id="obsPrevText"></div>
+        <button class="btn ghost xs" onclick="clearActionObsFromModal()" style="margin-top:6px">🗑️ Limpar observação atual</button>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalNewObs')">Cancelar</button>
+      <button class="btn" onclick="saveNewObs()">💾 Registrar no histórico</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: novo bloco -->
+<div class="modal-backdrop" id="modalNewBlock">
+  <div class="modal">
+    <div class="modal-head"><h2 id="nbTitle">Novo bloco</h2><button class="close-x" onclick="closeModal('modalNewBlock')">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nome do bloco</label><input id="nbName" placeholder="Ex: Ligações Definitivas - Gás"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalNewBlock')">Cancelar</button>
+      <button class="btn" onclick="saveBlock()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: nova ação -->
+<div class="modal-backdrop" id="modalNewAction">
+  <div class="modal">
+    <div class="modal-head"><h2>Nova ação</h2><button class="close-x" onclick="closeModal('modalNewAction')">×</button></div>
+    <div class="modal-body">
+      <label class="milestone-check">
+        <input type="checkbox" id="naMilestone">
+        <span>⭐ <b>Exibir na linha do tempo</b> — marque para atividades-chave.</span>
+      </label>
+      <div class="field"><label>Nome da ação</label><input id="naName"></div>
+      <div class="field"><label>Responsáveis (áreas)</label>
+        <div class="chip-select-wrap">
+          <div class="chip-select-chips" id="naRespsChips"></div>
+          <div class="chip-select-add">
+            <select id="naRespAdd"></select>
+            <button class="btn xs secondary" onclick="addRespChip('na')" type="button">+ Adicionar</button>
+          </div>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Início planejado</label><input id="naStart" type="date"></div>
+        <div class="field"><label>Término planejado</label><input id="naEnd" type="date"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalNewAction')">Cancelar</button>
+      <button class="btn" onclick="createAction()">Criar ação</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: salvar modelo -->
+<div class="modal-backdrop" id="modalSaveTemplate">
+  <div class="modal">
+    <div class="modal-head"><h2>Salvar como modelo</h2><button class="close-x" onclick="closeModal('modalSaveTemplate')">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nome do modelo</label><input id="stName"></div>
+      <div class="hint">Salva apenas a estrutura (blocos, ações e responsáveis por área). Datas, status e observações não são copiados.</div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalSaveTemplate')">Cancelar</button>
+      <button class="btn" onclick="doSaveTemplate()">Salvar modelo</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: atualizar % obra -->
+<div class="modal-backdrop" id="modalObraUpdate">
+  <div class="modal">
+    <div class="modal-head"><h2>Atualizar % de obra</h2><button class="close-x" onclick="closeModal('modalObraUpdate')">×</button></div>
+    <div class="modal-body">
+      <div class="field-row">
+        <div class="field"><label>Data</label><input id="obraDate" type="date"></div>
+        <div class="field"><label>% de obra</label><input id="obraPct" type="number" min="0" max="100" step="0.1"></div>
+      </div>
+      <div class="field"><label>Observação (opcional)</label><input id="obraNote" placeholder="Ex: registrado na reunião do comitê"></div>
+      <div class="card" style="margin-top:14px;margin-bottom:0">
+        <div class="card-head"><h3>📈 Histórico</h3></div>
+        <div class="card-body p" id="obraHistoryBox"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalObraUpdate')">Cancelar</button>
+      <button class="btn" onclick="saveObraUpdate()">Registrar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: resp -->
+<div class="modal-backdrop" id="modalResp">
+  <div class="modal">
+    <div class="modal-head"><h2 id="respTitle">Área responsável</h2><button class="close-x" onclick="closeModal('modalResp')">×</button></div>
+    <div class="modal-body">
+      <div class="field"><label>Nome da área</label><input id="respName" placeholder="Ex: OBRA / QUALIDADE / CRC"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalResp')">Cancelar</button>
+      <button class="btn" onclick="saveResp()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: anexo rápido -->
+<div class="modal-backdrop" id="modalQuickAttach">
+  <div class="modal">
+    <div class="modal-head"><h2 id="qaTitle">Anexar arquivo</h2><button class="close-x" onclick="closeModal('modalQuickAttach')">×</button></div>
+    <div class="modal-body">
+      <div class="att-list" id="qaList" style="margin-bottom:12px"></div>
+      <label class="att-dropzone" for="qaInput" id="qaDrop">
+        <div><b>📁 Clique ou arraste arquivos aqui</b></div>
+        <div class="muted" style="margin-top:4px">Máx. 5 MB por arquivo</div>
+      </label>
+      <input type="file" id="qaInput" multiple style="display:none">
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalQuickAttach')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: configurar relatório -->
+<div class="modal-backdrop" id="modalReport">
+  <div class="modal lg">
+    <div class="modal-head"><h2>Exportar relatório gerencial</h2><button class="close-x" onclick="closeModal('modalReport')">×</button></div>
+    <div class="modal-body">
+      <div class="hint" style="margin-top:0;margin-bottom:16px">Selecione o que incluir. O relatório abre em nova aba e você pode salvar como PDF pelo próprio navegador (Ctrl+P → Salvar como PDF).</div>
+
+      <div class="report-section">
+        <h4>Estrutura</h4>
+        <label class="report-section-toggle"><input type="checkbox" id="rpCover" checked> Capa com dados estratégicos</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpContracapa" checked> Contracapa: linha do tempo + concluídos por mês</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpSummary" checked> Sumário executivo (KPIs e alertas)</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpObra" checked> Evolução da % de obra</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpAnalytic" checked> Analítico por atividade</label>
+      </div>
+
+      <div class="report-section">
+        <h4>Detalhes por atividade</h4>
+        <label class="report-section-toggle"><input type="checkbox" id="rpDetResps" checked> Responsáveis</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpDetStatus" checked> Status e prazos</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpDetObs" checked> Observações</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpDetHist" checked> Histórico (replanejamentos, decisões)</label>
+        <label class="report-section-toggle"><input type="checkbox" id="rpDetAtt"> Lista de anexos</label>
+      </div>
+
+      <div class="report-section">
+        <h4>Filtrar por status <span style="font-weight:400;font-size:11px;color:var(--text-3);text-transform:none;letter-spacing:0">(desmarque um status para excluir atividades naquele status)</span></h4>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="rpStatusChips"></div>
+      </div>
+
+      <div class="report-section">
+        <h4>Filtrar por responsáveis <span style="font-weight:400;font-size:11px;color:var(--text-3);text-transform:none;letter-spacing:0">(desmarque uma área para excluir suas atividades)</span></h4>
+        <div style="display:flex;gap:6px;flex-wrap:wrap" id="rpRespChips"></div>
+      </div>
+
+      <div class="report-section">
+        <h4>Atividades a incluir</h4>
+        <div style="display:flex;gap:6px;margin-bottom:10px">
+          <button type="button" class="btn xs secondary" onclick="reportSelectAll(true)">Marcar todas</button>
+          <button type="button" class="btn xs secondary" onclick="reportSelectAll(false)">Desmarcar todas</button>
+          <button type="button" class="btn xs secondary" onclick="reportSelectDelayed()">Somente atrasadas</button>
+          <button type="button" class="btn xs secondary" onclick="reportSelectMilestones()">Somente marcos ⭐</button>
+        </div>
+        <div class="report-block-tree" id="reportTree"></div>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalReport')">Cancelar</button>
+      <button class="btn" onclick="generateReport()">📄 Gerar relatório</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: evolução por período -->
+<div class="modal-backdrop" id="modalEvolution">
+  <div class="modal lg">
+    <div class="modal-head"><h2>📈 Relatório de evolução por período</h2><button class="close-x" onclick="closeModal('modalEvolution')">×</button></div>
+    <div class="modal-body">
+      <p class="hint" style="margin-top:0">Compare o estado dos projetos entre duas datas. O relatório mostra todas as mudanças registradas no histórico.</p>
+
+      <div class="evo-quick">
+        <button onclick="evoQuick(7)">Últimos 7 dias</button>
+        <button onclick="evoQuick(15)">Últimos 15 dias</button>
+        <button onclick="evoQuick(30)">Últimos 30 dias</button>
+        <button onclick="evoQuick(90)">Últimos 90 dias</button>
+        <button onclick="evoQuickMonth()">Este mês</button>
+        <button onclick="evoQuickPrevMonth()">Mês passado</button>
+      </div>
+
+      <div class="evo-range">
+        <div class="field"><label>De</label><input type="date" id="evoFrom"></div>
+        <div class="field"><label>Até</label><input type="date" id="evoTo"></div>
+      </div>
+
+      <div class="field"><label>Projeto</label>
+        <select id="evoProject">
+          <option value="">Todos os projetos</option>
+        </select>
+      </div>
+
+      <p class="hint" style="margin:0">O relatório abre em nova aba com opção de imprimir/salvar em PDF.</p>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalEvolution')">Cancelar</button>
+      <button class="btn" onclick="generateEvolutionReport()">📊 Gerar relatório de evolução</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: importar planilha -->
+<div class="modal-backdrop" id="modalImport">
+  <div class="modal lg">
+    <div class="modal-head"><h2>📥 Importar de planilha</h2><button class="close-x" onclick="closeModal('modalImport')">×</button></div>
+    <div class="modal-body">
+
+      <div class="ea-card" style="margin-bottom:14px">
+        <div class="ea-card-head">1️⃣ Baixar o modelo</div>
+        <div class="ea-card-body">
+          <p class="hint" style="margin-top:0">Baixe a planilha modelo, preencha com blocos, ações e responsáveis, e depois faça upload aqui.</p>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn secondary sm" onclick="downloadTemplate('vazio')">⬇️ Modelo vazio</button>
+            <button class="btn secondary sm" onclick="downloadTemplate('exemplo')">⬇️ Modelo com exemplo (Casa Laguna)</button>
+          </div>
+          <details style="margin-top:12px">
+            <summary style="cursor:pointer;font-size:12.5px;color:var(--text-2);font-weight:600">📖 Formato da planilha</summary>
+            <div style="padding:10px 4px;font-size:12.5px;color:var(--text-2);line-height:1.7">
+              A planilha tem <b>2 colunas</b>:
+              <ul style="margin:6px 0;padding-left:20px">
+                <li><b>AÇÃO</b> — nome da atividade OU título do bloco no formato <code>1. NOME DO BLOCO</code></li>
+                <li><b>RESPONSAVEL</b> — área responsável (deixe vazio para linhas de bloco)</li>
+              </ul>
+              Colunas opcionais que também são reconhecidas:
+              <ul style="margin:6px 0;padding-left:20px">
+                <li><b>INICIO</b> — data planejada (formato DD/MM/AAAA ou AAAA-MM-DD)</li>
+                <li><b>TERMINO</b> — data planejada de término</li>
+                <li><b>STATUS</b> — NÃO INICIADO / EM ANDAMENTO / CONCLUÍDO / NÃO SE APLICA</li>
+                <li><b>MARCO</b> — S / SIM / TRUE para marcar ⭐</li>
+                <li><b>OBS</b> — observação/comentário</li>
+              </ul>
+              Áreas separadas por <code>+</code> ou <code>,</code> viram múltiplos responsáveis. Barras <code>/</code> ficam juntas (ex: OBRA/JURIDICO).
+            </div>
+          </details>
+        </div>
+      </div>
+
+      <div class="ea-card">
+        <div class="ea-card-head">2️⃣ Enviar planilha preenchida</div>
+        <div class="ea-card-body">
+          <label class="att-dropzone" for="importFileInput" id="importDrop">
+            <div><b>📁 Clique ou arraste o arquivo (.xlsx / .csv) aqui</b></div>
+            <div class="muted" style="margin-top:4px">O sistema lê e mostra pré-visualização antes de aplicar</div>
+          </label>
+          <input type="file" id="importFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="onImportFile(event)">
+          <div id="importPreview" style="margin-top:14px"></div>
+        </div>
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalImport')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: importar backup JSON (arquivo do HTML antigo) -->
+<div class="modal-backdrop" id="modalImportBackup">
+  <div class="modal">
+    <div class="modal-head"><h2>⬆️ Importar backup</h2><button class="close-x" onclick="closeModal('modalImportBackup')">×</button></div>
+    <div class="modal-body">
+      <div id="ibSummary" class="filter-banner" style="display:block"></div>
+      <div class="field"><label>Empresa (Sienge) dos projetos importados</label><select id="ibEmpresa"></select></div>
+      <div class="hint" style="margin-top:0">
+        <ul style="margin:6px 0 0;padding-left:20px">
+          <li>Projetos com o mesmo id de um projeto já existente são <b>substituídos</b> pela versão do arquivo.</li>
+          <li>Os demais projetos do sistema não são alterados.</li>
+          <li>Modelos e áreas do arquivo são somados aos existentes; anexos vão para o armazenamento do sistema.</li>
+          <li>Depois de importar, a empresa de cada projeto pode ser trocada em Projeto › Detalhes.</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalImportBackup')">Cancelar</button>
+      <button class="btn" onclick="applyImportBackup()">✓ Importar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: confirmação / pergunta (substitui confirm() e prompt() do navegador) -->
+<div class="modal-backdrop" id="modalCrcDialog">
+  <div class="modal" style="max-width:460px">
+    <div class="modal-head"><h2 id="crcDlgTitle">Confirmar</h2></div>
+    <div class="modal-body">
+      <div id="crcDlgMsg" style="white-space:pre-line;font-size:13.5px;color:var(--text)"></div>
+      <div class="field hidden" id="crcDlgInputWrap" style="margin:14px 0 0"><input id="crcDlgInput"></div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" id="crcDlgCancel">Cancelar</button>
+      <button class="btn" id="crcDlgOk">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="tooltipBox"></div>
