@@ -1,0 +1,37 @@
+<!-- Assunto: Cria seu acesso ao app da B2 -->
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <body style="margin:0;padding:0;background:#F4F4F5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Seu acesso está pronto. Defina sua senha e comece a usar.</div>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#F4F4F5;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px;background:#FFFFFF;border:1px solid #E7E7EA;border-radius:12px;">
+            <tr>
+              <td style="padding:32px 32px 8px;">
+                <div style="display:inline-block;background:#111827;color:#FFFFFF;font-weight:700;font-size:15px;letter-spacing:.5px;padding:8px 12px;border-radius:8px;">B2</div>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 0;">
+                <h1 style="margin:0;font-size:22px;line-height:1.3;color:#111827;">Cria seu acesso ao app da B2</h1>
+                <p style="margin:12px 0 0;font-size:15px;line-height:1.6;color:#4B5563;">Tudo pronto para você entrar. Defina sua senha em poucos segundos e tenha a gestão da B2 na palma da mão, com dados, obras e indicadores em um só lugar.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:24px 32px 8px;">
+                <a href="{{ .ConfirmationURL }}" style="display:inline-block;background:#111827;color:#FFFFFF;text-decoration:none;font-size:15px;font-weight:600;padding:12px 24px;border-radius:8px;">Criar meu acesso</a>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 32px;">
+                <p style="margin:0;font-size:12px;line-height:1.6;color:#9CA3AF;">Este convite é pessoal e expira em breve. Se você não esperava por ele, ignore este e-mail.<br>Se o botão não abrir, copie e cole este link no navegador:<br><a href="{{ .ConfirmationURL }}" style="color:#6B7280;word-break:break-all;">{{ .ConfirmationURL }}</a></p>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:16px 0 0;font-size:12px;color:#9CA3AF;">B2 Gestão · Habitat Incorporadora</p>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
