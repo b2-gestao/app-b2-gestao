@@ -15,9 +15,11 @@ export default function Header({ v }: { v: any }) {
         </svg>
       </button>
       <div style={{ "minWidth": "0", "flex": "1 1 auto" }}>
+        {v.crumbLabel ? (
         <div style={{ "fontSize": "10.5px", "letterSpacing": ".08em", "textTransform": "uppercase", "color": "#4161FF", "fontWeight": "600", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
           {v.crumbLabel}
         </div>
+        ) : null}
         <div style={{ "fontWeight": "700", "fontSize": "19px", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
           {v.pageTitle}
         </div>

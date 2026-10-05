@@ -41,7 +41,7 @@ export default function Sidebar({ v }: { v: any }) {
         </button>
       </div>
       <nav style={{ "flex": "1", "overflowY": "auto", "padding": "2px 10px 10px", "display": "flex", "flexDirection": "column", "gap": "2px" }}>
-        <div onClick={v.goHome} style={css(v.navItemActiveStyle)} title="Voltar à tela inicial" className={hv("box-shadow:0 4px 12px rgba(65,97,255,.3)", undefined, undefined)}>
+        <div onClick={v.goHome} style={css(v.homeItemStyle)} title="Voltar à tela inicial" className={hv("box-shadow:0 4px 12px rgba(65,97,255,.3)", undefined, undefined)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
             <path d="M3 11l9-8 9 8" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
             <path d="M5 10v10h14V10" stroke="#FFFFFF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -275,7 +275,7 @@ export default function Sidebar({ v }: { v: any }) {
           </span>
         </div>
         <div style={css(v.crcGroupStyle)}>
-          <div onClick={v.toggleCrc} style={css(v.navItemStyle)} title="CRC" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+          <div onClick={v.toggleCrc} style={css(v.crcItemStyle)} title="CRC" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
               <rect x="2.5" y="5" width="19" height="14" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
               <circle cx="8" cy="12" r="2.1" stroke="#A1A1AA" strokeWidth="1.5"></circle>

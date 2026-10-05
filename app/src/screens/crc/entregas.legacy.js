@@ -319,7 +319,7 @@ function renderSidebarProjects(){
     <div class="sb-group ${sbGroupsOpen.active?'open':''}">
       <button class="sb-group-head" onclick="toggleSbGroup('active')">
         <span class="sb-group-chevron">▶</span>
-        <span>🚧 Em andamento</span>
+        <span>Em andamento</span>
         <span class="sb-group-count">${active.length}</span>
       </button>
       <div class="sb-group-body">
@@ -329,7 +329,7 @@ function renderSidebarProjects(){
     <div class="sb-group ${sbGroupsOpen.paused?'open':''}">
       <button class="sb-group-head" onclick="toggleSbGroup('paused')">
         <span class="sb-group-chevron">▶</span>
-        <span>⏸️ Suspensos</span>
+        <span>Suspensos</span>
         <span class="sb-group-count">${paused.length}</span>
       </button>
       <div class="sb-group-body">
@@ -339,7 +339,7 @@ function renderSidebarProjects(){
     <div class="sb-group ${sbGroupsOpen.done?'open':''}">
       <button class="sb-group-head" onclick="toggleSbGroup('done')">
         <span class="sb-group-chevron">▶</span>
-        <span>✅ Concluídos</span>
+        <span>Concluídos</span>
         <span class="sb-group-count">${done.length}</span>
       </button>
       <div class="sb-group-body">

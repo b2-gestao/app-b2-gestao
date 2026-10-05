@@ -87,7 +87,7 @@
 .crc-ent .sb-item-icon{width:20px;text-align:center;font-size:14px;flex-shrink:0}
 .crc-ent .sb-item-label{transition:opacity .1s}
 .crc-ent.sb-collapsed .sb-item{justify-content:center;padding:10px 6px}
-.crc-ent.sb-collapsed .sb-item-label{display:none}
+.crc-ent.sb-collapsed .sb-item-label{display:block;width:1em;overflow:hidden;white-space:nowrap;font-weight:600}
 
 /* Tooltip do menu recolhido */
 .crc-ent.sb-collapsed .sb-item{position:relative;overflow:visible}
