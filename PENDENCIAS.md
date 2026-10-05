@@ -72,6 +72,11 @@ Supabase
       `OPENAI_API_KEY` (a leitura do PDF usa OpenAI por padrão; `OPENAI_MODEL` opcional, padrão `gpt-4.1-mini`), e opcionais
       `SIENGE_FORMATO_PEDIDO`, `SIENGE_DOCUMENT_ID_*`, `SIENGE_MOVEMENT_TYPE_ID`, `NF_TOLERANCIA_VALOR`,
       `NF_SENHA_VENCIMENTO` (sem ela o vencimento fica travado em +17 dias). Liberar `notas.cadastros` nos perfis.
+- [ ] **Notas Fiscais › Título a Pagar** (título do contas a pagar direto, `POST /v1/bills`, sem pedido de compra):
+      aplicar a migration `20261006100000_app_nf_titulos.sql` e republicar a edge function `app-nf`. Usa os mesmos
+      segredos da tela Cadastros; opcional `SIENGE_INDEX_ID_TITULO` (indexador do título, padrão `0` = sem correção).
+      Liberar `notas.titulos` nos perfis. No primeiro uso, conferir no Sienge o título gerado (apropriações, parcelas,
+      vencimento) e se o número do título voltou na tela (vem do cabeçalho `Location` ou da busca por documento).
 - [ ] **Chamado de conferência no TomTicket** (botão na tela de nota cadastrada): publicar a edge function
       `app-tomticket` e criar os segredos. `TOMTICKET_TOKEN` vem do TomTicket em Administração › Configurações da
       Conta › API › Novo Token, com "Pode criar e modificar dados" e sem restrição de IP. Opcionais:
