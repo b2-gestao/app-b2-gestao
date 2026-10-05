@@ -435,7 +435,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
   return {
     // ---- sidebar / navegação ----
     nfGroupStyle: '',
-    toggleNf: () => this.setState(st => ({ nfOpen: !st.nfOpen })),
+    toggleNf: () => this.setState(st => ({ nfOpen: st.collapsed ? true : !st.nfOpen, collapsed: false })),
     nfChevron: (!s.collapsed && s.nfOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     nfContentStyle: `display:grid;grid-template-rows:${(!s.collapsed && s.nfOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     nfCadastrosItemStyle: s.page === 'nfCadastros' ? subItemStyle + activeItem : subItemStyle,

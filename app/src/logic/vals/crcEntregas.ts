@@ -10,7 +10,7 @@ export function crcEntregasVals(this: AppLogic, subItemStyle: string) {
   const ident = this.identityVals();
   return {
     crcGroupStyle: '',
-    toggleCrc: () => this.setState(st => ({ crcOpen: !st.crcOpen })),
+    toggleCrc: () => this.setState(st => ({ crcOpen: st.collapsed ? true : !st.crcOpen, collapsed: false })),
     crcChevron: (!s.collapsed && s.crcOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     crcContentStyle: `display:grid;grid-template-rows:${(!s.collapsed && s.crcOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     crcEntregasItemStyle: s.page === 'crcEntregas' ? subItemStyle + activeItem : subItemStyle,
