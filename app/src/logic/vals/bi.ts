@@ -97,7 +97,7 @@ export function biVals(this: AppLogic, subItemStyle: string) {
   return {
     // ---- sidebar ----
     biGroupStyle: '',
-    toggleBi: () => this.setState(st => ({ biOpen: !st.biOpen })),
+    toggleBi: () => this.setState(st => ({ biOpen: st.collapsed ? true : !st.biOpen, collapsed: false })),
     biChevron: (!s.collapsed && s.biOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
     biContentStyle: `display:grid;grid-template-rows:${(!s.collapsed && s.biOpen) ? '1fr' : '0fr'};transition:grid-template-rows .16s ease`,
     biItems: listados.map(p => ({

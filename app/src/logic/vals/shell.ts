@@ -337,11 +337,11 @@ export function renderVals(this: AppLogic) {
 
     navItemStyle, navItemActiveStyle, navLabelStyle, subItemStyle, sectionLabelStyle,
 
-    toggleFinanceiro: () => this.setState(st => ({ financeiroOpen: !st.financeiroOpen })),
-    toggleRh: () => this.setState(st => ({ rhOpen: !st.rhOpen })),
-    togglePermutas: () => this.setState(st => ({ permutasOpen: !st.permutasOpen })),
-    toggleVendas: () => this.setState(st => ({ vendasOpen: !st.vendasOpen })),
-    toggleConfig: () => this.setState(st => ({ configOpen: !st.configOpen })),
+    toggleFinanceiro: () => this.setState(st => ({ financeiroOpen: st.collapsed ? true : !st.financeiroOpen, collapsed: false })),
+    toggleRh: () => this.setState(st => ({ rhOpen: st.collapsed ? true : !st.rhOpen, collapsed: false })),
+    togglePermutas: () => this.setState(st => ({ permutasOpen: st.collapsed ? true : !st.permutasOpen, collapsed: false })),
+    toggleVendas: () => this.setState(st => ({ vendasOpen: st.collapsed ? true : !st.vendasOpen, collapsed: false })),
+    toggleConfig: () => this.setState(st => ({ configOpen: st.collapsed ? true : !st.configOpen, collapsed: false })),
     toggleCadFin: () => this.setState(st => ({ cadFinOpen: !st.cadFinOpen })),
 
     financeiroChevron: (!c && s.financeiroOpen) ? 'rotate(180deg)' : 'rotate(0deg)',
