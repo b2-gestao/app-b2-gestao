@@ -356,6 +356,17 @@ function projectQuickStats(c){
   }));
   return {t,d,dly,delayed:dly,pct:t?Math.round(d/t*100):0};
 }
+function toggleSbSection(k){
+  const el = crcRoot.querySelector('.sb-section[data-sec="'+k+'"]');
+  if(!el) return;
+  const closed = el.classList.toggle('closed');
+  uiPref('sbSec'+k, closed?'0':'1');
+}
+(function initSbSections(){
+  crcRoot.querySelectorAll('.sb-section[data-sec]').forEach(el=>{
+    if(uiPref('sbSec'+el.dataset.sec)==='0') el.classList.add('closed');
+  });
+})();
 function toggleSbGroup(g){
   sbGroupsOpen[g] = !sbGroupsOpen[g];
   const key = 'sbGroup'+g.charAt(0).toUpperCase()+g.slice(1);
