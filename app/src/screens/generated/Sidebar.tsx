@@ -127,6 +127,32 @@ export default function Sidebar({ v }: { v: any }) {
             </div>
           </div>
         </div>
+        <div style={css(v.crcGroupStyle)}>
+          <div onClick={v.toggleCrc} style={css(v.crcItemStyle)} title="CRC" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
+              <rect x="2.5" y="5" width="19" height="14" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
+              <circle cx="8" cy="12" r="2.1" stroke="#A1A1AA" strokeWidth="1.5"></circle>
+              <path d="M13 10h6M13 14h4" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
+            </svg>
+            <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
+              CRC
+            </span>
+            {!v.collapsed ? (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={css(`margin-left:auto;flex:none;transform:${v.crcChevron};transition:transform .15s`)}>
+                  <path d="M6 9l6 6 6-6" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </>
+            ) : null}
+          </div>
+          <div style={css(v.crcContentStyle)}>
+            <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
+              <a href="#" onClick={v.goCrcEntregas} style={css(v.crcEntregasItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
+                Entregas
+              </a>
+            </div>
+          </div>
+        </div>
         <div style={css(v.nfGroupStyle)}>
           <div onClick={v.toggleNf} style={css(v.navItemStyle)} title="Notas Fiscais" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
@@ -273,32 +299,6 @@ export default function Sidebar({ v }: { v: any }) {
             Jurídico
             <span style={css(v.betaTagStyle)}>Beta</span>
           </span>
-        </div>
-        <div style={css(v.crcGroupStyle)}>
-          <div onClick={v.toggleCrc} style={css(v.crcItemStyle)} title="CRC" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
-              <rect x="2.5" y="5" width="19" height="14" rx="1.5" stroke="#A1A1AA" strokeWidth="1.5"></rect>
-              <circle cx="8" cy="12" r="2.1" stroke="#A1A1AA" strokeWidth="1.5"></circle>
-              <path d="M13 10h6M13 14h4" stroke="#A1A1AA" strokeWidth="1.5" strokeLinecap="round"></path>
-            </svg>
-            <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
-              CRC
-            </span>
-            {!v.collapsed ? (
-              <>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style={css(`margin-left:auto;flex:none;transform:${v.crcChevron};transition:transform .15s`)}>
-                  <path d="M6 9l6 6 6-6" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
-                </svg>
-              </>
-            ) : null}
-          </div>
-          <div style={css(v.crcContentStyle)}>
-            <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
-              <a href="#" onClick={v.goCrcEntregas} style={css(v.crcEntregasItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
-                Entregas
-              </a>
-            </div>
-          </div>
         </div>
         <div>
           <div onClick={v.toggleConfig} style={css(v.navItemStyle)} title="Configurações" className={hv("border-color:#43B997;box-shadow:0 0 0 1px rgba(67,185,151,.35)", undefined, undefined)}>
