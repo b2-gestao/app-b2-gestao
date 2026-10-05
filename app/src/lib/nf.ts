@@ -233,11 +233,12 @@ export function formatarTamanho(bytes: number): string {
 const fn = <T>(acao: string, corpo: Record<string, unknown> = {}) => invoke<T>('app-nf', { acao, ...corpo });
 
 export const nfApi = {
-  /** Histórico: RLS libera para quem tem notas.cadastros (ver). */
+  /** Histórico das notas que ainda existem no Sienge. RLS libera para quem tem notas.cadastros (ver). */
   historico: async (): Promise<NfCadastro[]> => {
     if (!supabase) return demo.historico.slice();
     const { data, error } = await supabase.from('app_nf_cadastros')
       .select('id, criado_em, criado_por_email, situacao, tipo_documento, documento_sienge, numero, serie, data_emissao, vencimento, valor, fornecedor_nome, empresa_nome, pedido, obra_nome, sequencial, bill_id, avisos, anexos')
+      .is('excluida_no_sienge_em', null) // excluídas no Sienge ficam ocultas (o registro permanece para auditoria)
       .order('criado_em', { ascending: false }).limit(500);
     if (error) throw new Error(error.message);
     return data as NfCadastro[];
