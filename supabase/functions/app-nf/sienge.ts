@@ -19,7 +19,8 @@ export type CodigoErro =
   | "erro_sienge"
   | "itens_nao_vinculados"
   | "senha_invalida"
-  | "sem_permissao";
+  | "sem_permissao"
+  | "titulo_duplicado";
 
 export class ErroAplicacao extends Error {
   readonly codigo: CodigoErro;
@@ -282,6 +283,15 @@ function mensagemDoErro(corpo: unknown, status: number): string {
 }
 
 async function requisitar(metodo: Metodo, caminho: string, opcoes: { query?: Query; corpo?: Corpo } = {}): Promise<unknown> {
+  return (await requisitarCompleto(metodo, caminho, opcoes)).corpo;
+}
+
+/** Igual ao requisitar, mas devolve também os cabeçalhos (o POST /v1/bills só informa o título no Location). */
+async function requisitarCompleto(
+  metodo: Metodo,
+  caminho: string,
+  opcoes: { query?: Query; corpo?: Corpo } = {},
+): Promise<{ corpo: unknown; headers: Headers }> {
   const url = montarUrl(caminho, opcoes.query);
   const headers: Record<string, string> = { Authorization: autorizacao(), Accept: "application/json" };
   let body: BodyInit | undefined;
@@ -321,7 +331,7 @@ async function requisitar(metodo: Metodo, caminho: string, opcoes: { query?: Que
       continue;
     }
     if (!resposta.ok) throw new ErroHttpSienge(resposta.status, mensagemDoErro(corpo, resposta.status), corpo);
-    return corpo;
+    return { corpo, headers: resposta.headers };
   }
 }
 
@@ -472,4 +482,100 @@ export async function anexarNoTitulo(billId: number, pdf: Uint8Array, nomeArquiv
   const formData = new FormData();
   formData.append("file", new Blob([new Uint8Array(pdf)], { type: "application/pdf" }), nomeSeguro(nomeArquivo));
   await requisitar("POST", `/v1/bills/${billId}/attachments`, { query: { description: descricao }, corpo: { formData } });
+}
+
+// ---------- títulos do contas a pagar (sem nota fiscal) ----------
+
+export interface ApropriacaoFinanceira {
+  costCenterId: number;
+  paymentCategoriesId: string;
+  percentage: number;
+}
+
+export interface NovoTitulo {
+  debtorId: number;
+  creditorId: number;
+  documentIdentificationId: string;
+  documentNumber: string;
+  issueDate: string;
+  baseDate: string;
+  billDate: string;
+  dueDate: string;
+  indexId: number;
+  installmentsNumber: number;
+  totalInvoiceAmount: number;
+  discount: number;
+  notes: string;
+  budgetCategories: ApropriacaoFinanceira[];
+}
+
+export interface TituloResumo {
+  id: number;
+  debtorId?: number;
+  creditorId?: number;
+  documentIdentificationId?: string;
+  documentNumber?: string;
+  issueDate?: string;
+  totalInvoiceAmount?: number;
+}
+
+export interface PlanoFinanceiro {
+  id: string | number;
+  name?: string;
+}
+
+export interface CentroCusto {
+  id: number;
+  name?: string;
+}
+
+/** Indexador usado nos títulos cadastrados pelo app (0 = sem correção). */
+export function indexadorTitulo(): number {
+  const bruto = env("SIENGE_INDEX_ID_TITULO");
+  if (!bruto) return 0;
+  const id = Number.parseInt(bruto, 10);
+  if (!Number.isInteger(id) || id < 0) {
+    throw new ErroAplicacao("configuracao_invalida", "SIENGE_INDEX_ID_TITULO deve ser um número inteiro.", 500);
+  }
+  return id;
+}
+
+/** Último número de um Location como ".../v1/bills/12345". */
+function idDoLocation(headers: Headers): number | null {
+  const id = Number((headers.get("Location") ?? "").match(/\/(\d+)\/?$/)?.[1]);
+  return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+/** POST /v1/bills: a resposta 201 não tem corpo; o número do título vem no Location quando o Sienge informa. */
+export async function criarTitulo(titulo: NovoTitulo): Promise<number | null> {
+  const { corpo, headers } = await requisitarCompleto("POST", "/v1/bills", { corpo: { json: titulo } });
+  const doCorpo = corpo && typeof corpo === "object" ? Number((corpo as Record<string, unknown>).id) : NaN;
+  return Number.isInteger(doCorpo) && doCorpo > 0 ? doCorpo : idDoLocation(headers);
+}
+
+/** GET /v1/bills: o período (startDate/endDate) é obrigatório na API. */
+export async function listarTitulos(filtros: {
+  startDate: string;
+  endDate: string;
+  creditorId: number;
+  debtorId?: number;
+  documentNumber: string;
+}): Promise<TituloResumo[]> {
+  const resposta = await siengeGet<RespostaPaginada<TituloResumo>>("/v1/bills", {
+    startDate: filtros.startDate,
+    endDate: filtros.endDate,
+    creditorId: filtros.creditorId,
+    debtorId: filtros.debtorId,
+    documentNumber: filtros.documentNumber,
+    limit: LIMITE_PAGINA,
+  });
+  return resposta.results ?? [];
+}
+
+export function buscarPlanoFinanceiro(id: string): Promise<PlanoFinanceiro | null> {
+  return siengeGetOpcional<PlanoFinanceiro>(`/v1/payment-categories/${encodeURIComponent(id)}`);
+}
+
+export function buscarCentroCusto(id: number): Promise<CentroCusto | null> {
+  return siengeGetOpcional<CentroCusto>(`/v1/cost-centers/${id}`);
 }

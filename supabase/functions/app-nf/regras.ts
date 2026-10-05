@@ -544,7 +544,7 @@ const PAPEIS: Record<TipoDocumento, { vendedor: string; comprador: string }> = {
 /** Situações em que o pedido ainda aceita nota: não atendido e parcialmente atendido. */
 const STATUS_EM_ABERTO = ["PENDING", "PARTIALLY_DELIVERED"] as const;
 
-interface Partes {
+export interface Partes {
   fornecedor: Parte | null;
   empresa: Parte | null;
   /** Fora de `bloqueios`: some quando o pedido é de outra filial do mesmo CNPJ (ver montarPreview). */
@@ -565,7 +565,7 @@ function descreverParte(parte: Parte): string {
  * Fornecedor = credor com o CNPJ/CPF de quem vende. Empresa = a informada pelo usuário (código no
  * Sienge); senão a do CNPJ de quem compra; senão a do nome de quem compra.
  */
-async function identificarPartes(documento: DocumentoLido, empresaIdManual?: number | null): Promise<Partes> {
+export async function identificarPartes(documento: DocumentoLido, empresaIdManual?: number | null): Promise<Partes> {
   const papeis = PAPEIS[documento.tipoDocumento];
   const bloqueios: string[] = [];
   const avisos: string[] = [];

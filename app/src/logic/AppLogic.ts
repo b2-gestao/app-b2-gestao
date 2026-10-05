@@ -9,12 +9,14 @@ import { progVals } from './vals/programacao';
 import { fluxoVals } from './vals/fluxo';
 import { biVals } from './vals/bi';
 import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
+import { notasTitulosVals, NT_INICIAL } from './vals/notasTitulos';
 import { crcEntregasVals } from './vals/crcEntregas';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { baixarCsv } from '../lib/download';
 import { todayIso, isoDate, usuariosApi, cadastrosApi, apoioApi } from '../lib/api';
 import { nfApi } from '../lib/nf';
+import { titulosApi } from '../lib/nfTitulos';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
   readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
@@ -140,6 +142,11 @@ export class AppLogic extends Component<any, any> {
     nfBusca: '',
     nfSituacao: 'Todas',
     ...NF_INICIAL,
+    // Notas Fiscais › Título a Pagar: histórico (app_nf_titulos) e o assistente de cadastro (vals/notasTitulos.ts).
+    ntLista: null,
+    ntBusca: '',
+    ntSituacao: 'Todos',
+    ...NT_INICIAL,
     // Screen from the URL hash (F5 / shared link reopens the same screen).
     ...stateFromHash(window.location.hash),
   };
@@ -196,6 +203,22 @@ export class AppLogic extends Component<any, any> {
     }
   }
 
+  /** Loads the Título a Pagar history (app_nf_titulos). `aviso` toasts when done (Recarregar button). */
+  async loadNtHistorico(aviso = false) {
+    if (this._ntLoading) return;
+    this._ntLoading = true;
+    try {
+      const rows = await titulosApi.historico();
+      this.setState({ ntLista: rows });
+      if (aviso) this.toast('Histórico atualizado.');
+    } catch (e: any) {
+      if (this.state.ntLista == null) this.setState({ ntLista: [] });
+      this.toast('Não foi possível carregar os títulos cadastrados: ' + e.message);
+    } finally {
+      this._ntLoading = false;
+    }
+  }
+
   /** Loads app_lancamento_categorias (Categorias screen and the Lançamentos form). */
   async loadCategorias() {
     try {
@@ -243,6 +266,7 @@ export class AppLogic extends Component<any, any> {
     usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
     categorias: 'cadastros.categorias',
     nfCadastros: 'notas.cadastros',
+    nfTitulos: 'notas.titulos',
     crcEntregas: 'crc.entregas',
   };
 
@@ -754,6 +778,7 @@ export class AppLogic extends Component<any, any> {
     ] },
     { key: 'notas', label: 'Notas Fiscais', subs: [
       { key: 'cadastros', label: 'Cadastros' },
+      { key: 'titulos', label: 'Título a Pagar' },
     ] },
     { key: 'rh', label: 'RH', subs: [
       { key: 'colaboradores', label: 'Colaboradores' },
@@ -1079,7 +1104,7 @@ export class AppLogic extends Component<any, any> {
     operacao: [
       { name:'Financeiro', perm:'financeiro', sub:'Contas, tesouraria e fluxo', c:'#4161FF', d:'M3 6h18v12H3zM12 9.5a2.5 2.5 0 100 5 2.5 2.5 0 000-5' },
       { name:'BI', sub:'Painéis do Power BI', c:'#F2C811', d:'M5 20V13M10 20V8M15 20v-5M20 20V4M3 20h18' },
-      { name:'Notas Fiscais', sub:'Cadastro de NF no Sienge', c:'#14B8A6', d:'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5' },
+      { name:'Notas Fiscais', sub:'Cadastro de NF e títulos no Sienge', c:'#14B8A6', d:'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5' },
       { name:'RH', perm:'rh', beta:true, sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
       { name:'Veículos', perm:'veiculos', beta:true, sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
       { name:'Permutas', perm:'permutas', beta:true, sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
@@ -1170,6 +1195,7 @@ export class AppLogic extends Component<any, any> {
     if (hash !== window.location.hash) history.pushState(null, '', hash);
     // Notas Fiscais history loads on first visit (menu, tile or a reopened URL).
     if (this.state.page === 'nfCadastros' && this.state.nfLista == null && this.pode(this.pagePerm.nfCadastros)) this.loadNfHistorico();
+    if (this.state.page === 'nfTitulos' && this.state.ntLista == null && this.pode(this.pagePerm.nfTitulos)) this.loadNtHistorico();
     // Page the profile cannot open (menus are hidden, but a tile or old state may lead here).
     const need = this.pagePerm[this.state.page];
     if (this.live && this.state.view === 'app' && need && !this.pode(need)) {
@@ -1436,6 +1462,7 @@ export class AppLogic extends Component<any, any> {
   fluxoVals(subItemStyle: string): any { return fluxoVals.call(this, subItemStyle); }
   biVals(subItemStyle: string): any { return biVals.call(this, subItemStyle); }
   notasCadastrosVals(subItemStyle: string): any { return notasCadastrosVals.call(this, subItemStyle); }
+  notasTitulosVals(subItemStyle: string): any { return notasTitulosVals.call(this, subItemStyle); }
   crcEntregasVals(subItemStyle: string): any { return crcEntregasVals.call(this, subItemStyle); }
   renderVals(): any { return renderVals.call(this); }
 }

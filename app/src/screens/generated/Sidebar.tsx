@@ -149,6 +149,9 @@ export default function Sidebar({ v }: { v: any }) {
               <a href="#" onClick={v.goNfCadastros} style={css(v.nfCadastrosItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
                 Cadastros
               </a>
+              <a href="#" onClick={v.goNfTitulos} style={css(v.nfTitulosItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
+                Título a Pagar
+              </a>
             </div>
           </div>
         </div>

@@ -13,6 +13,7 @@ const PAGES: Record<string, { path: string; module: string; open: string }> = {
   perfis: { path: 'configuracoes/perfis', module: 'Configurações', open: 'configOpen' },
   categorias: { path: 'cadastros/financeiro/categorias', module: 'Cadastros', open: 'cadFinOpen' },
   nfCadastros: { path: 'notas-fiscais/cadastros', module: 'Notas Fiscais', open: 'nfOpen' },
+  nfTitulos: { path: 'notas-fiscais/titulos-a-pagar', module: 'Notas Fiscais', open: 'nfOpen' },
   crcEntregas: { path: 'crc/entregas', module: 'CRC', open: 'crcOpen' },
 };
 

@@ -3,8 +3,10 @@
 // Notas Fiscais › Cadastros: cadastro de nota fiscal de compra no Sienge a partir do PDF
 // (NF-e, NFS-e, boleto ou fatura). Portado do projeto sienge-nf-automatica (Next.js), com as
 // mesmas regras; as rotas /api/* viraram ações desta função.
-// Chamada com o token do usuário logado (verify_jwt = true). Toda ação exige notas.cadastros
-// (editar) no perfil; o perfil de sistema (Administrador) sempre pode.
+// Notas Fiscais › Título a Pagar: cadastro direto do título do contas a pagar (ações titulo_*).
+// Chamada com o token do usuário logado (verify_jwt = true). As ações da nota exigem
+// notas.cadastros (editar) no perfil, as titulo_* exigem notas.titulos (editar) e
+// liberar_vencimento aceita qualquer uma das duas; o perfil de sistema (Administrador) sempre pode.
 //
 // Segredos (Edge Functions › Secrets):
 //   SIENGE_API_USER / SIENGE_API_PASSWORD  usuário do Painel de Integrações (não é o login comum)
@@ -17,6 +19,7 @@
 //   OPENAI_API_KEY, OPENAI_MODEL, OPENAI_REASONING_EFFORT
 //   NF_TOLERANCIA_VALOR                     fração para marcar todos os insumos (padrão 0.01)
 //   NF_SENHA_VENCIMENTO                     libera a edição manual do vencimento; sem ela, fica travado
+//   SIENGE_INDEX_ID_TITULO                  indexador dos títulos a pagar (padrão 0, sem correção)
 //
 // Ações ({ acao, ... }):
 //   analisar            { pdfBase64 }                         → AnaliseDocumento (lê o PDF; nada é gravado)
@@ -25,6 +28,10 @@
 //   liberar_vencimento  { senha }                             → { ok }
 //   cadastrar           ConfirmacaoCorpo (documentId opcional) → ConfirmacaoResultado (grava no Sienge + histórico)
 //   anexar              { billId, pdfBase64, nomeArquivo, descricao, cadastroId? } → { ok }
+//   titulo_analisar     { pdfBase64 }                         → AnaliseTitulo + documentos e planos financeiros
+//   titulo_empresa      { documento, empresaId }              → AnaliseTitulo com a empresa informada pelo usuário
+//   titulo_cadastrar    TituloCorpo                           → TituloResultado (grava no Sienge + histórico)
+//   titulo_anexar       { billId, pdfBase64, nomeArquivo, descricao, tituloId? } → { ok }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -42,13 +49,36 @@ import {
   somarDias,
 } from "./regras.ts";
 import type { ConfirmacaoRequest, ContextoCadastro } from "./regras.ts";
+import {
+  analisarTitulo,
+  confirmarTitulo,
+  MAX_APROPRIACOES,
+  MAX_OBSERVACAO_TITULO,
+  MAX_PARCELAS,
+  MAX_VALOR_TITULO,
+} from "./titulos.ts";
+import type { AnaliseTitulo, ContextoTitulo, TituloRequest } from "./titulos.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const admin = SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } }) : null;
 
+/** Cliente com o token do usuário: as RPCs respeitam o perfil e as empresas liberadas. */
+function clienteDoUsuario(auth: string) {
+  return createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } }, auth: { persistSession: false } });
+}
+type Cliente = ReturnType<typeof clienteDoUsuario>;
+
 const PERMISSAO = "notas.cadastros";
+const PERMISSAO_TITULOS = "notas.titulos";
+
+/** Permissões (editar) aceitas por ação: basta uma delas. */
+function permissoesDaAcao(acao: unknown): string[] {
+  if (typeof acao === "string" && acao.startsWith("titulo_")) return [PERMISSAO_TITULOS];
+  if (acao === "liberar_vencimento") return [PERMISSAO, PERMISSAO_TITULOS];
+  return [PERMISSAO];
+}
 /** PDF de até ~3 MB (base64 cresce ~33%). */
 const MAX_BASE64 = 4_000_000;
 
@@ -118,7 +148,7 @@ async function vencimento(manual: unknown): Promise<string> {
 const CACHE_DOCUMENTOS_MS = 30 * 60_000;
 let cacheDocumentos: { em: number; lista: Array<{ id: string; nome: string }> } | null = null;
 
-async function documentosSienge(cliente: ReturnType<typeof createClient>): Promise<Array<{ id: string; nome: string }>> {
+async function documentosSienge(cliente: Cliente): Promise<Array<{ id: string; nome: string }>> {
   if (cacheDocumentos && Date.now() - cacheDocumentos.em < CACHE_DOCUMENTOS_MS) return cacheDocumentos.lista;
   const { data, error } = await cliente.rpc("app_nf_documentos");
   if (error) {
@@ -141,6 +171,95 @@ function codigoDocumento(valor: unknown, tipo: TipoDocumento): string {
 function codigoEmpresa(valor: unknown): number | null {
   const id = Number(valor);
   return Number.isInteger(id) && id > 0 ? id : null;
+}
+
+/** Planos financeiros já usados nos títulos sincronizados (app_planos_financeiros). Lista vazia em erro: a tela aceita o código digitado. */
+let cachePlanos: { em: number; lista: Array<{ id: string; nome: string }> } | null = null;
+
+async function planosFinanceiros(cliente: Cliente): Promise<Array<{ id: string; nome: string }>> {
+  if (cachePlanos && Date.now() - cachePlanos.em < CACHE_DOCUMENTOS_MS) return cachePlanos.lista;
+  const { data, error } = await cliente.rpc("app_planos_financeiros");
+  if (error) {
+    console.error("app_planos_financeiros:", error.message);
+    return [];
+  }
+  cachePlanos = { em: Date.now(), lista: (data ?? []) as Array<{ id: string; nome: string }> };
+  return cachePlanos.lista;
+}
+
+function numeroFinito(valor: unknown, campo: string): number {
+  const numero = typeof valor === "number" ? valor : typeof valor === "string" && valor.trim() ? Number(valor) : NaN;
+  if (!Number.isFinite(numero)) invalido(`Informe ${campo}.`);
+  return numero;
+}
+
+/** Até 2 casas decimais, como o Sienge aceita nos valores do título. */
+function centavos(valor: number): number {
+  return Math.round(valor * 100) / 100;
+}
+
+async function validarTitulo(corpo: Record<string, unknown>): Promise<TituloRequest> {
+  const fornecedorId = Number(corpo.fornecedorId);
+  if (!Number.isInteger(fornecedorId) || fornecedorId <= 0) invalido("Credor inválido.");
+  const empresaId = Number(corpo.empresaId);
+  if (!Number.isInteger(empresaId) || empresaId <= 0) invalido("Empresa inválida.");
+
+  const tipoDocumento = corpo.tipoDocumento as TipoDocumento;
+  if (!TIPOS_DOCUMENTO.includes(tipoDocumento)) invalido("Tipo de documento inválido. Use NFE, NFSE, BOLETO ou FATURA.");
+
+  const numero = textoObrigatorio(corpo.numero, "o número do documento");
+  if (numero.length > 20) invalido("O número do documento pode ter no máximo 20 caracteres.");
+
+  const valor = centavos(numeroFinito(corpo.valor, "o valor do título"));
+  if (valor < 0.01 || valor > MAX_VALOR_TITULO) invalido("O valor do título deve ser maior que zero.");
+  const desconto = corpo.desconto === undefined || corpo.desconto === null || corpo.desconto === "" ? 0 : centavos(numeroFinito(corpo.desconto, "o desconto"));
+  if (desconto < 0 || desconto >= valor) invalido("O desconto deve ser maior ou igual a zero e menor que o valor do título.");
+
+  const parcelas = Number(corpo.parcelas ?? 1);
+  if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > MAX_PARCELAS) invalido(`O número de parcelas deve ser de 1 a ${MAX_PARCELAS}.`);
+
+  if (!Array.isArray(corpo.apropriacoes) || corpo.apropriacoes.length === 0) invalido("Informe ao menos uma apropriação financeira.");
+  if (corpo.apropriacoes.length > MAX_APROPRIACOES) invalido(`Informe no máximo ${MAX_APROPRIACOES} apropriações financeiras.`);
+  const vistos = new Set<string>();
+  const apropriacoes = (corpo.apropriacoes as unknown[]).map((bruto, i) => {
+    const linha = (bruto ?? {}) as Record<string, unknown>;
+    const costCenterId = Number(linha.centroCustoId);
+    const paymentCategoriesId = typeof linha.planoFinanceiroId === "string" ? linha.planoFinanceiroId.trim() : "";
+    const percentage = Number(linha.percentual);
+    if (!Number.isInteger(costCenterId) || costCenterId <= 0) invalido(`Informe o centro de custo da apropriação ${i + 1}.`);
+    if (!/^\d{1,20}$/.test(paymentCategoriesId)) invalido(`Informe o plano financeiro da apropriação ${i + 1} (só números, sem máscara).`);
+    if (!Number.isFinite(percentage) || percentage <= 0 || percentage > 100) invalido(`O percentual da apropriação ${i + 1} deve ser maior que zero e até 100.`);
+    const chave = `${costCenterId}|${paymentCategoriesId}`;
+    if (vistos.has(chave)) invalido(`O centro de custo ${costCenterId} com o plano financeiro ${paymentCategoriesId} foi informado mais de uma vez.`);
+    vistos.add(chave);
+    return { costCenterId, paymentCategoriesId, percentage: Math.round(percentage * 10_000) / 10_000 };
+  });
+  const soma = apropriacoes.reduce((t, a) => t + a.percentage, 0);
+  if (Math.abs(soma - 100) > 0.0001) invalido("A soma dos percentuais das apropriações deve ser 100%.");
+
+  const dataEmissao = data(corpo.dataEmissao, "a data de emissão");
+  const observacao = typeof corpo.observacao === "string" ? corpo.observacao.slice(0, MAX_OBSERVACAO_TITULO) : "";
+  const descricao = typeof corpo.descricaoAnexo === "string" ? corpo.descricaoAnexo.trim() : "";
+
+  return {
+    fornecedorId,
+    empresaId,
+    tipoDocumento,
+    documentId: codigoDocumento(corpo.documentId, tipoDocumento),
+    numero,
+    dataEmissao,
+    dataCompetencia: data(corpo.dataCompetencia, "a data de competência"),
+    dataBase: data(corpo.dataBase, "a data base"),
+    vencimento: await vencimento(corpo.vencimentoManual),
+    parcelas,
+    valor,
+    desconto,
+    observacao,
+    apropriacoes,
+    pdfBase64: limparBase64(corpo.pdfBase64),
+    nomeArquivo: typeof corpo.nomeArquivo === "string" ? corpo.nomeArquivo : "titulo.pdf",
+    descricaoAnexo: (descricao || SIGLAS_ANEXO[tipoDocumento]).slice(0, MAX_DESCRICAO_ANEXO),
+  };
 }
 
 async function validarConfirmacao(corpo: Record<string, unknown>): Promise<ConfirmacaoRequest> {
@@ -235,18 +354,86 @@ function linhaHistorico(
   };
 }
 
+/** Grava o histórico do título com a service_role. Falha aqui não desfaz o título: só vai para o log. */
+async function registrarTitulo(
+  usuario: { id: string; email?: string },
+  entrada: TituloRequest,
+  contexto: ContextoTitulo,
+  resultado: { billId: number | null; avisos: string[] },
+): Promise<string | null> {
+  if (!admin) return null;
+  const anexoFalhou = resultado.avisos.some((a) => a.startsWith("Não foi possível anexar"));
+  const { data: gravada, error } = await admin.from("app_nf_titulos").insert({
+    criado_por: usuario.id,
+    criado_por_email: usuario.email ?? null,
+    tipo_documento: entrada.tipoDocumento,
+    documento_sienge: entrada.documentId,
+    numero: entrada.numero,
+    data_emissao: entrada.dataEmissao,
+    data_competencia: entrada.dataCompetencia,
+    vencimento: entrada.vencimento,
+    parcelas: entrada.parcelas,
+    valor: entrada.valor,
+    desconto: entrada.desconto,
+    fornecedor_id: entrada.fornecedorId,
+    fornecedor_nome: contexto.fornecedorNome?.slice(0, 200) ?? null,
+    empresa_id: entrada.empresaId,
+    empresa_nome: contexto.empresaNome?.slice(0, 200) ?? null,
+    bill_id: resultado.billId,
+    apropriacoes: entrada.apropriacoes,
+    avisos: resultado.avisos,
+    anexos: [{ descricao: entrada.descricaoAnexo, nome: entrada.nomeArquivo, ok: !!resultado.billId && !anexoFalhou }],
+  }).select("id").single();
+  if (error) {
+    console.error("app_nf_titulos:", error.message);
+    return null;
+  }
+  return gravada.id as string;
+}
+
+/** Um arquivo por chamada no título já criado; registra o resultado na linha do histórico do mesmo título. */
+async function anexarComHistorico(corpo: Record<string, unknown>, tabela: "app_nf_cadastros" | "app_nf_titulos", idHistorico: unknown) {
+  const billId = Number(corpo.billId);
+  if (!Number.isInteger(billId) || billId <= 0) invalido("Número do título inválido.");
+  const pdfBase64 = limparBase64(corpo.pdfBase64);
+  const nomeArquivo = textoObrigatorio(corpo.nomeArquivo, "o nome do arquivo");
+  const descricao = textoObrigatorio(corpo.descricao, "a descrição do anexo");
+  if (descricao.length > MAX_DESCRICAO_ANEXO) invalido(`A descrição do anexo pode ter no máximo ${MAX_DESCRICAO_ANEXO} caracteres.`);
+
+  let falha: string | null = null;
+  try {
+    await anexarNoTitulo(billId, bytesDoBase64(pdfBase64), nomeArquivo, descricao);
+  } catch (erro) {
+    falha = erro instanceof Error ? erro.message : String(erro);
+  }
+  const id = typeof idHistorico === "string" ? idHistorico : "";
+  if (admin && id) {
+    const { data: atual } = await admin.from(tabela).select("anexos, bill_id").eq("id", id).maybeSingle();
+    // Só registra no histórico do mesmo título.
+    if (atual && atual.bill_id === billId) {
+      const anexos = [...((atual.anexos as unknown[]) || []), { descricao, nome: nomeArquivo, ok: !falha, ...(falha ? { erro: falha } : {}) }];
+      await admin.from(tabela).update({ anexos }).eq("id", id);
+    }
+  }
+  if (falha) throw new ErroHttpSienge(502, falha, null);
+  return json({ ok: true }, 201);
+}
+
+/** A análise do título leva junto as listas dos seletores (documentos e planos financeiros do Sienge). */
+async function analiseComListas(analise: AnaliseTitulo, cliente: Cliente) {
+  const [documentos, planos] = await Promise.all([documentosSienge(cliente), planosFinanceiros(cliente)]);
+  return { ...analise, documentos, planos };
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
 
   try {
     const auth = req.headers.get("Authorization") || "";
-    const cliente = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } }, auth: { persistSession: false } });
-    const [{ data: pode, error: pErr }, { data: quem }] = await Promise.all([
-      cliente.rpc("app_pode", { p_path: PERMISSAO, p_editar: true }),
-      cliente.auth.getUser(auth.replace(/^Bearer\s+/i, "")),
-    ]);
-    if (pErr || pode !== true || !quem?.user) return json({ error: "Seu perfil não tem permissão para cadastrar notas fiscais." }, 403);
+    const cliente = clienteDoUsuario(auth);
+    const { data: quem } = await cliente.auth.getUser(auth.replace(/^Bearer\s+/i, ""));
+    if (!quem?.user) return json({ error: "Sessão inválida. Entre novamente." }, 401);
     const usuario = { id: quem.user.id, email: quem.user.email };
 
     let corpo: Record<string, unknown>;
@@ -256,6 +443,13 @@ Deno.serve(async (req) => {
       return json({ error: "O corpo da requisição não é um JSON válido." }, 400);
     }
     if (!corpo || typeof corpo !== "object" || Array.isArray(corpo)) return json({ error: "O corpo da requisição deve ser um objeto JSON." }, 400);
+
+    const permissoes = permissoesDaAcao(corpo.acao);
+    const respostas = await Promise.all(permissoes.map((p) => cliente.rpc("app_pode", { p_path: p, p_editar: true })));
+    if (!respostas.some(({ data: pode, error }) => !error && pode === true)) {
+      const titulo = permissoes.length === 1 && permissoes[0] === PERMISSAO_TITULOS;
+      return json({ error: `Seu perfil não tem permissão para cadastrar ${titulo ? "títulos a pagar" : "notas fiscais"}.` }, 403);
+    }
 
     switch (corpo.acao) {
       case "analisar": {
@@ -325,33 +519,35 @@ Deno.serve(async (req) => {
         }
       }
 
-      case "anexar": {
+      case "anexar":
         // Um arquivo por chamada: o Sienge também recebe um arquivo por requisição.
-        const billId = Number(corpo.billId);
-        if (!Number.isInteger(billId) || billId <= 0) invalido("Número do título inválido.");
-        const pdfBase64 = limparBase64(corpo.pdfBase64);
-        const nomeArquivo = textoObrigatorio(corpo.nomeArquivo, "o nome do arquivo");
-        const descricao = textoObrigatorio(corpo.descricao, "a descrição do anexo");
-        if (descricao.length > MAX_DESCRICAO_ANEXO) invalido(`A descrição do anexo pode ter no máximo ${MAX_DESCRICAO_ANEXO} caracteres.`);
+        return await anexarComHistorico(corpo, "app_nf_cadastros", corpo.cadastroId);
 
-        let falha: string | null = null;
-        try {
-          await anexarNoTitulo(billId, bytesDoBase64(pdfBase64), nomeArquivo, descricao);
-        } catch (erro) {
-          falha = erro instanceof Error ? erro.message : String(erro);
-        }
-        const cadastroId = typeof corpo.cadastroId === "string" ? corpo.cadastroId : "";
-        if (admin && cadastroId) {
-          const { data: atual } = await admin.from("app_nf_cadastros").select("anexos, bill_id").eq("id", cadastroId).maybeSingle();
-          // Só registra no cadastro do mesmo título.
-          if (atual && atual.bill_id === billId) {
-            const anexos = [...((atual.anexos as unknown[]) || []), { descricao, nome: nomeArquivo, ok: !falha, ...(falha ? { erro: falha } : {}) }];
-            await admin.from("app_nf_cadastros").update({ anexos }).eq("id", cadastroId);
-          }
-        }
-        if (falha) throw new ErroHttpSienge(502, falha, null);
-        return json({ ok: true }, 201);
+      case "titulo_analisar": {
+        const documento = await extrairDocumento(limparBase64(corpo.pdfBase64));
+        return json(await analiseComListas(await analisarTitulo(documento), cliente));
       }
+
+      case "titulo_empresa": {
+        const documento = notaFiscalExtraidaSchema.safeParse(corpo.documento);
+        if (!documento.success) invalido("Envie o documento lido na análise em documento.");
+        const empresaId = codigoEmpresa(corpo.empresaId);
+        if (!empresaId) invalido("Informe o código da empresa.");
+        return json(await analiseComListas(await analisarTitulo(documento.data, empresaId), cliente));
+      }
+
+      case "titulo_cadastrar": {
+        const entrada = await validarTitulo(corpo);
+        const { contexto, ...resultado } = await confirmarTitulo(entrada, bytesDoBase64(entrada.pdfBase64), async (empresaId) => {
+          const { data, error } = await cliente.rpc("app_pode_empresa", { p_company: empresaId });
+          return !error && data === true;
+        });
+        const tituloId = await registrarTitulo(usuario, entrada, contexto, resultado);
+        return json({ ...resultado, tituloId }, 201);
+      }
+
+      case "titulo_anexar":
+        return await anexarComHistorico(corpo, "app_nf_titulos", corpo.tituloId);
 
       default:
         return json({ error: "Ação desconhecida." }, 400);
