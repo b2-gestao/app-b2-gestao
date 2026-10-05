@@ -10,6 +10,7 @@ import {
   buscarCredor,
   buscarCredorPorDocumento,
   buscarCriteriosAvaliacao,
+  buscarDocumento,
   buscarEmpreendimento,
   buscarNotaFiscal,
   buscarPedido,
@@ -148,6 +149,8 @@ export interface AvaliacaoPreview {
 export interface ConfirmacaoRequest {
   purchaseOrderId: string;
   tipoDocumento: TipoDocumento;
+  /** Código do documento no Sienge (GET /v1/document-identifications/{id}); padrão: o do tipo. */
+  documentId: string;
   pdfBase64: string;
   nomeArquivo: string;
   descricaoAnexo: string;
@@ -895,10 +898,14 @@ export async function confirmarCadastro(
     throw new ErroAplicacao("requisicao_invalida", `Seu usuário não tem acesso à empresa ${obra.companyId}, da obra do pedido ${numeroPedido.exibicao}.`, 403);
   }
 
+  if (!(await buscarDocumento(entrada.documentId))) {
+    throw new ErroAplicacao("requisicao_invalida", `O documento ${entrada.documentId} não existe no Sienge. Escolha outro tipo de documento.`);
+  }
+
   const existentes = await listarNotasFiscais({
     supplierId: pedido.supplierId,
     number: entrada.cabecalho.numero,
-    documentId: config.documentIds[entrada.tipoDocumento],
+    documentId: entrada.documentId,
   });
   if (existentes.length > 0) {
     throw new ErroAplicacao(
@@ -919,7 +926,7 @@ export async function confirmarCadastro(
 
   const complemento = entrada.cabecalho.observacaoComplementar.trim();
   const criada = await criarNotaFiscal({
-    documentId: config.documentIds[entrada.tipoDocumento],
+    documentId: entrada.documentId,
     number: entrada.cabecalho.numero,
     // A série no Sienge tem até 3 caracteres (ex.: a "Série da DPS" de NFS-e, 70002, não cabe).
     series: entrada.cabecalho.serie && entrada.cabecalho.serie.length <= 3 ? entrada.cabecalho.serie : undefined,

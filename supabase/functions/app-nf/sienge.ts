@@ -412,6 +412,16 @@ export function buscarEmpreendimento(enterpriseId: number): Promise<Empreendimen
   return siengeGetOpcional<Empreendimento>(`/v1/enterprises/${enterpriseId}`);
 }
 
+export interface DocumentoSienge {
+  id: string;
+  name?: string;
+}
+
+/** GET /v1/document-identifications/{id}: o Sienge só busca um documento por código (não há listagem). */
+export function buscarDocumento(documentIdentificationId: string): Promise<DocumentoSienge | null> {
+  return siengeGetOpcional<DocumentoSienge>(`/v1/document-identifications/${encodeURIComponent(documentIdentificationId)}`);
+}
+
 export async function listarNotasFiscais(filtros: { supplierId: number; number: string; documentId?: string }): Promise<NotaFiscalResumo[]> {
   const resposta = await siengeGet<RespostaPaginada<NotaFiscalResumo>>("/v1/purchase-invoices", {
     supplierId: filtros.supplierId,

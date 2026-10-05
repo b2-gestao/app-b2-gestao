@@ -113,10 +113,14 @@ export interface VinculoSugerido {
 
 export type CriterioSelecao = 'valor_total' | 'similaridade' | 'proporcional' | 'nenhum';
 
+export interface DocumentoSienge { id: string; nome: string }
+
 export interface PreviewNota {
   pedido: { id: number; numero: string; status: string; obraId: number | null; obraNome: string | null; valorEmAberto: number };
   tipoDocumento: TipoDocumento;
   documentIds: Record<TipoDocumento, string>;
+  /** Documentos do Sienge (código e nome) para o seletor; servidor antigo não envia. */
+  documentos?: DocumentoSienge[];
   cabecalho: {
     numero: string;
     serie: string | null;
@@ -146,6 +150,8 @@ export interface PreviewNota {
 export interface ConfirmacaoCorpo {
   purchaseOrderId: string;
   tipoDocumento: TipoDocumento;
+  /** Código do documento no Sienge (ex.: NFSE, NFPJ); sem ele o servidor usa o padrão do tipo. */
+  documentId?: string;
   pdfBase64: string;
   nomeArquivo: string;
   descricaoAnexo: string;
@@ -174,6 +180,8 @@ export interface NfCadastro {
   criado_por_email: string | null;
   situacao: 'cadastrada' | 'itens_nao_vinculados';
   tipo_documento: TipoDocumento;
+  /** Código do documento no Sienge usado na gravação (nulo nas linhas antigas). */
+  documento_sienge?: string | null;
   numero: string;
   serie: string | null;
   data_emissao: string | null;
@@ -229,7 +237,7 @@ export const nfApi = {
   historico: async (): Promise<NfCadastro[]> => {
     if (!supabase) return demo.historico.slice();
     const { data, error } = await supabase.from('app_nf_cadastros')
-      .select('id, criado_em, criado_por_email, situacao, tipo_documento, numero, serie, data_emissao, vencimento, valor, fornecedor_nome, empresa_nome, pedido, obra_nome, sequencial, bill_id, avisos, anexos')
+      .select('id, criado_em, criado_por_email, situacao, tipo_documento, documento_sienge, numero, serie, data_emissao, vencimento, valor, fornecedor_nome, empresa_nome, pedido, obra_nome, sequencial, bill_id, avisos, anexos')
       .order('criado_em', { ascending: false }).limit(500);
     if (error) throw new Error(error.message);
     return data as NfCadastro[];
@@ -307,6 +315,11 @@ const demo = {
       pedido: { id: Number(purchaseOrderId), numero: purchaseOrderId, status: 'PARTIALLY_DELIVERED', obraId: 1901, obraNome: 'Residencial Libertá', valorEmAberto: 13750.1 },
       tipoDocumento: doc.tipoDocumento,
       documentIds: { NFE: 'NFE', NFSE: 'NFSE', BOLETO: 'BOL', FATURA: 'FAT' },
+      documentos: [
+        { id: 'BOL', nome: 'BOLETO' }, { id: 'FAT', nome: 'FATURA' }, { id: 'NFCE', nome: 'NOTA FISCAL / CONTA ENERGIA E AGUA' },
+        { id: 'NFE', nome: 'NOTA FISCAL ELETRÔNICA' }, { id: 'NFPJ', nome: 'NOTA FISCAL DE SERVIÇO ELETRÔNICA - PJ' },
+        { id: 'NFSE', nome: 'NOTA FISCAL DE SERVIÇO ELETRÔNICA' }, { id: 'REC', nome: 'RECIBO' },
+      ],
       cabecalho: {
         numero: doc.numero, serie: doc.serie, dataEmissao: doc.dataEmissao, dataMovimento, vencimento: somar(dataMovimento, 17),
         vencimentoDocumento: doc.dataVencimento, valorTotal: doc.valorTotal,
@@ -338,7 +351,7 @@ const demo = {
     const billId = 90200 + demo.historico.length;
     demo.historico.unshift({
       id: 'nf' + Date.now(), criado_em: new Date().toISOString(), criado_por_email: 'camila.ribeiro@horizonte.com.br', situacao: 'cadastrada',
-      tipo_documento: corpo.tipoDocumento, numero: corpo.cabecalho.numero, serie: corpo.cabecalho.serie, data_emissao: corpo.cabecalho.dataEmissao,
+      tipo_documento: corpo.tipoDocumento, documento_sienge: corpo.documentId ?? null, numero: corpo.cabecalho.numero, serie: corpo.cabecalho.serie, data_emissao: corpo.cabecalho.dataEmissao,
       vencimento: corpo.vencimentoManual?.data || somar(hoje(), 17), valor: corpo.valor ?? null, fornecedor_nome: corpo.fornecedorNome ?? null,
       empresa_nome: corpo.empresaNome ?? null, pedido: corpo.purchaseOrderId, obra_nome: 'Residencial Libertá', sequencial: sequentialNumber, bill_id: billId,
       avisos: [], anexos: [{ descricao: corpo.descricaoAnexo, nome: corpo.nomeArquivo, ok: true }],

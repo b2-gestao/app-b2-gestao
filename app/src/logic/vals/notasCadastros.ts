@@ -43,6 +43,16 @@ function sugerirDescricao(nome: string): string {
   return '';
 }
 
+/** Opções do seletor: documentos do Sienge (código — nome); sem a lista, os padrões de cada tipo. */
+function opcoesDocumento(preview: PreviewNota) {
+  const padrao = (Object.keys(NOMES_TIPO) as TipoDocumento[]).map(t => ({ id: preview.documentIds[t], nome: NOMES_TIPO[t] }));
+  const lista = preview.documentos?.length ? preview.documentos.slice() : padrao;
+  for (const p of padrao) if (!lista.some(d => d.id === p.id)) lista.push(p);
+  return lista
+    .sort((a, b) => a.id.localeCompare(b.id))
+    .map(d => ({ value: d.id, label: `${d.id} — ${d.nome}` }));
+}
+
 /** indicesNota: itens da nota ligados ao insumo (vários quando o pedido tem um único insumo e o valor bate). */
 interface Linha { itemNumber: number; indicesNota: number[]; similaridade: number | null; selecionado: boolean; quantidade: string }
 interface AnexoExtra { id: string; arquivo: File; descricao: string }
@@ -54,7 +64,7 @@ const ROTULOS_ENVIO: Record<StatusEnvio, string> = { pendente: 'Na fila', envian
 /** Estado inicial do assistente (também usado para recomeçar). */
 export const NF_INICIAL = {
   nfEtapa: 'lista', nfArquivo: null, nfBusy: '', nfErro: '', nfAnalise: null, nfPreview: null, nfPedidoId: null,
-  nfTipo: null, nfCab: null, nfCentro: '', nfLinhas: [], nfDescPrincipal: null, nfAnexos: [], nfRecusados: [],
+  nfTipo: null, nfDocumento: null, nfCab: null, nfCentro: '', nfLinhas: [], nfDescPrincipal: null, nfAnexos: [], nfRecusados: [],
   nfSenha: null, nfResultado: null, nfEnvios: [], nfChamado: null, nfEmpresaManual: null, nfEmpresaModal: null,
   nfPedidoModal: null,
 };
@@ -97,7 +107,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
       hora: em.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
       quem: (r.criado_por_email || '').split('@')[0] || '—',
       documento: `${SIGLAS_ANEXO[r.tipo_documento] || r.tipo_documento} ${r.numero}${r.serie ? ` · série ${r.serie}` : ''}`,
-      tipo: NOMES_TIPO[r.tipo_documento] || r.tipo_documento,
+      tipo: `${NOMES_TIPO[r.tipo_documento] || r.tipo_documento}${r.documento_sienge ? ` · Sienge ${r.documento_sienge}` : ''}`,
       fornecedor: r.fornecedor_nome || '—',
       empresa: r.empresa_nome || '—',
       pedido: r.pedido,
@@ -117,6 +127,9 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
   const etapa: string = s.nfEtapa || 'lista';
   const preview: PreviewNota | null = s.nfPreview;
   const tipo: TipoDocumento = s.nfTipo || preview?.tipoDocumento || 'NFE';
+  /** Documento do Sienge escolhido; padrão: o do tipo identificado no PDF. */
+  const documentoPadrao = preview ? preview.documentIds[preview.tipoDocumento] : '';
+  const documento: string = s.nfDocumento || documentoPadrao;
   const comItens = temItens(tipo);
   const linhas: Linha[] = s.nfLinhas || [];
   const cab = s.nfCab || {};
@@ -158,7 +171,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
     const pv = await nfApi.preview(s.nfAnalise.documento, purchaseOrderId, s.nfEmpresaManual);
     set({
       nfPreview: pv, nfPedidoId: purchaseOrderId, nfEtapa: 'conferencia', nfBusy: '', nfPedidoModal: null,
-      nfTipo: pv.tipoDocumento,
+      nfTipo: pv.tipoDocumento, nfDocumento: pv.documentIds[pv.tipoDocumento],
       nfCab: { numero: pv.cabecalho.numero, serie: pv.cabecalho.serie ?? '', dataEmissao: pv.cabecalho.dataEmissao ?? '', dataMovimento: pv.cabecalho.dataMovimento, vencimento: pv.cabecalho.vencimento, obs: '' },
       nfCentro: '', nfDescPrincipal: null, nfAnexos: [], nfRecusados: [], nfSenha: null,
       nfLinhas: pv.vinculos.map(v => ({
@@ -348,6 +361,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
     const corpo: ConfirmacaoCorpo = {
       purchaseOrderId: s.nfPedidoId,
       tipoDocumento: tipo,
+      documentId: documento,
       pdfBase64: this._nfPdf,
       nomeArquivo: s.nfArquivo?.name || 'nota-fiscal.pdf',
       descricaoAnexo: descricaoPrincipal.trim(),
@@ -539,10 +553,17 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
       conf: preview ? {
         bloqueios: preview.bloqueios,
         avisos: preview.avisos,
-        tipo,
-        tipos: (Object.keys(NOMES_TIPO) as TipoDocumento[]).map(t => ({ value: t, label: NOMES_TIPO[t] })),
-        onTipo: (e: any) => set({ nfTipo: e.target.value }),
-        tipoDetalhe: `Documento no Sienge: ${preview.documentIds[tipo]}${tipo !== preview.tipoDocumento ? ` · identificado como ${NOMES_TIPO[preview.tipoDocumento]}` : ''}`,
+        tipo: documento,
+        tipos: opcoesDocumento(preview),
+        // O tipo do app (itens, papéis, sigla do anexo) acompanha o documento quando ele é um dos padrões.
+        onTipo: (e: any) => {
+          const codigo = e.target.value;
+          const t = (Object.keys(preview.documentIds) as TipoDocumento[]).find(k => preview.documentIds[k] === codigo);
+          set({ nfDocumento: codigo, nfTipo: t ?? preview.tipoDocumento });
+        },
+        tipoDetalhe: documento === documentoPadrao
+          ? `Identificado no PDF: ${NOMES_TIPO[preview.tipoDocumento]}`
+          : `Alterado · o PDF foi identificado como ${NOMES_TIPO[preview.tipoDocumento]} (${documentoPadrao})`,
         numero: cab.numero ?? '', onNumero: (e: any) => patchCab({ numero: e.target.value }),
         serie: cab.serie ?? '', onSerie: (e: any) => patchCab({ serie: e.target.value }),
         dataEmissao: cab.dataEmissao ?? '', onDataEmissao: (e: any) => patchCab({ dataEmissao: e.target.value }),
