@@ -21,14 +21,14 @@
 // Ações ({ acao, ... }):
 //   analisar            { pdfBase64 }                         → AnaliseDocumento (lê o PDF; nada é gravado)
 //   pedidos             { documento, empresaId }              → AnaliseDocumento com a empresa informada pelo usuário (não relê o PDF)
-//   preview             { documento, purchaseOrderId, empresaId? } → PreviewNota (nada é gravado)
+//   preview             { documento, purchaseOrderId, empresaId? } → PreviewNota + documentos do Sienge (nada é gravado)
 //   liberar_vencimento  { senha }                             → { ok }
-//   cadastrar           ConfirmacaoCorpo                      → ConfirmacaoResultado (grava no Sienge + histórico)
+//   cadastrar           ConfirmacaoCorpo (documentId opcional) → ConfirmacaoResultado (grava no Sienge + histórico)
 //   anexar              { billId, pdfBase64, nomeArquivo, descricao, cadastroId? } → { ok }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, DIAS_VENCIMENTO } from "./sienge.ts";
+import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
 import type { TipoDocumento } from "./sienge.ts";
 import { extrairDocumento, notaFiscalExtraidaSchema, TIPOS_DOCUMENTO } from "./extracao.ts";
 import {
@@ -114,6 +114,29 @@ async function vencimento(manual: unknown): Promise<string> {
   return valida;
 }
 
+/** Documentos do Sienge para o seletor (app_nf_documentos). Lista vazia em erro: a tela usa os do tipo. */
+const CACHE_DOCUMENTOS_MS = 30 * 60_000;
+let cacheDocumentos: { em: number; lista: Array<{ id: string; nome: string }> } | null = null;
+
+async function documentosSienge(cliente: ReturnType<typeof createClient>): Promise<Array<{ id: string; nome: string }>> {
+  if (cacheDocumentos && Date.now() - cacheDocumentos.em < CACHE_DOCUMENTOS_MS) return cacheDocumentos.lista;
+  const { data, error } = await cliente.rpc("app_nf_documentos");
+  if (error) {
+    console.error("app_nf_documentos:", error.message);
+    return [];
+  }
+  cacheDocumentos = { em: Date.now(), lista: (data ?? []) as Array<{ id: string; nome: string }> };
+  return cacheDocumentos.lista;
+}
+
+/** Código do documento no Sienge (até 4 caracteres, ex.: NFSE, BOL); ausente usa o padrão do tipo. */
+function codigoDocumento(valor: unknown, tipo: TipoDocumento): string {
+  if (valor === undefined || valor === null || valor === "") return configSienge().documentIds[tipo];
+  const codigo = typeof valor === "string" ? valor.trim().toUpperCase() : "";
+  if (!/^[A-Z0-9]{1,4}$/.test(codigo)) invalido("Código de documento do Sienge inválido.");
+  return codigo;
+}
+
 /** Código da empresa informado manualmente; ausente ou inválido vira null. */
 function codigoEmpresa(valor: unknown): number | null {
   const id = Number(valor);
@@ -151,6 +174,7 @@ async function validarConfirmacao(corpo: Record<string, unknown>): Promise<Confi
   return {
     purchaseOrderId: textoObrigatorio(corpo.purchaseOrderId, "o número do pedido de compra"),
     tipoDocumento,
+    documentId: codigoDocumento(corpo.documentId, tipoDocumento),
     pdfBase64: limparBase64(corpo.pdfBase64),
     nomeArquivo: typeof corpo.nomeArquivo === "string" ? corpo.nomeArquivo : "nota-fiscal.pdf",
     descricaoAnexo: (descricao || SIGLAS_ANEXO[tipoDocumento]).slice(0, MAX_DESCRICAO_ANEXO),
@@ -190,6 +214,7 @@ function linhaHistorico(
     criado_por_email: usuario.email ?? null,
     situacao: extra.situacao,
     tipo_documento: entrada.tipoDocumento,
+    documento_sienge: entrada.documentId,
     numero: entrada.cabecalho.numero,
     serie: entrada.cabecalho.serie,
     data_emissao: entrada.cabecalho.dataEmissao,
@@ -249,12 +274,16 @@ Deno.serve(async (req) => {
       case "preview": {
         const documento = notaFiscalExtraidaSchema.safeParse(corpo.documento);
         if (!documento.success) invalido("Envie o documento lido na análise em documento.");
-        return json(await montarPreview({
-          documento: documento.data,
-          purchaseOrderId: textoObrigatorio(corpo.purchaseOrderId, "o número do pedido de compra"),
-          vencimentoEditavel: !!senhaVencimento(),
-          empresaId: codigoEmpresa(corpo.empresaId),
-        }));
+        const [preview, documentos] = await Promise.all([
+          montarPreview({
+            documento: documento.data,
+            purchaseOrderId: textoObrigatorio(corpo.purchaseOrderId, "o número do pedido de compra"),
+            vencimentoEditavel: !!senhaVencimento(),
+            empresaId: codigoEmpresa(corpo.empresaId),
+          }),
+          documentosSienge(cliente),
+        ]);
+        return json({ ...preview, documentos });
       }
 
       case "liberar_vencimento": {
