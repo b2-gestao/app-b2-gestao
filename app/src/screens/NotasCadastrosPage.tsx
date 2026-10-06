@@ -578,16 +578,13 @@ function Anexos({ c }: { c: any }) {
         Use a sigla na descrição: <b>NF</b> (nota fiscal), <b>NFS</b> (nota de serviço), <b>BLT</b> (boleto), <b>FAT</b> (fatura).
       </div>
       {c.recusados.length ? <Alerta tom="aviso" titulo="Arquivos não adicionados" itens={c.recusados} /> : null}
-      <datalist id="nf-siglas-anexo">
-        {c.sugestoesAnexo.map((s: string) => <option key={s} value={s} />)}
-      </datalist>
       <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
         <LinhaAnexo
-          descricao={c.descricaoPrincipal} onDescricao={c.onDescricaoPrincipal} max={c.maxDescricao}
+          descricao={c.descricaoPrincipal} onDescricao={c.onDescricaoPrincipal} sugestoes={c.sugestoesAnexo.map((s: string) => ({ value: s }))} max={c.maxDescricao}
           nome={c.nomePrincipal} detalhe="PDF do cadastro · anexado automaticamente" principal
         />
         {c.anexos.map((a: any) => (
-          <LinhaAnexo key={a.id} descricao={a.descricao} onDescricao={a.onDescricao} max={c.maxDescricao} nome={a.nome} detalhe={a.tamanho} remover={a.remover} />
+          <LinhaAnexo key={a.id} descricao={a.descricao} onDescricao={a.onDescricao} sugestoes={c.sugestoesAnexo.map((s: string) => ({ value: s }))} max={c.maxDescricao} nome={a.nome} detalhe={a.tamanho} remover={a.remover} />
         ))}
       </div>
     </Secao>

@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { css, hv } from '../dc/runtime';
 import {
-  DocIcon, Spinner, Alerta, Secao, Campo, Leitura, Chip, Resumo, LinhaAnexo, EmpresaModal,
+  DocIcon, Spinner, Alerta, Secao, Campo, Leitura, Chip, Resumo, LinhaAnexo, EmpresaModal, Sugestoes,
 } from './nf/ui';
 import { colHead, card, anim, input, btnPrim, btnPrimHover, btnSec, btnSecHover, off, link, TONS } from './nf/estilo';
 
@@ -311,12 +311,6 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
         </>}
         delay={130}
       >
-        <datalist id="nt-centros">
-          {c.centrosOpcoes.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </datalist>
-        <datalist id="nt-planos">
-          {c.planosOpcoes.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </datalist>
         <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: '760px' }}>
@@ -330,12 +324,12 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
               {c.apropriacoes.map((a: any, i: number) => (
                 <div key={a.id} style={css(`display:grid;${gridAp};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}animation:rowIn .25s ease-out both`)}>
                   <div style={{ minWidth: 0 }}>
-                    <input value={a.centro} onChange={a.onCentro} list="nt-centros" inputMode="numeric" placeholder="Código" aria-label={`Centro de custo da linha ${i + 1}`} style={css(input + ';height:34px')} />
+                    <Sugestoes value={a.centro} onChange={a.onCentro} opcoes={c.centrosOpcoes} inputMode="numeric" placeholder="Código" ariaLabel={`Centro de custo da linha ${i + 1}`} />
                     <div style={{ fontSize: '11px', color: a.centroNome ? '#1F7A5C' : '#94A3B8', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.centroNome}>{a.centroNome || 'Digite ou escolha o código'}</div>
                   </div>
                   <div style={{ minWidth: 0 }}>
-                    <input value={a.plano} onChange={a.onPlano} list="nt-planos" inputMode="numeric" placeholder="Código sem máscara" aria-label={`Plano financeiro da linha ${i + 1}`} style={css(input + ';height:34px')} />
-                    <div style={{ fontSize: '11px', color: a.planoNome ? '#1F7A5C' : '#94A3B8', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.planoNome}>{a.planoNome || 'Ex.: 201030101 · conferido no Sienge ao salvar'}</div>
+                    <Sugestoes value={a.plano} onChange={a.onPlano} opcoes={c.planosOpcoes} porNome placeholder="Buscar pelo nome ou digitar o código" ariaLabel={`Plano financeiro da linha ${i + 1}`} />
+                    <div style={{ fontSize: '11px', color: a.planoNome ? '#1F7A5C' : '#94A3B8', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.planoNome}>{a.planoNome || 'Código sem máscara, ex.: 201030101 · conferido no Sienge ao salvar'}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
                     <span style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -442,16 +436,13 @@ function Anexos({ c }: { c: any }) {
         Use a sigla na descrição: <b>NF</b> (nota fiscal), <b>NFS</b> (nota de serviço), <b>BLT</b> (boleto), <b>FAT</b> (fatura).
       </div>
       {c.recusados.length ? <Alerta tom="aviso" titulo="Arquivos não adicionados" itens={c.recusados} /> : null}
-      <datalist id="nf-siglas-anexo">
-        {c.sugestoesAnexo.map((s: string) => <option key={s} value={s} />)}
-      </datalist>
       <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
         <LinhaAnexo
-          descricao={c.descricaoPrincipal} onDescricao={c.onDescricaoPrincipal} max={c.maxDescricao}
+          descricao={c.descricaoPrincipal} onDescricao={c.onDescricaoPrincipal} sugestoes={c.sugestoesAnexo.map((s: string) => ({ value: s }))} max={c.maxDescricao}
           nome={c.nomePrincipal} detalhe="PDF do cadastro · anexado automaticamente" principal
         />
         {c.anexos.map((a: any) => (
-          <LinhaAnexo key={a.id} descricao={a.descricao} onDescricao={a.onDescricao} max={c.maxDescricao} nome={a.nome} detalhe={a.tamanho} remover={a.remover} />
+          <LinhaAnexo key={a.id} descricao={a.descricao} onDescricao={a.onDescricao} sugestoes={c.sugestoesAnexo.map((s: string) => ({ value: s }))} max={c.maxDescricao} nome={a.nome} detalhe={a.tamanho} remover={a.remover} />
         ))}
       </div>
     </Secao>

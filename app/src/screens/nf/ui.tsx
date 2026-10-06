@@ -1,5 +1,6 @@
 // Notas Fiscais: tokens e componentes visuais compartilhados pelas telas Cadastros e Título a Pagar.
-import { useEffect, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { css, hv } from '../../dc/runtime';
 import { colHead, card, anim, input, btnPrim, btnPrimHover, btnSec, btnSecHover, off, link, TONS } from './estilo';
 
@@ -97,11 +98,126 @@ export function Resumo({ itens }: { itens: [string, string, string?][] }) {
   );
 }
 
-export function LinhaAnexo({ descricao, onDescricao, max, nome, detalhe, principal, remover }: { descricao: string; onDescricao: any; max: number; nome: string; detalhe: string; principal?: boolean; remover?: () => void }) {
+export type OpcaoSugestao = { value: string; label?: string };
+
+const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+
+/**
+ * Campo de texto com lista de sugestões (no lugar do <datalist> nativo, que não aceita estilo).
+ * A lista abre num portal com posição fixa para não ser cortada pelo overflow das tabelas.
+ * onChange recebe um evento no formato { target: { value } }, igual ao do input.
+ */
+export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inputMode, maxLength, altura = 34, estilo = '', invalido, porNome }: {
+  value: string; onChange: (e: any) => void; opcoes: OpcaoSugestao[]; ariaLabel: string; placeholder?: string;
+  inputMode?: 'numeric' | 'text'; maxLength?: number; altura?: number; estilo?: string; invalido?: boolean;
+  /** Busca digitando o nome (mostra o nome primeiro); digitar só números continua valendo como código. */
+  porNome?: boolean;
+}) {
+  const campo = useRef<HTMLInputElement>(null);
+  const [aberto, setAberto] = useState(false);
+  const [ativo, setAtivo] = useState(0);
+  // Texto livre da busca por nome; null = o campo mostra o valor (código) do pai.
+  const [busca, setBusca] = useState<string | null>(null);
+  const termo = porNome && busca !== null ? busca : value;
+  const [pos, setPos] = useState<{ left: number; width: number; top?: number; bottom?: number; max: number } | null>(null);
+
+  const filtradas = useMemo(() => {
+    const palavras = semAcento(termo.trim()).split(/\s+/).filter(Boolean);
+    const lista = palavras.length
+      ? opcoes.filter(o => { const alvo = semAcento(`${o.value} ${o.label || ''}`); return palavras.every(p => alvo.includes(p)); })
+      : opcoes;
+    return lista.slice(0, 80);
+  }, [termo, opcoes]);
+
+  const medir = () => {
+    const el = campo.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    const abaixo = window.innerHeight - r.bottom - 12;
+    const acima = r.top - 12;
+    const sobe = abaixo < 200 && acima > abaixo;
+    const largura = Math.max(r.width, 300);
+    const left = Math.max(8, Math.min(r.left, window.innerWidth - largura - 8));
+    setPos(sobe
+      ? { left, width: largura, bottom: window.innerHeight - r.top + 6, max: Math.min(300, acima) }
+      : { left, width: largura, top: r.bottom + 6, max: Math.min(300, abaixo) });
+  };
+
+  useLayoutEffect(() => { if (aberto) medir(); }, [aberto, filtradas.length]);
+  useEffect(() => {
+    if (!aberto) return;
+    const fechar = (e: Event) => {
+      // Rolar a própria lista não fecha; rolar a página, sim.
+      if ((e.target as HTMLElement | null)?.closest?.('[data-sugestoes]')) return;
+      setAberto(false);
+    };
+    window.addEventListener('scroll', fechar, true);
+    window.addEventListener('resize', medir);
+    return () => { window.removeEventListener('scroll', fechar, true); window.removeEventListener('resize', medir); };
+  }, [aberto]);
+  useEffect(() => { setAtivo(0); }, [termo]);
+  useEffect(() => {
+    if (!aberto) return;
+    document.querySelector('[data-sugestoes] [data-ativo="1"]')?.scrollIntoView({ block: 'nearest' });
+  }, [ativo, aberto]);
+
+  const escolher = (o: OpcaoSugestao) => { onChange({ target: { value: o.value } }); setBusca(null); setAberto(false); };
+  const aoTeclar = (e: any) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (!aberto) setAberto(true); else setAtivo(a => Math.min(a + 1, filtradas.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setAtivo(a => Math.max(a - 1, 0)); }
+    else if (e.key === 'Enter' && aberto && filtradas[ativo]) { e.preventDefault(); escolher(filtradas[ativo]); }
+    else if (e.key === 'Escape' || e.key === 'Tab') setAberto(false);
+  };
+
+  return (
+    <>
+      <input ref={campo} value={porNome && busca !== null ? busca : value}
+        onChange={e => {
+          if (porNome) {
+            // Só números = código (vai direto ao pai); qualquer letra = busca pelo nome, sem mexer no código.
+            setBusca(e.target.value);
+            if (/^\d*$/.test(e.target.value)) onChange(e);
+          } else onChange(e);
+          setAberto(true);
+        }}
+        onFocus={() => setAberto(true)} onClick={() => setAberto(true)}
+        onBlur={() => { setAberto(false); setBusca(null); }} onKeyDown={aoTeclar} inputMode={inputMode} maxLength={maxLength} placeholder={placeholder}
+        aria-label={ariaLabel} aria-invalid={invalido || undefined} aria-expanded={aberto} role="combobox" aria-autocomplete="list" autoComplete="off"
+        style={css(input + `;height:${altura}px;${estilo}`)} />
+      {aberto && pos && filtradas.length && typeof document !== 'undefined' ? createPortal(
+        <div data-sugestoes style={css(`position:fixed;z-index:200;left:${pos.left}px;width:${pos.width}px;${pos.top != null ? `top:${pos.top}px` : `bottom:${pos.bottom}px`};padding:1px;border-radius:12px;background:linear-gradient(135deg,rgba(65,97,255,.55),rgba(67,185,151,.4) 55%,rgba(65,97,255,.12));box-shadow:0 18px 40px -12px rgba(15,23,42,.28),0 4px 12px rgba(15,23,42,.08);animation:sugIn .14s ease-out both`)}
+          onMouseDown={e => e.preventDefault()}>
+          <style>{'@keyframes sugIn{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}'}</style>
+          <div role="listbox" style={{ maxHeight: `${Math.max(140, pos.max)}px`, overflowY: 'auto', borderRadius: '11px', background: '#FFFFFF', padding: '5px' }}>
+            {filtradas.map((o, i) => (
+              <div key={o.value} role="option" aria-selected={i === ativo} data-ativo={i === ativo ? 1 : 0} onClick={() => escolher(o)} onMouseEnter={() => setAtivo(i)}
+                style={css(`display:flex;align-items:baseline;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${i === ativo ? '#F2F5FF' : 'transparent'};transition:background .1s`)}>
+                {porNome && o.label ? (
+                  <>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : '#111827', minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span>
+                    <span style={{ fontSize: '11.5px', color: '#94A3B8', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : '#111827', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
+                    {o.label ? <span style={{ fontSize: '12px', color: '#64748B', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span> : null}
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>,
+        document.body,
+      ) : null}
+    </>
+  );
+}
+
+export function LinhaAnexo({ descricao, onDescricao, sugestoes, max, nome, detalhe, principal, remover }: { descricao: string; onDescricao: any; sugestoes: OpcaoSugestao[]; max: number; nome: string; detalhe: string; principal?: boolean; remover?: () => void }) {
   const vazio = !descricao.trim();
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 80px', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: principal ? 'none' : 'inset 0 1px 0 #F4F4F6' }}>
-      <input value={descricao} onChange={onDescricao} list="nf-siglas-anexo" maxLength={max} placeholder="Descrição *" aria-invalid={vazio || undefined} style={css(input + `;height:32px;font-weight:600;border-color:${vazio ? '#FCA5A5' : '#E7E7EA'}`)} />
+      <Sugestoes value={descricao} onChange={onDescricao} opcoes={sugestoes} maxLength={max} placeholder="Descrição *" ariaLabel="Descrição do anexo" invalido={vazio} altura={32} estilo={`font-weight:600;border-color:${vazio ? '#FCA5A5' : '#E7E7EA'}`} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
         <DocIcon size={16} color={principal ? '#14B8A6' : '#94A3B8'} />
         <div style={{ minWidth: 0 }}>
