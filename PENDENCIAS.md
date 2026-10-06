@@ -73,10 +73,14 @@ Supabase
       `SIENGE_FORMATO_PEDIDO`, `SIENGE_DOCUMENT_ID_*`, `SIENGE_MOVEMENT_TYPE_ID`, `NF_TOLERANCIA_VALOR`,
       `NF_SENHA_VENCIMENTO` (sem ela o vencimento fica travado em +17 dias). Liberar `notas.cadastros` nos perfis.
 - [ ] **Notas Fiscais › Título a Pagar** (título do contas a pagar direto, `POST /v1/bills`, sem pedido de compra):
-      aplicar a migration `20261006100000_app_nf_titulos.sql` e republicar a edge function `app-nf`. Usa os mesmos
+      migration `20261006100000_app_nf_titulos.sql` aplicada e `app-nf` publicada (06/10). Usa os mesmos
       segredos da tela Cadastros; opcional `SIENGE_INDEX_ID_TITULO` (indexador do título, padrão `0` = sem correção).
-      Liberar `notas.titulos` nos perfis. No primeiro uso, conferir no Sienge o título gerado (apropriações, parcelas,
+      Falta liberar `notas.titulos` nos perfis. No primeiro uso, conferir no Sienge o título gerado (apropriações, parcelas,
       vencimento) e se o número do título voltou na tela (vem do cabeçalho `Location` ou da busca por documento).
+- [x] **Sincronização das notas com o Sienge** (pg_cron `app-nf-sincronizar`, a cada 15 min, oculta da lista as notas
+      excluídas no Sienge): migration `20261006110000_app_nf_sync_segredo.sql` aplicada (06/10). Usa um segredo próprio
+      gerado no banco (Vault `app_nf_sync_key`) no cabeçalho `x-app-nf-sync`; a service_role não fica no Vault. Os
+      segredos `app_nf_sync_url` e `app_nf_sync_anon` (chave anon) já estão no Vault.
 - [ ] **Chamado de conferência no TomTicket** (botão na tela de nota cadastrada): publicar a edge function
       `app-tomticket` e criar os segredos. `TOMTICKET_TOKEN` vem do TomTicket em Administração › Configurações da
       Conta › API › Novo Token, com "Pode criar e modificar dados" e sem restrição de IP. Opcionais:
