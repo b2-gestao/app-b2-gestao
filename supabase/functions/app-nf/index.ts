@@ -38,7 +38,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, buscarNotaFiscal, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
+import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, buscarNotaFiscalParaSincronizar, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
 import type { TipoDocumento } from "./sienge.ts";
 import { extrairDocumento, notaFiscalExtraidaSchema, TIPOS_DOCUMENTO } from "./extracao.ts";
 import {
@@ -453,7 +453,7 @@ const PARALELO_SINCRONIZACAO = 5;
 
 /**
  * Confere no Sienge se as notas do histórico ainda existem, das menos recentemente verificadas
- * para as mais. Só um 404 marca a nota como excluída; erro de rede ou do Sienge nunca marca.
+ * para as mais. Só o 404 ou o código invalid.id do Sienge marca a nota como excluída; erro de rede ou do Sienge nunca marca.
  */
 async function sincronizar(): Promise<{ verificadas: number; excluidas: number; falhas: number }> {
   const banco = admin;
@@ -468,7 +468,7 @@ async function sincronizar(): Promise<{ verificadas: number; excluidas: number; 
   const resultado = { verificadas: 0, excluidas: 0, falhas: 0 };
   const conferir = async (linha: { id: string; sequencial: number; bill_id: number | null }) => {
     try {
-      const nota = await buscarNotaFiscal(linha.sequencial);
+      const nota = await buscarNotaFiscalParaSincronizar(linha.sequencial);
       const agora = new Date().toISOString();
       const alteracao: Record<string, unknown> = { verificada_em: agora };
       if (!nota) alteracao.excluida_no_sienge_em = agora;
