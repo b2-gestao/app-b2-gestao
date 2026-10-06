@@ -77,6 +77,10 @@ Supabase
       segredos da tela Cadastros; opcional `SIENGE_INDEX_ID_TITULO` (indexador do título, padrão `0` = sem correção).
       Falta liberar `notas.titulos` nos perfis. No primeiro uso, conferir no Sienge o título gerado (apropriações, parcelas,
       vencimento) e se o número do título voltou na tela (vem do cabeçalho `Location` ou da busca por documento).
+- [ ] **Título a Pagar › Apropriação de obra** (`buildingsCost` no `POST /v1/bills`; unidades e itens vêm de
+      `/v1/building-cost-estimations`, ação `titulo_orcamento`): migration
+      `20261006120000_app_nf_titulos_aprop_obra.sql` aplicada e `app-nf` publicada (06/10). No primeiro uso, conferir no Sienge a aba
+      Aprop. Obra do título (obra, unidade construtiva, item e percentual).
 - [x] **Sincronização das notas com o Sienge** (pg_cron `app-nf-sincronizar`, a cada 15 min, oculta da lista as notas
       excluídas no Sienge): migration `20261006110000_app_nf_sync_segredo.sql` aplicada (06/10). Usa um segredo próprio
       gerado no banco (Vault `app_nf_sync_key`) no cabeçalho `x-app-nf-sync`; a service_role não fica no Vault. Os

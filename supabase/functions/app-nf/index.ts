@@ -30,6 +30,7 @@
 //   anexar              { billId, pdfBase64, nomeArquivo, descricao, cadastroId? } → { ok }
 //   titulo_analisar     { pdfBase64 }                         → AnaliseTitulo + documentos e planos financeiros
 //   titulo_empresa      { documento, empresaId }              → AnaliseTitulo com a empresa informada pelo usuário
+//   titulo_orcamento    { obraId, unidadeId? }                → unidades construtivas da obra e, com a unidade, os itens do orçamento
 //   titulo_cadastrar    TituloCorpo                           → TituloResultado (grava no Sienge + histórico)
 //   titulo_anexar       { billId, pdfBase64, nomeArquivo, descricao, tituloId? } → { ok }
 //   sincronizar         {}                                        → { verificadas, excluidas, falhas } (confere no Sienge se as notas
@@ -59,6 +60,7 @@ import {
   MAX_OBSERVACAO_TITULO,
   MAX_PARCELAS,
   MAX_VALOR_TITULO,
+  orcamentoDaObra,
 } from "./titulos.ts";
 import type { AnaliseTitulo, ContextoTitulo, TituloRequest } from "./titulos.ts";
 
@@ -243,6 +245,29 @@ async function validarTitulo(corpo: Record<string, unknown>): Promise<TituloRequ
   const soma = apropriacoes.reduce((t, a) => t + a.percentage, 0);
   if (Math.abs(soma - 100) > 0.0001) invalido("A soma dos percentuais das apropriações deve ser 100%.");
 
+  // Apropriação de obra: opcional; quando informada, também soma 100%.
+  const brutasObra = corpo.apropriacoesObra === undefined || corpo.apropriacoesObra === null ? [] : corpo.apropriacoesObra;
+  if (!Array.isArray(brutasObra)) invalido("Apropriações de obra inválidas.");
+  if (brutasObra.length > MAX_APROPRIACOES) invalido(`Informe no máximo ${MAX_APROPRIACOES} apropriações de obra.`);
+  const vistosObra = new Set<string>();
+  const apropriacoesObra = (brutasObra as unknown[]).map((bruto, i) => {
+    const linha = (bruto ?? {}) as Record<string, unknown>;
+    const buildingId = Number(linha.obraId);
+    const buildingUnitId = Number(linha.unidadeId);
+    const costEstimationSheetId = typeof linha.itemId === "string" ? linha.itemId.trim() : "";
+    const percentage = Number(linha.percentual);
+    if (!Number.isInteger(buildingId) || buildingId <= 0) invalido(`Informe a obra da apropriação de obra ${i + 1}.`);
+    if (!Number.isInteger(buildingUnitId) || buildingUnitId <= 0) invalido(`Informe a unidade construtiva da apropriação de obra ${i + 1}.`);
+    if (!/^[\d.]{1,40}$/.test(costEstimationSheetId)) invalido(`Informe o item do orçamento da apropriação de obra ${i + 1}.`);
+    if (!Number.isFinite(percentage) || percentage <= 0 || percentage > 100) invalido(`O percentual da apropriação de obra ${i + 1} deve ser maior que zero e até 100.`);
+    const chave = `${buildingId}|${buildingUnitId}|${costEstimationSheetId}`;
+    if (vistosObra.has(chave)) invalido(`A obra ${buildingId}, unidade ${buildingUnitId}, item ${costEstimationSheetId} foi informada mais de uma vez.`);
+    vistosObra.add(chave);
+    return { buildingId, buildingUnitId, costEstimationSheetId, percentage: Math.round(percentage * 10_000) / 10_000 };
+  });
+  const somaObra = apropriacoesObra.reduce((t, a) => t + a.percentage, 0);
+  if (apropriacoesObra.length && Math.abs(somaObra - 100) > 0.0001) invalido("A soma dos percentuais das apropriações de obra deve ser 100%.");
+
   const dataEmissao = data(corpo.dataEmissao, "a data de emissão");
   const observacao = typeof corpo.observacao === "string" ? corpo.observacao.slice(0, MAX_OBSERVACAO_TITULO) : "";
   const descricao = typeof corpo.descricaoAnexo === "string" ? corpo.descricaoAnexo.trim() : "";
@@ -262,6 +287,7 @@ async function validarTitulo(corpo: Record<string, unknown>): Promise<TituloRequ
     desconto,
     observacao,
     apropriacoes,
+    apropriacoesObra,
     pdfBase64: limparBase64(corpo.pdfBase64),
     nomeArquivo: typeof corpo.nomeArquivo === "string" ? corpo.nomeArquivo : "titulo.pdf",
     descricaoAnexo: (descricao || SIGLAS_ANEXO[tipoDocumento]).slice(0, MAX_DESCRICAO_ANEXO),
@@ -387,6 +413,7 @@ async function registrarTitulo(
     empresa_nome: contexto.empresaNome?.slice(0, 200) ?? null,
     bill_id: resultado.billId,
     apropriacoes: entrada.apropriacoes,
+    apropriacoes_obra: entrada.apropriacoesObra,
     avisos: resultado.avisos,
     anexos: [{ descricao: entrada.descricaoAnexo, nome: entrada.nomeArquivo, ok: !!resultado.billId && !anexoFalhou }],
   }).select("id").single();
@@ -607,6 +634,12 @@ Deno.serve(async (req) => {
         const empresaId = codigoEmpresa(corpo.empresaId);
         if (!empresaId) invalido("Informe o código da empresa.");
         return json(await analiseComListas(await analisarTitulo(documento.data, empresaId), cliente));
+      }
+
+      case "titulo_orcamento": {
+        const obraId = codigoEmpresa(corpo.obraId);
+        if (!obraId) invalido("Informe o código da obra.");
+        return json(await orcamentoDaObra(obraId, codigoEmpresa(corpo.unidadeId)));
       }
 
       case "titulo_cadastrar": {

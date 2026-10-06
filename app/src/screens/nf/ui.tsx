@@ -107,11 +107,14 @@ const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLo
  * A lista abre num portal com posição fixa para não ser cortada pelo overflow das tabelas.
  * onChange recebe um evento no formato { target: { value } }, igual ao do input.
  */
-export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inputMode, maxLength, altura = 34, estilo = '', invalido, porNome }: {
+export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inputMode, maxLength, altura = 34, estilo = '', invalido, porNome, padraoCodigo = /^\d*$/, disabled }: {
   value: string; onChange: (e: any) => void; opcoes: OpcaoSugestao[]; ariaLabel: string; placeholder?: string;
   inputMode?: 'numeric' | 'text'; maxLength?: number; altura?: number; estilo?: string; invalido?: boolean;
   /** Busca digitando o nome (mostra o nome primeiro); digitar só números continua valendo como código. */
   porNome?: boolean;
+  /** Com porNome: o que vale como código digitado (padrão só números; itens do orçamento aceitam pontos). */
+  padraoCodigo?: RegExp;
+  disabled?: boolean;
 }) {
   const campo = useRef<HTMLInputElement>(null);
   const [aberto, setAberto] = useState(false);
@@ -176,14 +179,14 @@ export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inp
           if (porNome) {
             // Só números = código (vai direto ao pai); qualquer letra = busca pelo nome, sem mexer no código.
             setBusca(e.target.value);
-            if (/^\d*$/.test(e.target.value)) onChange(e);
+            if (padraoCodigo.test(e.target.value)) onChange(e);
           } else onChange(e);
           setAberto(true);
         }}
         onFocus={() => setAberto(true)} onClick={() => setAberto(true)}
         onBlur={() => { setAberto(false); setBusca(null); }} onKeyDown={aoTeclar} inputMode={inputMode} maxLength={maxLength} placeholder={placeholder}
-        aria-label={ariaLabel} aria-invalid={invalido || undefined} aria-expanded={aberto} role="combobox" aria-autocomplete="list" autoComplete="off"
-        style={css(input + `;height:${altura}px;${estilo}`)} />
+        disabled={disabled} aria-label={ariaLabel} aria-invalid={invalido || undefined} aria-expanded={aberto} role="combobox" aria-autocomplete="list" autoComplete="off"
+        style={css(input + `;height:${altura}px;${disabled ? 'background:#FAFAFB;cursor:not-allowed;' : ''}${estilo}`)} />
       {aberto && pos && filtradas.length && typeof document !== 'undefined' ? createPortal(
         <div data-sugestoes style={css(`position:fixed;z-index:200;left:${pos.left}px;width:${pos.width}px;${pos.top != null ? `top:${pos.top}px` : `bottom:${pos.bottom}px`};padding:1px;border-radius:12px;background:linear-gradient(135deg,rgba(65,97,255,.55),rgba(67,185,151,.4) 55%,rgba(65,97,255,.12));box-shadow:0 18px 40px -12px rgba(15,23,42,.28),0 4px 12px rgba(15,23,42,.08);animation:sugIn .14s ease-out both`)}
           onMouseDown={e => e.preventDefault()}>

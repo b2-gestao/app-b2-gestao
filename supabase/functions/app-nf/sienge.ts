@@ -515,6 +515,15 @@ export interface ApropriacaoFinanceira {
   percentage: number;
 }
 
+/** Apropriação de obra do título (buildingsCost do POST /v1/bills). */
+export interface ApropriacaoObra {
+  buildingId: number;
+  buildingUnitId: number;
+  /** Código do item do orçamento com máscara (wbsCode), ex.: 01.004.002.001. */
+  costEstimationSheetId: string;
+  percentage: number;
+}
+
 export interface NovoTitulo {
   debtorId: number;
   creditorId: number;
@@ -530,6 +539,7 @@ export interface NovoTitulo {
   discount: number;
   notes: string;
   budgetCategories: ApropriacaoFinanceira[];
+  buildingsCost?: ApropriacaoObra[];
 }
 
 export interface TituloResumo {
@@ -604,4 +614,40 @@ export function buscarPlanoFinanceiro(id: string): Promise<PlanoFinanceiro | nul
 
 export function buscarCentroCusto(id: number): Promise<CentroCusto | null> {
   return siengeGetOpcional<CentroCusto>(`/v1/cost-centers/${id}`);
+}
+
+// ---------- orçamento da obra (apropriação de obra do título) ----------
+
+/** Planilha do orçamento: uma por unidade construtiva da obra. */
+export interface UnidadeConstrutiva {
+  id: number;
+  description?: string;
+  status?: "LOCKED" | "UNLOCKED";
+}
+
+export interface ItemOrcamento {
+  id?: number;
+  wbsCode?: string;
+  description?: string;
+  unitOfMeasure?: string;
+}
+
+/** GET /v1/building-cost-estimations/{obra}/sheets: unidades construtivas da versão atual do orçamento (null se a obra não existe). */
+export async function listarUnidadesConstrutivas(buildingId: number): Promise<UnidadeConstrutiva[] | null> {
+  try {
+    return await listarTodos<UnidadeConstrutiva>(`/v1/building-cost-estimations/${buildingId}/sheets`);
+  } catch (erro) {
+    if (erro instanceof ErroHttpSienge && erro.status === 404) return null;
+    throw erro;
+  }
+}
+
+/** GET /v1/building-cost-estimations/{obra}/sheets/{unidade}/items: itens da planilha (lista vazia se não houver). */
+export async function listarItensOrcamento(buildingId: number, buildingUnitId: number): Promise<ItemOrcamento[]> {
+  try {
+    return await listarTodos<ItemOrcamento>(`/v1/building-cost-estimations/${buildingId}/sheets/${buildingUnitId}/items`);
+  } catch (erro) {
+    if (erro instanceof ErroHttpSienge && erro.status === 404) return [];
+    throw erro;
+  }
 }

@@ -7,6 +7,7 @@ import {
   buscarCentroCusto,
   buscarCredor,
   buscarDocumento,
+  buscarEmpreendimento,
   buscarPlanoFinanceiro,
   configSienge,
   criarTitulo,
@@ -14,10 +15,12 @@ import {
   ErroAplicacao,
   indexadorTitulo,
   listarEmpresas,
+  listarItensOrcamento,
   listarTitulos,
+  listarUnidadesConstrutivas,
   senhaVencimento,
 } from "./sienge.ts";
-import type { ApropriacaoFinanceira, TipoDocumento, TituloResumo } from "./sienge.ts";
+import type { ApropriacaoFinanceira, ApropriacaoObra, ItemOrcamento, TipoDocumento, TituloResumo, UnidadeConstrutiva } from "./sienge.ts";
 import { hojeBrasil, identificarPartes, somarDias } from "./regras.ts";
 import type { DocumentoLido, Parte } from "./regras.ts";
 
@@ -64,6 +67,8 @@ export interface TituloRequest {
   desconto: number;
   observacao: string;
   apropriacoes: ApropriacaoFinanceira[];
+  /** Apropriação de obra (buildingsCost); vazia não é enviada. */
+  apropriacoesObra: ApropriacaoObra[];
   pdfBase64: string;
   nomeArquivo: string;
   descricaoAnexo: string;
@@ -98,6 +103,96 @@ function mesmoNumero(a: string | undefined, b: string): boolean {
 async function titulosDoDocumento(creditorId: number, numero: string, dataEmissao: string, debtorId?: number): Promise<TituloResumo[]> {
   const titulos = await listarTitulos({ ...janelaBusca(dataEmissao), creditorId, debtorId, documentNumber: numero });
   return titulos.filter((t) => (t.creditorId === undefined || t.creditorId === creditorId) && mesmoNumero(t.documentNumber, numero));
+}
+
+// ---------- orçamento da obra (seletores da apropriação de obra) ----------
+
+const CACHE_ORCAMENTO_MS = 5 * 60_000;
+const cacheUnidades = new Map<number, { em: number; lista: UnidadeConstrutiva[] | null }>();
+const cacheItens = new Map<string, { em: number; lista: ItemOrcamento[] }>();
+
+async function unidadesDaObra(obraId: number): Promise<UnidadeConstrutiva[] | null> {
+  const guardado = cacheUnidades.get(obraId);
+  if (guardado && Date.now() - guardado.em < CACHE_ORCAMENTO_MS) return guardado.lista;
+  const lista = await listarUnidadesConstrutivas(obraId);
+  cacheUnidades.set(obraId, { em: Date.now(), lista });
+  return lista;
+}
+
+async function itensDaUnidade(obraId: number, unidadeId: number): Promise<ItemOrcamento[]> {
+  const chave = `${obraId}|${unidadeId}`;
+  const guardado = cacheItens.get(chave);
+  if (guardado && Date.now() - guardado.em < CACHE_ORCAMENTO_MS) return guardado.lista;
+  const lista = await listarItensOrcamento(obraId, unidadeId);
+  cacheItens.set(chave, { em: Date.now(), lista });
+  return lista;
+}
+
+export interface UnidadeObra { id: number; nome: string; bloqueada: boolean }
+export interface ItemObra { codigo: string; nome: string; unidadeMedida: string | null }
+
+/**
+ * Itens que recebem apropriação: os que não agrupam outros (nenhum outro código começa com "<código>.").
+ * No Sienge só se apropria em item analítico, nunca no grupo.
+ */
+function itensAnaliticos(itens: ItemOrcamento[]): ItemObra[] {
+  const codigos = itens.map((i) => (i.wbsCode ?? "").trim()).filter(Boolean);
+  return itens
+    .filter((i) => {
+      const codigo = (i.wbsCode ?? "").trim();
+      return !!codigo && !codigos.some((c) => c.startsWith(`${codigo}.`));
+    })
+    .map((i) => ({ codigo: (i.wbsCode ?? "").trim(), nome: (i.description ?? "").trim(), unidadeMedida: i.unitOfMeasure ?? null }));
+}
+
+/** Unidades construtivas do orçamento da obra e, com a unidade, os itens apropriáveis. Nada é gravado. */
+export async function orcamentoDaObra(obraId: number, unidadeId?: number | null): Promise<{
+  obraId: number;
+  obraNome: string | null;
+  unidades: UnidadeObra[];
+  unidadeId: number | null;
+  itens: ItemObra[];
+}> {
+  const [unidades, obra] = await Promise.all([unidadesDaObra(obraId), buscarEmpreendimento(obraId).catch(() => null)]);
+  if (unidades === null) throw new ErroAplicacao("requisicao_invalida", `A obra ${obraId} não existe no Sienge ou não tem orçamento.`, 404);
+  const unidade = unidadeId ? unidades.find((u) => u.id === unidadeId) : null;
+  if (unidadeId && !unidade) {
+    throw new ErroAplicacao("requisicao_invalida", `A unidade construtiva ${unidadeId} não existe no orçamento da obra ${obraId}.`, 404);
+  }
+  return {
+    obraId,
+    obraNome: obra?.name ?? null,
+    unidades: unidades.map((u) => ({ id: u.id, nome: (u.description ?? "").trim() || `Unidade ${u.id}`, bloqueada: u.status === "LOCKED" })),
+    unidadeId: unidade?.id ?? null,
+    itens: unidade ? itensAnaliticos(await itensDaUnidade(obraId, unidade.id)) : [],
+  };
+}
+
+/** Confere no orçamento do Sienge cada obra, unidade construtiva e item da apropriação de obra. */
+async function conferirApropriacoesObra(apropriacoes: ApropriacaoObra[]): Promise<void> {
+  const obras = [...new Set(apropriacoes.map((a) => a.buildingId))];
+  const unidadesPorObra = new Map(await Promise.all(obras.map(async (id) => [id, await unidadesDaObra(id)] as const)));
+  for (const a of apropriacoes) {
+    const unidades = unidadesPorObra.get(a.buildingId);
+    if (!unidades) throw new ErroAplicacao("requisicao_invalida", `A obra ${a.buildingId} não existe no Sienge ou não tem orçamento.`);
+    if (!unidades.some((u) => u.id === a.buildingUnitId)) {
+      throw new ErroAplicacao("requisicao_invalida", `A unidade construtiva ${a.buildingUnitId} não existe no orçamento da obra ${a.buildingId}.`);
+    }
+  }
+  const pares = [...new Set(apropriacoes.map((a) => `${a.buildingId}|${a.buildingUnitId}`))];
+  const itensPorPar = new Map(await Promise.all(pares.map(async (par) => {
+    const [obra, unidade] = par.split("|").map(Number);
+    return [par, itensAnaliticos(await itensDaUnidade(obra, unidade))] as const;
+  })));
+  for (const a of apropriacoes) {
+    const itens = itensPorPar.get(`${a.buildingId}|${a.buildingUnitId}`) ?? [];
+    if (!itens.some((i) => i.codigo === a.costEstimationSheetId)) {
+      throw new ErroAplicacao(
+        "requisicao_invalida",
+        `O item ${a.costEstimationSheetId} não é um item apropriável da unidade ${a.buildingUnitId} da obra ${a.buildingId}.`,
+      );
+    }
+  }
 }
 
 function mensagem(causa: unknown): string {
@@ -177,6 +272,8 @@ export async function confirmarTitulo(
   const planoInexistente = achadosPlanos.find(([, p]) => !p);
   if (planoInexistente) throw new ErroAplicacao("requisicao_invalida", `O plano financeiro ${planoInexistente[0]} não existe no Sienge.`);
 
+  await conferirApropriacoesObra(entrada.apropriacoesObra);
+
   const existentes = await titulosDoDocumento(credor.id, entrada.numero, entrada.dataEmissao, empresa.id);
   if (existentes.length) {
     throw new ErroAplicacao(
@@ -203,6 +300,7 @@ export async function confirmarTitulo(
     discount: entrada.desconto,
     notes,
     budgetCategories: entrada.apropriacoes,
+    ...(entrada.apropriacoesObra.length ? { buildingsCost: entrada.apropriacoesObra } : {}),
   });
 
   const avisos: string[] = [];
