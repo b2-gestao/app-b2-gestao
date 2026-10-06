@@ -442,8 +442,16 @@ export async function listarNotasFiscais(filtros: { supplierId: number; number: 
   return resposta.results ?? [];
 }
 
-export function buscarNotaFiscal(sequentialNumber: number): Promise<NotaFiscalResumo | null> {
-  return siengeGetOpcional<NotaFiscalResumo>(`/v1/purchase-invoices/${sequentialNumber}`);
+/** Código com que o Sienge responde a um sequencial inexistente ou excluído (não é um 404). */
+const CODIGO_NOTA_INEXISTENTE = "purchase.invoice.invalid.id";
+
+export async function buscarNotaFiscal(sequentialNumber: number): Promise<NotaFiscalResumo | null> {
+  try {
+    return await siengeGetOpcional<NotaFiscalResumo>(`/v1/purchase-invoices/${sequentialNumber}`);
+  } catch (erro) {
+    if (erro instanceof ErroHttpSienge && erro.message.includes(CODIGO_NOTA_INEXISTENTE)) return null;
+    throw erro;
+  }
 }
 
 /** Código que o Sienge devolve (em vez de 404) quando a nota do sequencial informado não existe mais. */
