@@ -33,7 +33,8 @@
 //   titulo_cadastrar    TituloCorpo                           → TituloResultado (grava no Sienge + histórico)
 //   titulo_anexar       { billId, pdfBase64, nomeArquivo, descricao, tituloId? } → { ok }
 //   sincronizar         {}                                        → { verificadas, excluidas, falhas } (confere no Sienge se as notas
-//                        do histórico ainda existem e marca as excluídas; só aceita a service_role, chamada pelo pg_cron)
+//                        do histórico ainda existem e marca as excluídas; só pelo pg_cron, com o segredo do cabeçalho
+//                        x-app-nf-sync conferido em app_nf_sync_segredo())
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
@@ -430,6 +431,22 @@ async function analiseComListas(analise: AnaliseTitulo, cliente: Cliente) {
   return { ...analise, documentos, planos };
 }
 
+/** Segredo que autoriza o pg_cron a sincronizar (Vault app_nf_sync_key), lido pela service_role. */
+const CACHE_SEGREDO_SYNC_MS = 5 * 60_000;
+let cacheSegredoSync: { em: number; valor: string | null } | null = null;
+
+async function segredoSincronizacao(): Promise<string | null> {
+  if (!admin) return null;
+  if (cacheSegredoSync && Date.now() - cacheSegredoSync.em < CACHE_SEGREDO_SYNC_MS) return cacheSegredoSync.valor;
+  const { data, error } = await admin.rpc("app_nf_sync_segredo");
+  if (error) {
+    console.error("app_nf_sync_segredo:", error.message);
+    return null;
+  }
+  cacheSegredoSync = { em: Date.now(), valor: typeof data === "string" && data ? data : null };
+  return cacheSegredoSync.valor;
+}
+
 /** Notas conferidas por execução e consultas simultâneas ao Sienge (respeita o limite de requisições). */
 const LOTE_SINCRONIZACAO = 100;
 const PARALELO_SINCRONIZACAO = 5;
@@ -478,10 +495,12 @@ Deno.serve(async (req) => {
   try {
     const auth = req.headers.get("Authorization") || "";
 
-    // Chamada do pg_cron: só a service_role dispara a sincronização com o Sienge.
-    if (await segredoIgual(auth.replace(/^Bearer\s+/i, ""), SERVICE_KEY)) {
+    // Chamada do pg_cron: o segredo do cabeçalho autoriza só a sincronização com o Sienge.
+    const segredoRecebido = req.headers.get("x-app-nf-sync");
+    if (segredoRecebido !== null) {
+      if (!(await segredoIgual(segredoRecebido, await segredoSincronizacao()))) return json({ error: "Segredo de sincronização inválido." }, 403);
       const pedido = await req.json().catch(() => null);
-      if (pedido?.acao !== "sincronizar") return json({ error: "A service_role só executa a ação sincronizar." }, 403);
+      if (pedido?.acao !== "sincronizar") return json({ error: "Este acesso só executa a ação sincronizar." }, 403);
       return json(await sincronizar());
     }
 
