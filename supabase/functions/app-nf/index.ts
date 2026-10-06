@@ -32,10 +32,12 @@
 //   titulo_empresa      { documento, empresaId }              → AnaliseTitulo com a empresa informada pelo usuário
 //   titulo_cadastrar    TituloCorpo                           → TituloResultado (grava no Sienge + histórico)
 //   titulo_anexar       { billId, pdfBase64, nomeArquivo, descricao, tituloId? } → { ok }
+//   sincronizar         {}                                        → { verificadas, excluidas, falhas } (confere no Sienge se as notas
+//                        do histórico ainda existem e marca as excluídas; só aceita a service_role, chamada pelo pg_cron)
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
+import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, buscarNotaFiscal, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
 import type { TipoDocumento } from "./sienge.ts";
 import { extrairDocumento, notaFiscalExtraidaSchema, TIPOS_DOCUMENTO } from "./extracao.ts";
 import {
@@ -118,14 +120,17 @@ async function resumo(texto: string): Promise<Uint8Array> {
   return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(texto)));
 }
 
-/** Compara em tempo constante para não vazar a senha por tempo de resposta. */
-async function senhaVencimentoCorreta(recebida: unknown): Promise<boolean> {
-  const esperada = senhaVencimento();
-  if (!esperada || typeof recebida !== "string" || !recebida) return false;
-  const [a, b] = await Promise.all([resumo(recebida), resumo(esperada)]);
+/** Compara em tempo constante para não vazar o segredo por tempo de resposta. */
+async function segredoIgual(recebido: unknown, esperado: string | null | undefined): Promise<boolean> {
+  if (!esperado || typeof recebido !== "string" || !recebido) return false;
+  const [a, b] = await Promise.all([resumo(recebido), resumo(esperado)]);
   let diferenca = 0;
   for (let i = 0; i < a.length; i++) diferenca |= a[i] ^ b[i];
   return diferenca === 0;
+}
+
+function senhaVencimentoCorreta(recebida: unknown): Promise<boolean> {
+  return segredoIgual(recebida, senhaVencimento());
 }
 
 function data(valor: unknown, campo: string): string {
@@ -425,12 +430,61 @@ async function analiseComListas(analise: AnaliseTitulo, cliente: Cliente) {
   return { ...analise, documentos, planos };
 }
 
+/** Notas conferidas por execução e consultas simultâneas ao Sienge (respeita o limite de requisições). */
+const LOTE_SINCRONIZACAO = 100;
+const PARALELO_SINCRONIZACAO = 5;
+
+/**
+ * Confere no Sienge se as notas do histórico ainda existem, das menos recentemente verificadas
+ * para as mais. Só um 404 marca a nota como excluída; erro de rede ou do Sienge nunca marca.
+ */
+async function sincronizar(): Promise<{ verificadas: number; excluidas: number; falhas: number }> {
+  const banco = admin;
+  if (!banco) throw new ErroAplicacao("configuracao_invalida", "SUPABASE_SERVICE_ROLE_KEY não configurada.", 500);
+  const { data: linhas, error } = await banco.from("app_nf_cadastros")
+    .select("id, sequencial, bill_id")
+    .is("excluida_no_sienge_em", null)
+    .order("verificada_em", { ascending: true, nullsFirst: true })
+    .limit(LOTE_SINCRONIZACAO);
+  if (error) throw new Error(error.message);
+
+  const resultado = { verificadas: 0, excluidas: 0, falhas: 0 };
+  const conferir = async (linha: { id: string; sequencial: number; bill_id: number | null }) => {
+    try {
+      const nota = await buscarNotaFiscal(linha.sequencial);
+      const agora = new Date().toISOString();
+      const alteracao: Record<string, unknown> = { verificada_em: agora };
+      if (!nota) alteracao.excluida_no_sienge_em = agora;
+      else if (nota.billId && nota.billId !== linha.bill_id) alteracao.bill_id = nota.billId;
+      const { error: erroUpdate } = await banco.from("app_nf_cadastros").update(alteracao).eq("id", linha.id);
+      if (erroUpdate) throw new Error(erroUpdate.message);
+      resultado.verificadas++;
+      if (!nota) resultado.excluidas++;
+    } catch (erro) {
+      resultado.falhas++;
+      console.error("app-nf sincronizar:", linha.sequencial, erro instanceof Error ? erro.message : erro);
+    }
+  };
+  for (let i = 0; i < (linhas ?? []).length; i += PARALELO_SINCRONIZACAO) {
+    await Promise.all((linhas ?? []).slice(i, i + PARALELO_SINCRONIZACAO).map(conferir));
+  }
+  return resultado;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: cors });
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
 
   try {
     const auth = req.headers.get("Authorization") || "";
+
+    // Chamada do pg_cron: só a service_role dispara a sincronização com o Sienge.
+    if (await segredoIgual(auth.replace(/^Bearer\s+/i, ""), SERVICE_KEY)) {
+      const pedido = await req.json().catch(() => null);
+      if (pedido?.acao !== "sincronizar") return json({ error: "A service_role só executa a ação sincronizar." }, 403);
+      return json(await sincronizar());
+    }
+
     const cliente = clienteDoUsuario(auth);
     const { data: quem } = await cliente.auth.getUser(auth.replace(/^Bearer\s+/i, ""));
     if (!quem?.user) return json({ error: "Sessão inválida. Entre novamente." }, 401);
