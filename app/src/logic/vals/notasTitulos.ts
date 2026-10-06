@@ -2,7 +2,7 @@ import type { AppLogic } from '../AppLogic';
 import { NOMES_TIPO, SIGLAS_ANEXO, PAPEIS, MAX_BYTES_PDF, MAX_DESCRICAO_ANEXO, lerComoBase64, impressaoDigital, formatarTamanho, type TipoDocumento } from '../../lib/nf';
 import {
   titulosApi, MAX_OBSERVACAO_TITULO, MAX_PARCELAS, MAX_APROPRIACOES,
-  type AnaliseTitulo, type TituloCorpo, type NfTitulo,
+  type AnaliseTitulo, type TituloCorpo, type NfTitulo, type OrcamentoObra,
 } from '../../lib/nfTitulos';
 
 // Notas Fiscais › Título a Pagar: histórico (app_nf_titulos) + assistente de cadastro do título
@@ -48,6 +48,9 @@ function opcoesDocumento(analise: AnaliseTitulo) {
 }
 
 interface LinhaApropriacao { id: string; centro: string; plano: string; percentual: string }
+interface LinhaObra { id: string; obra: string; unidade: string; item: string; percentual: string }
+/** Orçamento carregado do Sienge: "o:<obra>" (unidades construtivas) e "u:<obra>|<unidade>" (itens). */
+interface CargaOrcamento { carregando: boolean; erro: string; dados: OrcamentoObra | null }
 interface AnexoExtra { id: string; arquivo: File; descricao: string }
 type StatusEnvio = 'pendente' | 'enviando' | 'anexado' | 'falhou' | 'sem_titulo';
 interface EnvioAnexo extends AnexoExtra { status: StatusEnvio; erro?: string }
@@ -57,11 +60,14 @@ const ROTULOS_ENVIO: Record<StatusEnvio, string> = { pendente: 'Na fila', envian
 
 let seqLinha = 0;
 const novaLinha = (percentual = ''): LinhaApropriacao => ({ id: `ap${++seqLinha}`, centro: '', plano: '', percentual });
+const novaLinhaObra = (percentual = ''): LinhaObra => ({ id: `ob${++seqLinha}`, obra: '', unidade: '', item: '', percentual });
+/** Linha sem obra, unidade nem item: não conta (a apropriação de obra é opcional). */
+const linhaObraVazia = (l: LinhaObra) => !l.obra.trim() && !l.unidade && !l.item.trim();
 
 /** Estado inicial do assistente (também usado para recomeçar). */
 export const NT_INICIAL = {
   ntEtapa: 'lista', ntArquivo: null, ntBusy: '', ntErro: '', ntAnalise: null, ntEmpresaManual: null, ntEmpresaModal: null,
-  ntTipo: null, ntDocumento: null, ntCab: null, ntAprop: [], ntDescPrincipal: null, ntAnexos: [], ntRecusados: [],
+  ntTipo: null, ntDocumento: null, ntCab: null, ntAprop: [], ntApropObra: [], ntOrc: {}, ntDescPrincipal: null, ntAnexos: [], ntRecusados: [],
   ntSenha: null, ntResultado: null, ntEnvios: [],
 };
 
@@ -103,6 +109,7 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
       titulo: r.bill_id ? String(r.bill_id) : 'não identificado',
       anexos: r.anexos.length,
       apropriacoes: r.apropriacoes.map(a => `CC ${a.costCenterId} · plano ${a.paymentCategoriesId} · ${pct.format(a.percentage)}%`),
+      apropriacoesObra: (r.apropriacoes_obra || []).map(a => `Obra ${a.buildingId} · unidade ${a.buildingUnitId} · item ${a.costEstimationSheetId} · ${pct.format(a.percentage)}%`),
       situacao: pendente ? 'Com pendência' : 'Cadastrado',
       tom: pendente ? 'aviso' : 'ok',
       detalhes: [...r.avisos, ...r.anexos.filter(a => !a.ok).map(a => `Anexo ${a.descricao} (${a.nome}) não foi enviado${a.erro ? `: ${a.erro}` : ''}.`)],
@@ -117,6 +124,8 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
   const documento: string = s.ntDocumento || documentoPadrao;
   const cab = s.ntCab || {};
   const aprop: LinhaApropriacao[] = s.ntAprop || [];
+  const apropObra: LinhaObra[] = s.ntApropObra || [];
+  const orc: Record<string, CargaOrcamento> = s.ntOrc || {};
   const senha = s.ntSenha || { liberada: null, pedindo: false, digitada: '', erro: '' };
   const anexos: AnexoExtra[] = s.ntAnexos || [];
   const descricaoPrincipal: string = s.ntDescPrincipal ?? SIGLAS_ANEXO[tipo];
@@ -145,7 +154,7 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
       dataBase: a.cabecalho.dataBase, vencimento: a.cabecalho.vencimento, valor: String(a.cabecalho.valorTotal).replace('.', ','),
       desconto: '', parcelas: '1', obs: '',
     },
-    ntAprop: [novaLinha('100')], ntDescPrincipal: null, ntAnexos: [], ntRecusados: [], ntSenha: null,
+    ntAprop: [novaLinha('100')], ntApropObra: [novaLinhaObra('100')], ntDescPrincipal: null, ntAnexos: [], ntRecusados: [], ntSenha: null,
     ...patch,
   });
 
@@ -211,6 +220,75 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
   const somaPct = aprop.reduce((t, l) => { const p = paraNumero(l.percentual); return Number.isFinite(p) ? t + p : t; }, 0);
   const somaOk = Math.abs(somaPct - 100) <= 0.0001;
 
+  // ---------- apropriação de obra ----------
+  const chaveUnidades = (obra: string) => `o:${obra}`;
+  const chaveItens = (obra: string, unidade: string) => `u:${obra}|${unidade}`;
+  const patchObra = (id: string, p: Partial<LinhaObra>) =>
+    this.setState(st => ({ ntApropObra: (st.ntApropObra || []).map((l: LinhaObra) => (l.id === id ? { ...l, ...p } : l)) }));
+
+  /** Busca no Sienge as unidades da obra (ou os itens da unidade), uma vez por chave. */
+  const carregarOrcamento = async (obra: string, unidade = '', linhaId?: string) => {
+    if (!/^\d+$/.test(obra)) return;
+    const chave = unidade ? chaveItens(obra, unidade) : chaveUnidades(obra);
+    const atual: CargaOrcamento | undefined = (this.state.ntOrc || {})[chave];
+    if (atual && (atual.carregando || atual.dados)) return;
+    const marcar = (c: CargaOrcamento) => this.setState(st => ({ ntOrc: { ...(st.ntOrc || {}), [chave]: c } }));
+    marcar({ carregando: true, erro: '', dados: null });
+    try {
+      const dados = await titulosApi.orcamento(Number(obra), unidade ? Number(unidade) : null);
+      marcar({ carregando: false, erro: '', dados });
+      // Uma só unidade construtiva liberada: já fica escolhida.
+      const livres = dados.unidades.filter(u => !u.bloqueada);
+      if (!unidade && linhaId && livres.length === 1) {
+        const linha = (this.state.ntApropObra || []).find((l: LinhaObra) => l.id === linhaId);
+        if (linha && linha.obra === obra && !linha.unidade) {
+          patchObra(linhaId, { unidade: String(livres[0].id) });
+          carregarOrcamento(obra, String(livres[0].id));
+        }
+      }
+    } catch (e: any) {
+      marcar({ carregando: false, erro: erroDe(e), dados: null });
+    }
+  };
+
+  /** A obra é digitada: espera parar de digitar antes de consultar o Sienge. */
+  const escolherObra = (linhaId: string, obra: string) => {
+    patchObra(linhaId, { obra, unidade: '', item: '' });
+    this._ntObraTimers ??= {};
+    clearTimeout(this._ntObraTimers[linhaId]);
+    if (/^\d+$/.test(obra)) this._ntObraTimers[linhaId] = setTimeout(() => carregarOrcamento(obra, '', linhaId), 450);
+  };
+
+  const recarregarOrcamento = (obra: string, unidade = '') => {
+    const chave = unidade ? chaveItens(obra, unidade) : chaveUnidades(obra);
+    this.setState(st => { const o = { ...(st.ntOrc || {}) }; delete o[chave]; return { ntOrc: o }; }, () => carregarOrcamento(obra, unidade));
+  };
+
+  const obrasPreenchidas = apropObra.filter(l => !linhaObraVazia(l));
+  const problemasObra = new Map<string, string>();
+  const vistosObra = new Set<string>();
+  for (const l of obrasPreenchidas) {
+    const p = paraNumero(l.percentual);
+    const obra = l.obra.trim();
+    const cargaObra = orc[chaveUnidades(obra)];
+    const cargaItens = l.unidade ? orc[chaveItens(obra, l.unidade)] : undefined;
+    if (!/^\d+$/.test(obra)) problemasObra.set(l.id, 'Informe a obra');
+    else if (cargaObra?.erro) problemasObra.set(l.id, cargaObra.erro);
+    else if (!l.unidade) problemasObra.set(l.id, 'Escolha a unidade construtiva');
+    else if (cargaItens?.erro) problemasObra.set(l.id, cargaItens.erro);
+    else if (!l.item.trim()) problemasObra.set(l.id, 'Escolha o item do orçamento');
+    else if (cargaItens?.dados && !cargaItens.dados.itens.some(i => i.codigo === l.item.trim())) problemasObra.set(l.id, 'Item não encontrado no orçamento desta unidade');
+    else if (!Number.isFinite(p) || p <= 0 || p > 100) problemasObra.set(l.id, 'Percentual entre 0 e 100');
+    else {
+      const chave = `${obra}|${l.unidade}|${l.item.trim()}`;
+      if (vistosObra.has(chave)) problemasObra.set(l.id, 'Obra, unidade e item repetidos');
+      vistosObra.add(chave);
+    }
+  }
+  const somaPctObra = obrasPreenchidas.reduce((t, l) => { const p = paraNumero(l.percentual); return Number.isFinite(p) ? t + p : t; }, 0);
+  const somaObraOk = Math.abs(somaPctObra - 100) <= 0.0001;
+  const carregandoOrcamento = Object.values(orc).some(c => c.carregando);
+
   const pendencias = [
     ...(analise && analise.bloqueios.length ? ['Resolva os bloqueios acima.'] : []),
     ...(!analise?.fornecedor ? ['Credor não localizado no Sienge.'] : []),
@@ -226,6 +304,9 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
     ...(aprop.length === 0 ? ['Adicione uma apropriação financeira.'] : []),
     ...(problemasLinha.size ? ['Corrija as apropriações destacadas.'] : []),
     ...(aprop.length && !somaOk ? ['As apropriações devem somar 100%.'] : []),
+    ...(problemasObra.size ? ['Corrija as apropriações de obra destacadas.'] : []),
+    ...(obrasPreenchidas.length && !somaObraOk ? ['As apropriações de obra devem somar 100%.'] : []),
+    ...(carregandoOrcamento ? ['Aguarde o orçamento da obra carregar.'] : []),
     ...(!descricaoPrincipal.trim() || anexos.some(a => !a.descricao.trim()) ? ['Informe a descrição de todos os anexos.'] : []),
     ...(!podeEditar ? ['Seu perfil só pode consultar os títulos cadastrados.'] : []),
   ];
@@ -301,6 +382,7 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
       desconto,
       observacao: String(cab.obs || '').slice(0, MAX_OBSERVACAO_TITULO),
       apropriacoes: aprop.map(l => ({ centroCustoId: Number(l.centro), planoFinanceiroId: l.plano.trim(), percentual: paraNumero(l.percentual) })),
+      apropriacoesObra: obrasPreenchidas.map(l => ({ obraId: Number(l.obra), unidadeId: Number(l.unidade), itemId: l.item.trim(), percentual: paraNumero(l.percentual) })),
       pdfBase64: this._ntPdf,
       nomeArquivo: s.ntArquivo?.name || 'titulo.pdf',
       descricaoAnexo: descricaoPrincipal.trim(),
@@ -479,6 +561,69 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
         totalPct: `${pct.format(Math.round(somaPct * 10_000) / 10_000)}%`,
         somaOk,
 
+        // apropriação de obra
+        obrasOpcoes: centros.filter(c => c.ativo !== false).map(c => ({ value: String(c.id), label: c.nome })),
+        apropriacoesObra: apropObra.map(l => {
+          const p = paraNumero(l.percentual);
+          const obra = l.obra.trim();
+          const cargaObra = orc[chaveUnidades(obra)];
+          const cargaItens = l.unidade ? orc[chaveItens(obra, l.unidade)] : undefined;
+          const unidades = cargaObra?.dados?.unidades || [];
+          const itens = cargaItens?.dados?.itens || [];
+          const item = itens.find(i => i.codigo === l.item.trim());
+          const centro = /^\d+$/.test(obra) ? centros.find(c => String(c.id) === obra) : null;
+          // Sugestão: a obra costuma ter o mesmo código do centro de custo da apropriação financeira.
+          const sugerida = !obra ? aprop.map(a => a.centro.trim()).find(c => /^\d+$/.test(c)) || '' : '';
+          return {
+            id: l.id,
+            obra: l.obra, onObra: (e: any) => escolherObra(l.id, e.target.value.replace(/\D/g, '')),
+            obraNome: cargaObra?.carregando ? 'Buscando a obra no Sienge…'
+              : cargaObra?.erro ? ''
+              : cargaObra?.dados ? (cargaObra.dados.obraNome || centro?.nome || `Obra ${obra}`) : '',
+            obraErro: cargaObra?.erro || '',
+            recarregarObra: cargaObra?.erro ? () => recarregarOrcamento(obra) : null,
+            sugerida,
+            usarSugerida: sugerida ? () => escolherObra(l.id, sugerida) : null,
+            unidade: l.unidade,
+            unidadesOpcoes: unidades.map(u => ({ value: String(u.id), label: `${u.id} — ${u.nome}${u.bloqueada ? ' (bloqueada)' : ''}` })),
+            unidadeDesabilitada: !cargaObra?.dados || !unidades.length,
+            unidadeDica: cargaObra?.dados && !unidades.length ? 'A obra não tem orçamento' : '',
+            onUnidade: (e: any) => {
+              const unidade = e.target.value;
+              patchObra(l.id, { unidade, item: '' });
+              if (unidade) carregarOrcamento(obra, unidade);
+            },
+            item: l.item,
+            itensOpcoes: itens.map(i => ({ value: i.codigo, label: i.nome })),
+            itemDesabilitado: !cargaItens?.dados,
+            onItem: (e: any) => patchObra(l.id, { item: e.target.value }),
+            itemNome: cargaItens?.carregando ? 'Carregando os itens do orçamento…'
+              : item ? `${item.nome}${item.unidadeMedida ? ` · ${item.unidadeMedida}` : ''}`
+              : cargaItens?.dados ? (itens.length ? `${itens.length} itens apropriáveis · busque pelo nome ou código` : 'Nenhum item apropriável nesta unidade') : '',
+            recarregarItens: cargaItens?.erro ? () => recarregarOrcamento(obra, l.unidade) : null,
+            percentual: l.percentual, onPercentual: (e: any) => patchObra(l.id, { percentual: e.target.value.replace(/[^\d.,]/g, '') }),
+            valor: Number.isFinite(p) && Number.isFinite(valor) && !linhaObraVazia(l) ? fmtMoeda(doisDecimais((valor * p) / 100)) : '—',
+            problema: problemasObra.get(l.id) || '',
+            remover: () => this.setState(st => ({ ntApropObra: (st.ntApropObra || []).filter((x: LinhaObra) => x.id !== l.id) })),
+          };
+        }),
+        podeAdicionarObra: apropObra.length < MAX_APROPRIACOES,
+        adicionarObra: () => {
+          if (apropObra.length >= MAX_APROPRIACOES) return;
+          const resto = Math.max(0, Math.round((100 - somaPctObra) * 10_000) / 10_000);
+          this.setState(st => ({ ntApropObra: (st.ntApropObra || []).concat(novaLinhaObra(resto ? pct.format(resto) : '')) }));
+        },
+        dividirObra: () => {
+          const n = apropObra.length;
+          if (!n) return;
+          const parte = Math.floor((100 / n) * 10_000) / 10_000;
+          const ultima = Math.round((100 - parte * (n - 1)) * 10_000) / 10_000;
+          this.setState(st => ({ ntApropObra: (st.ntApropObra || []).map((l: LinhaObra, i: number) => ({ ...l, percentual: pct.format(i === n - 1 ? ultima : parte) })) }));
+        },
+        totalPctObra: `${pct.format(Math.round(somaPctObra * 10_000) / 10_000)}%`,
+        somaObraOk,
+        semObra: obrasPreenchidas.length === 0,
+
         // anexos
         nomePrincipal: s.ntArquivo?.name || '',
         descricaoPrincipal,
@@ -502,7 +647,7 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
         cadastrando: busy === 'cadastrar',
         cadastrar,
         voltar: () => { if (busy !== 'cadastrar') set({ ntEtapa: 'envio', ntAnalise: null, ntErro: '' }); },
-        resumo: `${fmtMoeda(valor)} em ${Number.isInteger(parcelas) && parcelas > 0 ? parcelas : '—'}x · vencimento ${fmtData(cab.vencimento)} · ${aprop.length} apropriaç${aprop.length === 1 ? 'ão' : 'ões'} · ${anexos.length + 1} anexo${anexos.length ? 's' : ''}`,
+        resumo: `${fmtMoeda(valor)} em ${Number.isInteger(parcelas) && parcelas > 0 ? parcelas : '—'}x · vencimento ${fmtData(cab.vencimento)} · ${aprop.length} apropriaç${aprop.length === 1 ? 'ão' : 'ões'}${obrasPreenchidas.length ? ` + ${obrasPreenchidas.length} de obra` : ' · sem obra'} · ${anexos.length + 1} anexo${anexos.length ? 's' : ''}`,
       } : null,
 
       // 3. concluído

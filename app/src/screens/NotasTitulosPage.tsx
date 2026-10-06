@@ -176,6 +176,9 @@ function Historico({ nt }: { nt: any }) {
                         {r.apropriacoes.map((a: string) => (
                           <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: '#F4F4F6', color: '#374151', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
                         ))}
+                        {r.apropriacoesObra.map((a: string) => (
+                          <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: '#EEF2FF', color: '#3148B8', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
+                        ))}
                       </div>
                       {r.detalhes.length ? <Alerta tom="aviso" titulo="Pendências para ajuste manual no Sienge" itens={r.detalhes} /> : (
                         <div style={{ fontSize: '12px', color: '#1F7A5C' }}>Sem pendências: título, apropriações e anexos gravados.</div>
@@ -354,6 +357,8 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
         </div>
       </Secao>
 
+      <ApropriacaoObra c={c} />
+
       <Anexos c={c} />
 
       <section style={css(`${card};padding:16px 20px;display:flex;flex-direction:column;gap:12px;${anim(200)}`)}>
@@ -372,6 +377,97 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
         </div>
       </section>
     </>
+  );
+}
+
+function ApropriacaoObra({ c }: { c: any }) {
+  const grid = 'grid-template-columns:minmax(170px,1fr) minmax(190px,1.1fr) minmax(240px,1.6fr) 100px 120px 64px';
+  const nota = { fontSize: '11px', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' } as const;
+  return (
+    <Secao
+      titulo="Apropriação de obra"
+      sub="Obra, unidade construtiva e item do orçamento do Sienge. Opcional: deixe a linha em branco se o título não é de obra. Os percentuais devem somar 100%."
+      acoes={<>
+        <button onClick={c.dividirObra} style={css(btnSec)} className={hv(btnSecHover, undefined, undefined)}>Dividir igualmente</button>
+        <button onClick={c.adicionarObra} disabled={!c.podeAdicionarObra} style={css(btnSec + (c.podeAdicionarObra ? '' : off))} className={c.podeAdicionarObra ? hv(btnSecHover, undefined, undefined) : undefined}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path></svg>
+          Adicionar linha
+        </button>
+      </>}
+      delay={150}
+    >
+      {c.apropriacoesObra.length ? (
+        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+          <div style={{ overflowX: 'auto' }}>
+            <div style={{ minWidth: '900px' }}>
+              <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 14px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+                <div style={colHead}>Obra</div>
+                <div style={colHead}>Unidade construtiva</div>
+                <div style={colHead}>Item do orçamento</div>
+                <div style={{ ...colHead, textAlign: 'right' }}>Percentual</div>
+                <div style={{ ...colHead, textAlign: 'right' }}>Valor</div>
+                <div></div>
+              </div>
+              {c.apropriacoesObra.map((a: any, i: number) => (
+                <div key={a.id} style={css(`display:grid;${grid};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}animation:rowIn .25s ease-out both`)}>
+                  <div style={{ minWidth: 0 }}>
+                    <Sugestoes value={a.obra} onChange={a.onObra} opcoes={c.obrasOpcoes} inputMode="numeric" placeholder="Código da obra" ariaLabel={`Obra da linha ${i + 1}`} />
+                    {a.obraErro ? (
+                      <div style={{ ...nota, color: '#DC2626' }} title={a.obraErro}>
+                        {a.recarregarObra ? <button onClick={a.recarregarObra} style={css(link + ';font-size:11px')}>tentar de novo</button> : null}
+                      </div>
+                    ) : a.usarSugerida ? (
+                      <div style={{ ...nota, color: '#94A3B8' }}>
+                        <button onClick={a.usarSugerida} style={css(link + ';font-size:11px')}>usar a obra {a.sugerida}</button> (centro de custo)
+                      </div>
+                    ) : (
+                      <div style={{ ...nota, color: a.obraNome ? '#1F7A5C' : '#94A3B8' }} title={a.obraNome}>{a.obraNome || 'Digite ou escolha o código'}</div>
+                    )}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <select value={a.unidade} onChange={a.onUnidade} disabled={a.unidadeDesabilitada} aria-label={`Unidade construtiva da linha ${i + 1}`}
+                      style={css(input + `;height:34px;cursor:${a.unidadeDesabilitada ? 'not-allowed' : 'pointer'}${a.unidadeDesabilitada ? ';background:#FAFAFB' : ''}`)}>
+                      <option value="">{a.unidadeDesabilitada ? '—' : 'Escolha a unidade'}</option>
+                      {a.unidadesOpcoes.map((u: any) => <option key={u.value} value={u.value}>{u.label}</option>)}
+                    </select>
+                    {a.unidadeDica ? <div style={{ ...nota, color: '#92590A' }}>{a.unidadeDica}</div> : null}
+                  </div>
+                  <div style={{ minWidth: 0 }}>
+                    <Sugestoes value={a.item} onChange={a.onItem} opcoes={a.itensOpcoes} porNome padraoCodigo={/^[\d.]*$/} disabled={a.itemDesabilitado}
+                      placeholder={a.itemDesabilitado ? 'Escolha a obra e a unidade' : 'Buscar pelo nome ou código'} ariaLabel={`Item do orçamento da linha ${i + 1}`} />
+                    <div style={{ ...nota, color: a.item && a.itemNome && !a.problema ? '#1F7A5C' : '#94A3B8' }} title={a.itemNome}>
+                      {a.recarregarItens ? <button onClick={a.recarregarItens} style={css(link + ';font-size:11px')}>tentar de novo</button> : a.itemNome}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
+                    <span style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
+                      <input value={a.percentual} onChange={a.onPercentual} inputMode="decimal" aria-label={`Percentual da obra na linha ${i + 1}`} aria-invalid={a.problema ? true : undefined}
+                        style={css(input + `;height:34px;text-align:right;padding-right:24px;font-variant-numeric:tabular-nums;border-color:${a.problema ? '#FCA5A5' : '#E7E7EA'}`)} />
+                      <span style={{ position: 'absolute', right: '10px', fontSize: '12px', color: '#94A3B8', pointerEvents: 'none' }}>%</span>
+                    </span>
+                  </div>
+                  <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: '#111827', fontVariantNumeric: 'tabular-nums', paddingTop: '9px' }}>{a.valor}</div>
+                  <div style={{ textAlign: 'right', paddingTop: '9px' }}>
+                    <button onClick={a.remover} style={css(link + ';color:#EF4444')}>remover</button>
+                  </div>
+                  {a.problema ? <div style={{ gridColumn: '1 / -1', marginTop: '-4px', fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{a.problema}</div> : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+      {c.semObra ? (
+        <div style={{ fontSize: '12px', color: '#92590A', lineHeight: 1.5 }}>
+          Sem apropriação de obra: o título vai para o Sienge só com a apropriação financeira. Se o plano financeiro exige obra, o Sienge vai pedir a apropriação no título.
+        </div>
+      ) : (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px' }}>
+          <span style={colHead}>Total apropriado em obra</span>
+          <Chip tom={c.somaObraOk ? 'ok' : 'aviso'}>{c.totalPctObra}</Chip>
+        </div>
+      )}
+    </Secao>
   );
 }
 

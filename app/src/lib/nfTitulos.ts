@@ -36,6 +36,17 @@ export interface AnaliseTitulo {
 }
 
 export interface Apropriacao { centroCustoId: number; planoFinanceiroId: string; percentual: number }
+/** Apropriação de obra: item do orçamento com máscara (ex.: 01.004.002.001). */
+export interface ApropriacaoObra { obraId: number; unidadeId: number; itemId: string; percentual: number }
+
+/** Resposta de "titulo_orcamento": unidades construtivas da obra e, com a unidade, os itens apropriáveis. */
+export interface OrcamentoObra {
+  obraId: number;
+  obraNome: string | null;
+  unidades: { id: number; nome: string; bloqueada: boolean }[];
+  unidadeId: number | null;
+  itens: { codigo: string; nome: string; unidadeMedida: string | null }[];
+}
 
 /** Corpo de "titulo_cadastrar". Sem vencimentoManual, o servidor usa hoje + 17 dias. */
 export interface TituloCorpo {
@@ -52,6 +63,7 @@ export interface TituloCorpo {
   desconto: number;
   observacao: string;
   apropriacoes: Apropriacao[];
+  apropriacoesObra: ApropriacaoObra[];
   pdfBase64: string;
   nomeArquivo: string;
   descricaoAnexo: string;
@@ -83,6 +95,7 @@ export interface NfTitulo {
   empresa_nome: string | null;
   bill_id: number | null;
   apropriacoes: { costCenterId: number; paymentCategoriesId: string; percentage: number }[];
+  apropriacoes_obra: { buildingId: number; buildingUnitId: number; costEstimationSheetId: string; percentage: number }[] | null;
   avisos: string[];
   anexos: { descricao: string; nome: string; ok: boolean; erro?: string }[];
 }
@@ -94,7 +107,7 @@ export const titulosApi = {
   historico: async (): Promise<NfTitulo[]> => {
     if (!supabase) return demo.historico.slice();
     const { data, error } = await supabase.from('app_nf_titulos')
-      .select('id, criado_em, criado_por_email, tipo_documento, documento_sienge, numero, data_emissao, data_competencia, vencimento, parcelas, valor, desconto, fornecedor_nome, empresa_nome, bill_id, apropriacoes, avisos, anexos')
+      .select('id, criado_em, criado_por_email, tipo_documento, documento_sienge, numero, data_emissao, data_competencia, vencimento, parcelas, valor, desconto, fornecedor_nome, empresa_nome, bill_id, apropriacoes, apropriacoes_obra, avisos, anexos')
       .order('criado_em', { ascending: false }).limit(500);
     if (error) throw new Error(error.message);
     return data as NfTitulo[];
@@ -104,6 +117,9 @@ export const titulosApi = {
   /** Refaz a análise com a empresa informada pelo usuário (código no Sienge), sem reler o PDF. */
   empresa: (documento: DocumentoLido, empresaId: number) =>
     supabase ? fn<AnaliseTitulo>('titulo_empresa', { documento, empresaId }) : demo.espera(demo.analise(empresaId)),
+  /** Unidades construtivas do orçamento da obra; com a unidade, também os itens do orçamento. */
+  orcamento: (obraId: number, unidadeId?: number | null) =>
+    supabase ? fn<OrcamentoObra>('titulo_orcamento', { obraId, unidadeId: unidadeId || undefined }) : demo.espera(demo.orcamento(obraId, unidadeId)),
   liberarVencimento: (senha: string) => supabase ? fn<{ ok: true }>('liberar_vencimento', { senha }) : demo.espera({ ok: true as const }),
   cadastrar: (corpo: TituloCorpo) => supabase ? fn<TituloResultado>('titulo_cadastrar', corpo as any) : demo.espera(demo.cadastrar(corpo)),
   /** Um anexo por chamada, depois que o Sienge gerou o título. */
@@ -128,8 +144,8 @@ const demo = {
     return new Promise(res => setTimeout(() => res(valor), 700));
   },
   historico: [
-    { id: 'tp1', criado_em: '2026-10-02T13:20:00Z', criado_por_email: 'camila.ribeiro@horizonte.com.br', tipo_documento: 'FATURA', documento_sienge: 'FAT', numero: '884512', data_emissao: '2026-09-28', data_competencia: '2026-09-28', vencimento: '2026-10-19', parcelas: 1, valor: 2140.37, desconto: 0, fornecedor_nome: 'Equatorial Energia Goiás', empresa_nome: 'B2 Gestão e Operações', bill_id: 90310, apropriacoes: [{ costCenterId: 101, paymentCategoriesId: '201030101', percentage: 100 }], avisos: [], anexos: [{ descricao: 'FAT', nome: 'fatura-energia.pdf', ok: true }] },
-    { id: 'tp2', criado_em: '2026-09-30T17:45:00Z', criado_por_email: 'rafael.andrade@horizonte.com.br', tipo_documento: 'NFSE', documento_sienge: 'NFSE', numero: '3104', data_emissao: '2026-09-29', data_competencia: '2026-09-01', vencimento: '2026-10-17', parcelas: 3, valor: 9600, desconto: 0, fornecedor_nome: 'Contabilidade Alfa Ltda', empresa_nome: 'SPE Jataí I – Libertá', bill_id: 90288, apropriacoes: [{ costCenterId: 190, paymentCategoriesId: '201040102', percentage: 60 }, { costCenterId: 191, paymentCategoriesId: '201040102', percentage: 40 }], avisos: ['Não foi possível anexar o PDF ao título 90288: arquivo recusado pelo Sienge.'], anexos: [{ descricao: 'NFS', nome: 'nfse-3104.pdf', ok: false, erro: 'arquivo recusado pelo Sienge' }] },
+    { id: 'tp1', criado_em: '2026-10-02T13:20:00Z', criado_por_email: 'camila.ribeiro@horizonte.com.br', tipo_documento: 'FATURA', documento_sienge: 'FAT', numero: '884512', data_emissao: '2026-09-28', data_competencia: '2026-09-28', vencimento: '2026-10-19', parcelas: 1, valor: 2140.37, desconto: 0, fornecedor_nome: 'Equatorial Energia Goiás', empresa_nome: 'B2 Gestão e Operações', bill_id: 90310, apropriacoes: [{ costCenterId: 101, paymentCategoriesId: '201030101', percentage: 100 }], apropriacoes_obra: [], avisos: [], anexos: [{ descricao: 'FAT', nome: 'fatura-energia.pdf', ok: true }] },
+    { id: 'tp2', criado_em: '2026-09-30T17:45:00Z', criado_por_email: 'rafael.andrade@horizonte.com.br', tipo_documento: 'NFSE', documento_sienge: 'NFSE', numero: '3104', data_emissao: '2026-09-29', data_competencia: '2026-09-01', vencimento: '2026-10-17', parcelas: 3, valor: 9600, desconto: 0, fornecedor_nome: 'Contabilidade Alfa Ltda', empresa_nome: 'SPE Jataí I – Libertá', bill_id: 90288, apropriacoes: [{ costCenterId: 190, paymentCategoriesId: '201040102', percentage: 60 }, { costCenterId: 191, paymentCategoriesId: '201040102', percentage: 40 }], apropriacoes_obra: [{ buildingId: 190, buildingUnitId: 1, costEstimationSheetId: '01.004.002.001', percentage: 100 }], avisos: ['Não foi possível anexar o PDF ao título 90288: arquivo recusado pelo Sienge.'], anexos: [{ descricao: 'NFS', nome: 'nfse-3104.pdf', ok: false, erro: 'arquivo recusado pelo Sienge' }] },
   ] as NfTitulo[],
   documento(): DocumentoLido {
     return {
@@ -163,6 +179,15 @@ const demo = {
       avisos: empresaId ? [`Empresa informada manualmente: ${empresaId}.`] : [],
     };
   },
+  orcamento(obraId: number, unidadeId?: number | null): OrcamentoObra {
+    const unidades = [{ id: 1, nome: 'CUSTOS INDIRETOS DE OBRA', bloqueada: false }, { id: 2, nome: 'CUSTOS DIRETOS DE OBRA', bloqueada: false }, { id: 3, nome: 'DESPESAS ADMINISTRATIVAS', bloqueada: true }];
+    const itens = unidadeId ? [
+      { codigo: '01.003.002.001', nome: 'Assessoria contábil', unidadeMedida: 'vb' }, { codigo: '01.004.002.001', nome: 'Energia elétrica do canteiro', unidadeMedida: 'mês' },
+      { codigo: '01.018', nome: 'Taxas e emolumentos', unidadeMedida: 'vb' }, { codigo: '03.001.003', nome: 'Concreto usinado fck 30', unidadeMedida: 'm³' },
+      { codigo: '05.001.007', nome: 'Alvenaria de vedação', unidadeMedida: 'm²' },
+    ] : [];
+    return { obraId, obraNome: `Obra ${obraId}`, unidades, unidadeId: unidadeId ?? null, itens };
+  },
   cadastrar(corpo: TituloCorpo): TituloResultado {
     const billId = 90400 + demo.historico.length;
     demo.historico.unshift({
@@ -171,6 +196,7 @@ const demo = {
       data_competencia: corpo.dataCompetencia, vencimento: corpo.vencimentoManual?.data || somar(hoje(), 17), parcelas: corpo.parcelas,
       valor: corpo.valor, desconto: corpo.desconto, fornecedor_nome: 'Contabilidade Alfa Ltda', empresa_nome: 'SPE Jataí I – Libertá', bill_id: billId,
       apropriacoes: corpo.apropriacoes.map(a => ({ costCenterId: a.centroCustoId, paymentCategoriesId: a.planoFinanceiroId, percentage: a.percentual })),
+      apropriacoes_obra: corpo.apropriacoesObra.map(a => ({ buildingId: a.obraId, buildingUnitId: a.unidadeId, costEstimationSheetId: a.itemId, percentage: a.percentual })),
       avisos: [], anexos: [{ descricao: corpo.descricaoAnexo, nome: corpo.nomeArquivo, ok: true }],
     });
     return { billId, message: `Título ${billId} cadastrado com sucesso no contas a pagar.`, avisos: [], tituloId: null };
