@@ -446,6 +446,24 @@ export function buscarNotaFiscal(sequentialNumber: number): Promise<NotaFiscalRe
   return siengeGetOpcional<NotaFiscalResumo>(`/v1/purchase-invoices/${sequentialNumber}`);
 }
 
+/** Código que o Sienge devolve (em vez de 404) quando a nota do sequencial informado não existe mais. */
+const CODIGO_NOTA_INEXISTENTE = "purchase.invoice.invalid.id";
+
+/**
+ * Para a sincronização: null só quando o Sienge diz que a nota não existe (404 ou o código acima).
+ * Rede, 5xx, 401, 429 e qualquer outro erro continuam lançando, para nunca marcar nota como excluída por engano.
+ */
+export async function buscarNotaFiscalParaSincronizar(sequentialNumber: number): Promise<NotaFiscalResumo | null> {
+  try {
+    return await buscarNotaFiscal(sequentialNumber);
+  } catch (erro) {
+    if (erro instanceof ErroHttpSienge && erro.status > 0 && erro.status < 500 && JSON.stringify([erro.message, erro.corpo]).includes(CODIGO_NOTA_INEXISTENTE)) {
+      return null;
+    }
+    throw erro;
+  }
+}
+
 export async function criarNotaFiscal(cabecalho: CabecalhoNotaFiscal): Promise<NotaFiscalResumo> {
   return (await requisitar("POST", "/v1/purchase-invoices", { corpo: { json: cabecalho } })) as NotaFiscalResumo;
 }
