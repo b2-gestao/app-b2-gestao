@@ -454,9 +454,6 @@ export async function buscarNotaFiscal(sequentialNumber: number): Promise<NotaFi
   }
 }
 
-/** Código que o Sienge devolve (em vez de 404) quando a nota do sequencial informado não existe mais. */
-const CODIGO_NOTA_INEXISTENTE = "purchase.invoice.invalid.id";
-
 /**
  * Para a sincronização: null só quando o Sienge diz que a nota não existe (404 ou o código acima).
  * Rede, 5xx, 401, 429 e qualquer outro erro continuam lançando, para nunca marcar nota como excluída por engano.
@@ -579,7 +576,10 @@ export async function criarTitulo(titulo: NovoTitulo): Promise<number | null> {
   return Number.isInteger(doCorpo) && doCorpo > 0 ? doCorpo : idDoLocation(headers);
 }
 
-/** GET /v1/bills: o período (startDate/endDate) é obrigatório na API. */
+/**
+ * GET /v1/bills: o período (startDate/endDate) é obrigatório na API.
+ * Sem nenhum título no filtro o Sienge responde 404 "Resource not found" em vez de lista vazia.
+ */
 export async function listarTitulos(filtros: {
   startDate: string;
   endDate: string;
@@ -587,7 +587,7 @@ export async function listarTitulos(filtros: {
   debtorId?: number;
   documentNumber: string;
 }): Promise<TituloResumo[]> {
-  const resposta = await siengeGet<RespostaPaginada<TituloResumo>>("/v1/bills", {
+  const resposta = await siengeGetOpcional<RespostaPaginada<TituloResumo>>("/v1/bills", {
     startDate: filtros.startDate,
     endDate: filtros.endDate,
     creditorId: filtros.creditorId,
@@ -595,7 +595,7 @@ export async function listarTitulos(filtros: {
     documentNumber: filtros.documentNumber,
     limit: LIMITE_PAGINA,
   });
-  return resposta.results ?? [];
+  return resposta?.results ?? [];
 }
 
 export function buscarPlanoFinanceiro(id: string): Promise<PlanoFinanceiro | null> {
