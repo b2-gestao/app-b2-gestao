@@ -108,6 +108,7 @@ export const titulosApi = {
     if (!supabase) return demo.historico.slice();
     const { data, error } = await supabase.from('app_nf_titulos')
       .select('id, criado_em, criado_por_email, tipo_documento, documento_sienge, numero, data_emissao, data_competencia, vencimento, parcelas, valor, desconto, fornecedor_nome, empresa_nome, bill_id, apropriacoes, apropriacoes_obra, avisos, anexos')
+      .is('excluida_no_sienge_em', null) // excluídos no Sienge ficam ocultos (o registro permanece para auditoria)
       .order('criado_em', { ascending: false }).limit(500);
     if (error) throw new Error(error.message);
     return data as NfTitulo[];

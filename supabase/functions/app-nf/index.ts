@@ -39,7 +39,7 @@
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, buscarNotaFiscalParaSincronizar, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
+import { ErroAplicacao, ErroHttpSienge, senhaVencimento, anexarNoTitulo, buscarNotaFiscalParaSincronizar, buscarTitulo, configSienge, DIAS_VENCIMENTO } from "./sienge.ts";
 import type { TipoDocumento } from "./sienge.ts";
 import { extrairDocumento, notaFiscalExtraidaSchema, TIPOS_DOCUMENTO } from "./extracao.ts";
 import {
@@ -478,13 +478,20 @@ async function segredoSincronizacao(): Promise<string | null> {
 const LOTE_SINCRONIZACAO = 100;
 const PARALELO_SINCRONIZACAO = 5;
 
+type Resultado = { verificadas: number; excluidas: number; falhas: number };
+
+/** Confere as linhas em grupos, com poucas consultas simultâneas ao Sienge (respeita o limite de requisições). */
+async function conferirEmLotes<T>(linhas: T[], conferir: (linha: T) => Promise<void>): Promise<void> {
+  for (let i = 0; i < linhas.length; i += PARALELO_SINCRONIZACAO) {
+    await Promise.all(linhas.slice(i, i + PARALELO_SINCRONIZACAO).map(conferir));
+  }
+}
+
 /**
  * Confere no Sienge se as notas do histórico ainda existem, das menos recentemente verificadas
  * para as mais. Só o 404 ou o código invalid.id do Sienge marca a nota como excluída; erro de rede ou do Sienge nunca marca.
  */
-async function sincronizar(): Promise<{ verificadas: number; excluidas: number; falhas: number }> {
-  const banco = admin;
-  if (!banco) throw new ErroAplicacao("configuracao_invalida", "SUPABASE_SERVICE_ROLE_KEY não configurada.", 500);
+async function sincronizarNotas(banco: NonNullable<typeof admin>): Promise<Resultado> {
   const { data: linhas, error } = await banco.from("app_nf_cadastros")
     .select("id, sequencial, bill_id")
     .is("excluida_no_sienge_em", null)
@@ -492,8 +499,8 @@ async function sincronizar(): Promise<{ verificadas: number; excluidas: number; 
     .limit(LOTE_SINCRONIZACAO);
   if (error) throw new Error(error.message);
 
-  const resultado = { verificadas: 0, excluidas: 0, falhas: 0 };
-  const conferir = async (linha: { id: string; sequencial: number; bill_id: number | null }) => {
+  const resultado: Resultado = { verificadas: 0, excluidas: 0, falhas: 0 };
+  await conferirEmLotes(linhas ?? [], async (linha: { id: string; sequencial: number; bill_id: number | null }) => {
     try {
       const nota = await buscarNotaFiscalParaSincronizar(linha.sequencial);
       const agora = new Date().toISOString();
@@ -508,11 +515,45 @@ async function sincronizar(): Promise<{ verificadas: number; excluidas: number; 
       resultado.falhas++;
       console.error("app-nf sincronizar:", linha.sequencial, erro instanceof Error ? erro.message : erro);
     }
-  };
-  for (let i = 0; i < (linhas ?? []).length; i += PARALELO_SINCRONIZACAO) {
-    await Promise.all((linhas ?? []).slice(i, i + PARALELO_SINCRONIZACAO).map(conferir));
-  }
+  });
   return resultado;
+}
+
+/** Igual a sincronizarNotas, para os títulos a pagar cadastrados pelo app (só o 404 do Sienge marca como excluído). */
+async function sincronizarTitulos(banco: NonNullable<typeof admin>): Promise<Resultado> {
+  const { data: linhas, error } = await banco.from("app_nf_titulos")
+    .select("id, bill_id")
+    .is("excluida_no_sienge_em", null)
+    .not("bill_id", "is", null)
+    .order("verificada_em", { ascending: true, nullsFirst: true })
+    .limit(LOTE_SINCRONIZACAO);
+  if (error) throw new Error(error.message);
+
+  const resultado: Resultado = { verificadas: 0, excluidas: 0, falhas: 0 };
+  await conferirEmLotes(linhas ?? [], async (linha: { id: string; bill_id: number }) => {
+    try {
+      const titulo = await buscarTitulo(linha.bill_id);
+      const agora = new Date().toISOString();
+      const alteracao: Record<string, unknown> = { verificada_em: agora };
+      if (!titulo) alteracao.excluida_no_sienge_em = agora;
+      const { error: erroUpdate } = await banco.from("app_nf_titulos").update(alteracao).eq("id", linha.id);
+      if (erroUpdate) throw new Error(erroUpdate.message);
+      resultado.verificadas++;
+      if (!titulo) resultado.excluidas++;
+    } catch (erro) {
+      resultado.falhas++;
+      console.error("app-nf sincronizar título:", linha.bill_id, erro instanceof Error ? erro.message : erro);
+    }
+  });
+  return resultado;
+}
+
+async function sincronizar(): Promise<Resultado & { titulos: Resultado }> {
+  const banco = admin;
+  if (!banco) throw new ErroAplicacao("configuracao_invalida", "SUPABASE_SERVICE_ROLE_KEY não configurada.", 500);
+  const notas = await sincronizarNotas(banco);
+  const titulos = await sincronizarTitulos(banco);
+  return { ...notas, titulos };
 }
 
 Deno.serve(async (req) => {

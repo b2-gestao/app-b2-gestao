@@ -587,6 +587,14 @@ export async function criarTitulo(titulo: NovoTitulo): Promise<number | null> {
 }
 
 /**
+ * GET /v1/bills/{billId}, para a sincronização: null só quando o Sienge responde 404 (título excluído).
+ * Rede, 5xx, 401, 429 e qualquer outro erro lançam, para nunca marcar um título como excluído por engano.
+ */
+export function buscarTitulo(billId: number): Promise<{ id?: number } | null> {
+  return siengeGetOpcional<{ id?: number }>(`/v1/bills/${billId}`);
+}
+
+/**
  * GET /v1/bills: o período (startDate/endDate) é obrigatório na API.
  * Sem nenhum título no filtro o Sienge responde 404 "Resource not found" em vez de lista vazia.
  */
