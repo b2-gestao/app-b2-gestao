@@ -275,7 +275,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     },
 
     toastMsg: s.toastMsg,
-    toastStyle: `display:${s.toastMsg ? 'flex' : 'none'};align-items:center;gap:9px;position:fixed;left:50%;bottom:28px;z-index:70;padding:11px 16px;border-radius:10px;background:#111827;color:#FFFFFF;font-size:12.5px;font-weight:500;box-shadow:0 18px 40px rgba(9,10,16,.34);animation:toastIn .22s ease-out both;max-width:min(560px,86vw)`,
+    toastStyle: `display:${s.toastMsg ? 'flex' : 'none'};align-items:center;gap:9px;position:fixed;left:50%;bottom:28px;z-index:300;padding:11px 16px;border-radius:10px;background:#111827;color:#FFFFFF;font-size:12.5px;font-weight:500;box-shadow:0 18px 40px rgba(9,10,16,.34);animation:toastIn .22s ease-out both;max-width:min(560px,86vw)`,
 
     iaOpenProg: () => { this.setState({ iaPanel: 'prog' }); this.askIa('prog'); },
     iaOpenFluxo: () => { this.setState({ iaPanel: 'fluxo' }); this.askIa('fluxo'); },

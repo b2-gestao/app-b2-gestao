@@ -47,7 +47,7 @@ const NIVEL: Record<string, { cor: readonly [number, number, number]; fundo: rea
   positivo: { cor: [67, 185, 151], fundo: [225, 247, 239], nome: 'POSITIVO' },
 };
 
-const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const f2 = (v: number) => (Number.isFinite(Number(v)) ? Number(v) : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 // As fontes padrão do PDF só têm Latin-1: troca aspas curvas, travessões e afins.
 const txt = (s: string) => String(s ?? '')
   .replace(/[‘’]/g, "'").replace(/[“”]/g, '"')
