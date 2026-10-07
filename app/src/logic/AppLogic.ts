@@ -582,7 +582,7 @@ export class AppLogic extends Component<any, any> {
       this.toast('PDF da análise gerado.');
     } catch (e: any) {
       console.error('PDF da análise:', e);
-      this.toast('Não foi possível gerar o PDF.');
+      this.toast(`Não foi possível gerar o PDF: ${e?.message || 'erro desconhecido'}`);
     } finally {
       this.setState({ iaPdfBusy: false });
     }

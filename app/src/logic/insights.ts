@@ -233,7 +233,7 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
   const { groups } = progLiveGroups.call(app);
   const sel: string[] | undefined = s.pgEmpSel;
   const gs = sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups;
-  const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const f2 = (v: number) => (Number.isFinite(Number(v)) ? Number(v) : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   let totSaldo = 0, totTit = 0, totMan = 0, totAporte = 0;
   const linhas = gs.map((g: any) => {
@@ -287,7 +287,7 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
 
 export function relatorioFluxo(app: AppLogic): RelatorioIaFluxo {
   const L = fluxoLive.call(app);
-  const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const f2 = (v: number) => (Number.isFinite(Number(v)) ? Number(v) : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const soma = (xs: number[]) => xs.reduce((t, v) => t + v, 0);
   const n = L.days.length;
   // Lançamentos manuais entram como entrada (+) ou saída (-); pagamentos são sempre saída.
