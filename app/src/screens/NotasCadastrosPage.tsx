@@ -384,11 +384,6 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
           <Campo rotulo="Data de movimento *"><input type="date" value={c.dataMovimento} onChange={c.onDataMovimento} style={css(input)} /></Campo>
           <Vencimento c={c} />
           <Campo rotulo="Pedido de compra"><Leitura valor={c.pedido} detalhe={c.pedidoObra} /></Campo>
-          {c.avaliacao ? (
-            <Campo rotulo="Avaliação do fornecedor" dica="Gravada no pedido ao salvar a nota, em todos os critérios">
-              <Leitura valor={c.avaliacao} detalhe={c.avaliacaoDetalhe} />
-            </Campo>
-          ) : null}
           <Campo rotulo="Centro de custo *" dica={c.centroNome ? <span style={{ color: '#1F7A5C' }}>{c.centroNome}</span> : 'Precisa ser o mesmo centro de custo do pedido de compra'}>
             <input value={c.centro} onChange={c.onCentro} inputMode="numeric" placeholder="Código do centro de custo" style={css(input)} />
           </Campo>

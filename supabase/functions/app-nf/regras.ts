@@ -6,10 +6,8 @@
 import {
   alterarVencimento,
   anexarNoTitulo,
-  avaliarFornecedor,
   buscarCredor,
   buscarCredorPorDocumento,
-  buscarCriteriosAvaliacao,
   buscarDocumento,
   buscarEmpreendimento,
   buscarNotaFiscal,
@@ -28,7 +26,7 @@ import {
   toleranciaValor,
   vincularEntregas,
 } from "./sienge.ts";
-import type { CriteriosAvaliacao, Empreendimento, Empresa, EntregaPrevista, EntregaVinculada, FormatoPedido, PedidoCompra, TipoDocumento } from "./sienge.ts";
+import type { Empreendimento, Empresa, EntregaPrevista, EntregaVinculada, FormatoPedido, PedidoCompra, TipoDocumento } from "./sienge.ts";
 import type { NotaFiscalExtraida } from "./extracao.ts";
 
 // ---------- contratos com a tela ----------
@@ -135,15 +133,8 @@ export interface PreviewNota {
   criterioSelecao: CriterioSelecao;
   /** Edição manual do vencimento disponível (segredo NF_SENHA_VENCIMENTO configurado). */
   vencimentoEditavel: boolean;
-  /** Avaliação do fornecedor gravada no pedido junto com a nota; null quando o pedido não tem critérios. */
-  avaliacao: AvaliacaoPreview | null;
   bloqueios: string[];
   avisos: string[];
-}
-
-export interface AvaliacaoPreview {
-  nota: number;
-  criterios: string[];
 }
 
 export interface ConfirmacaoRequest {
@@ -666,40 +657,6 @@ export async function buscarPedidosDoDocumento(documento: DocumentoLido, empresa
   return { documento, fornecedor, empresa, pedidos, pedidosOutraEmpresa: outraEmpresa, bloqueios, avisos, empresaNaoLocalizada };
 }
 
-// ---------- avaliação do fornecedor ----------
-
-/** Nota dada a todos os critérios, sem o usuário digitar. */
-const NOTA_AVALIACAO_PADRAO = 8;
-
-interface AvaliacaoPadrao {
-  nota: number;
-  criterios: Array<{ id: number; descricao: string }>;
-}
-
-/** Nota padrão em todos os critérios do pedido, ajustada à faixa aceita pelo Sienge. */
-function avaliacaoPadrao(criterios: CriteriosAvaliacao | null): AvaliacaoPadrao | null {
-  const lista = criterios?.defaultList?.length ? criterios.defaultList : (criterios?.remainderList ?? []);
-  if (!lista.length) return null;
-  let nota = NOTA_AVALIACAO_PADRAO;
-  if (typeof criterios?.rangeMax === "number") nota = Math.min(nota, criterios.rangeMax);
-  if (typeof criterios?.rangeMin === "number") nota = Math.max(nota, criterios.rangeMin);
-  return { nota, criterios: lista.map((c) => ({ id: c.id, descricao: c.description ?? `Critério ${c.id}` })) };
-}
-
-async function avaliarPedido(purchaseOrderId: number, numeroNota: string): Promise<string | null> {
-  try {
-    const avaliacao = avaliacaoPadrao(await buscarCriteriosAvaliacao(purchaseOrderId));
-    if (!avaliacao) return null;
-    await avaliarFornecedor(purchaseOrderId, {
-      notes: `Avaliação automática (nota ${avaliacao.nota}) no cadastro do documento ${numeroNota}. Cadastrado via Externo.`,
-      evaluatedCriteria: avaliacao.criterios.map((c) => ({ criterionId: c.id, value: avaliacao.nota })),
-    });
-    return null;
-  } catch (causa) {
-    return `Não foi possível gravar a avaliação do fornecedor no pedido: ${mensagem(causa)}`;
-  }
-}
-
 // ---------- pré-visualização ----------
 
 /** Recebe o documento já lido na análise: o PDF não é lido de novo ao escolher o pedido. */
@@ -715,14 +672,11 @@ export async function montarPreview(entrada: {
   const numeroPedido = normalizarNumeroPedido(entrada.purchaseOrderId, config.formatoPedido);
   const pedido = await carregarPedido(numeroPedido);
 
-  const [{ itens: itensPedido }, obra, partes, criteriosAvaliacao] = await Promise.all([
+  const [{ itens: itensPedido }, obra, partes] = await Promise.all([
     carregarItensComSaldo(pedido.id),
     pedido.buildingId ? buscarEmpreendimento(pedido.buildingId) : Promise.resolve(null),
     identificarPartes(documento, entrada.empresaId),
-    // A avaliação não impede o cadastro: sem critérios (ou com erro), a nota segue sem ela.
-    buscarCriteriosAvaliacao(pedido.id).catch(() => null),
   ]);
-  const avaliacao = avaliacaoPadrao(criteriosAvaliacao);
 
   const tipo = documento.tipoDocumento;
   const { empresa } = partes;
@@ -833,7 +787,6 @@ export async function montarPreview(entrada: {
     vinculos,
     criterioSelecao: criterio,
     vencimentoEditavel: entrada.vencimentoEditavel,
-    avaliacao: avaliacao ? { nota: avaliacao.nota, criterios: avaliacao.criterios.map((c) => c.descricao) } : null,
     bloqueios,
     avisos,
   };
@@ -962,9 +915,6 @@ export async function confirmarCadastro(
   }
 
   const { billId, avisos } = await ajustarTitulo(sequencial, entrada, pdf);
-  // A nota já está gravada: falha na avaliação vira aviso.
-  const avisoAvaliacao = await avaliarPedido(pedido.id, entrada.cabecalho.numero);
-  if (avisoAvaliacao) avisos.push(avisoAvaliacao);
   return {
     sequentialNumber: sequencial,
     billId,

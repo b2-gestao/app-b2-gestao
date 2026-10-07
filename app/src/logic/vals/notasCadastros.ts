@@ -575,8 +575,6 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
         empresa: preview.empresa ? `${preview.empresa.id} — ${preview.empresa.nome}` : 'Não encontrada',
         empresaCnpj: preview.destinatarioNota.cnpj || preview.empresa?.cnpj || '',
         pedido: preview.pedido.numero,
-        avaliacao: preview.avaliacao ? `Nota ${preview.avaliacao.nota}` : '',
-        avaliacaoDetalhe: preview.avaliacao ? preview.avaliacao.criterios.join(' · ') : '',
         pedidoObra: preview.pedido.obraId ? `Obra ${preview.pedido.obraId} — ${preview.pedido.obraNome ?? ''}` : '',
         valor: fmtMoeda(valorDocumento),
         centro: s.nfCentro || '',
