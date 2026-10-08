@@ -4,7 +4,7 @@
 import { useEffect, useRef } from 'react';
 import { css, hv } from '../dc/runtime';
 import {
-  DocIcon, Spinner, Alerta, Secao, Campo, Leitura, Chip, Resumo, LinhaAnexo, EmpresaModal, Sugestoes,
+  DocIcon, Spinner, Alerta, Secao, Campo, Leitura, Chip, Resumo, LinhaAnexo, EmpresaModal, Sugestoes, ChamadoConferencia,
 } from './nf/ui';
 import { colHead, card, anim, input, btnPrim, btnPrimHover, btnSec, btnSecHover, off, link, TONS } from './nf/estilo';
 
@@ -583,6 +583,7 @@ function Concluido({ nt, r }: { nt: any; r: any }) {
           </div>
         </div>
       ) : null}
+      {r.chamado ? <ChamadoConferencia c={r.chamado} /> : null}
       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
         <button onClick={nt.outra} disabled={r.enviando} style={css(btnPrim + (r.enviando ? off : ''))} className={r.enviando ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
           {r.enviando ? <><Spinner /> Enviando anexos…</> : 'Cadastrar outro título'}

@@ -4,7 +4,7 @@ import {
   lerComoBase64, impressaoDigital, formatarTamanho,
   type TipoDocumento, type PedidoAberto, type PreviewNota, type ConfirmacaoCorpo, type NfCadastro, type ItemNotaPreview,
 } from '../../lib/nf';
-import { tomticketApi, type ChamadoPreparado } from '../../lib/tomticket';
+import { chamadoVals } from './chamadoTomticket';
 
 // Notas Fiscais › Cadastros: histórico (app_nf_cadastros) + assistente de cadastro de nota de
 // compra no Sienge (edge function app-nf), portado do projeto sienge-nf-automatica:
@@ -73,13 +73,6 @@ export const NF_INICIAL = {
 interface EmpresaModalState { codigo: string; erro: string; enviando: boolean }
 /** Modal para digitar o pedido quando nenhum aparece na lista (ex.: nota emitida por filial do credor). */
 interface PedidoModalState { numero: string; erro: string; enviando: boolean }
-
-/** Modal do chamado de conferência do título no TomTicket (null = fechado e ainda não criado). */
-interface ChamadoState {
-  aberto: boolean; carregando: boolean; enviando: boolean; erro: string;
-  dados: ChamadoPreparado | null; categoriaId: string; mensagem: string;
-  criado: boolean; protocolo: string | null;
-}
 
 export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -405,34 +398,6 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
     }
   };
 
-  // ---------- chamado de conferência no TomTicket ----------
-  const chamado: ChamadoState | null = s.nfChamado;
-  const setChamado = (patch: Partial<ChamadoState>) => this.setState(st => ({ nfChamado: { ...st.nfChamado, ...patch } }));
-  const abrirChamado = async (billId: number) => {
-    if (chamado?.carregando) return;
-    set({ nfChamado: { aberto: true, carregando: true, enviando: false, erro: '', dados: null, categoriaId: '', mensagem: '', criado: false, protocolo: null } });
-    try {
-      const dados = await tomticketApi.preparar(billId);
-      setChamado({ carregando: false, dados, categoriaId: dados.categoriaPadraoId || '', mensagem: dados.mensagem });
-    } catch (e: any) {
-      setChamado({ carregando: false, erro: erroDe(e) });
-    }
-  };
-  const criarChamado = async (billId: number) => {
-    const c: ChamadoState | null = this.state.nfChamado;
-    if (!c?.dados || c.enviando) return;
-    if (!c.categoriaId) { setChamado({ erro: 'Escolha a categoria do chamado.' }); return; }
-    if (!c.mensagem.trim()) { setChamado({ erro: 'Escreva a mensagem do chamado.' }); return; }
-    setChamado({ enviando: true, erro: '' });
-    try {
-      const r = await tomticketApi.criar(billId, c.categoriaId, c.mensagem.trim());
-      setChamado({ enviando: false, aberto: false, criado: true, protocolo: r.protocolo });
-      this.toast(r.protocolo ? `Chamado ${r.protocolo} aberto no TomTicket.` : 'Chamado aberto no TomTicket.');
-    } catch (e: any) {
-      setChamado({ enviando: false, erro: erroDe(e) });
-    }
-  };
-
   const papeis = PAPEIS[tipo];
   const resultado = s.nfResultado;
   const envios: EnvioAnexo[] = s.nfEnvios || [];
@@ -697,27 +662,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
           reenviar: () => { if (resultado.billId) anexar(resultado.billId, e, resultado.cadastroId).then(() => this.loadNfHistorico()); },
         })),
         enviando: envios.some(e => e.status === 'pendente' || e.status === 'enviando'),
-        chamado: resultado.billId ? {
-          aberto: !!chamado?.aberto,
-          carregando: !!chamado?.carregando,
-          enviando: !!chamado?.enviando,
-          erro: chamado?.erro || '',
-          criado: !!chamado?.criado,
-          protocolo: chamado?.protocolo || '',
-          email: chamado?.dados?.email || '',
-          clienteEncontrado: chamado?.dados ? chamado.dados.clienteEncontrado : null,
-          departamento: chamado?.dados?.departamento.nome || '',
-          assunto: chamado?.dados?.assunto || '',
-          categorias: chamado?.dados?.categorias || [],
-          categoriaId: chamado?.categoriaId || '',
-          mensagem: chamado?.mensagem || '',
-          pronto: !!chamado?.dados,
-          abrir: () => abrirChamado(resultado.billId),
-          fechar: () => { if (!chamado?.enviando) setChamado({ aberto: false, erro: '' }); },
-          onCategoria: (e: any) => setChamado({ categoriaId: e.target.value, erro: '' }),
-          onMensagem: (e: any) => setChamado({ mensagem: e.target.value, erro: '' }),
-          criar: () => criarChamado(resultado.billId),
-        } : null,
+        chamado: chamadoVals.call(this, 'nfChamado', 'cadastros', resultado.billId),
       } : null,
       outra: () => recomecar({ nfEtapa: 'envio' }),
       verHistorico: () => recomecar(),
