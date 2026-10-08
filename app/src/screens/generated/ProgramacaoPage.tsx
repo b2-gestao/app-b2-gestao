@@ -175,7 +175,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                     Saldo inicial
                   </div>
                   <div style={{ "textAlign": "right" }}>
-                    Títulos Sienge
+                    Títulos a Pagar - Sienge
                   </div>
                   <div style={{ "textAlign": "right" }}>
                     Manuais

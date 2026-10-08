@@ -267,7 +267,7 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
     headline: remote ? remote.headline : rules.headline,
     cards: [
       { label: 'Saldo inicial', val: f2(totSaldo), sub: `${gs.length} empresas · ${gs.filter((g: any) => g.items.length).length} com movimento` },
-      { label: 'Títulos Sienge', val: totTit ? '-' + f2(totTit) : f2(0), sub: 'Parcelas em aberto', tone: totTit ? 'neg' : undefined },
+      { label: 'Títulos a Pagar - Sienge', val: totTit ? '-' + f2(totTit) : f2(0), sub: 'Parcelas em aberto', tone: totTit ? 'neg' : undefined },
       { label: 'Lanç. manuais', val: totMan ? '-' + f2(totMan) : f2(0), sub: 'Entram na programação', tone: totMan ? 'neg' : undefined },
       { label: 'Aporte necessário', val: f2(totAporte), sub: aportes.length ? `${aportes.length} ${aportes.length === 1 ? 'empresa' : 'empresas'} com saldo insuficiente` : 'Nenhuma empresa', tone: totAporte ? 'aporte' : undefined },
       { label: 'Saldo após pagtos.', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do período' },

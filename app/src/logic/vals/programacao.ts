@@ -83,7 +83,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       sub: `Contas ${f2(totContas)} + receber ${f2(totRec)} = ${f2(totSaldo)}`,
       style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#16A34A;font-variant-numeric:tabular-nums',
     },
-    { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
+    { label: 'Títulos a Pagar - Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(3), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Total a pagar', val: f2(totTit + totMan), sub: 'Títulos + lançamentos manuais', style: cardBase(4), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
     { label: 'Aporte necessário total', val: f2(totAporte), sub: totAporte ? 'Soma da coluna Aporte necessário' : 'Nenhuma empresa precisa de aporte', style: cardBase(5), valStyle: `font-size:21px;font-weight:700;color:${totAporte > 0 ? '#DC2626' : '#16A34A'};font-variant-numeric:tabular-nums` },
