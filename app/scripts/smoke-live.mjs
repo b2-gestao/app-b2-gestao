@@ -211,12 +211,12 @@ await page.screenshot({ path: `${out}/06b-lancamento-recorrente.png` });
 const lanc = tables.app_rec_financeiro_lancamento;
 if (lanc.length !== 3 || new Set(lanc.map(l => l.grupo_id)).size !== 1 || lanc.map(l => l.parcela).join() !== '1,2,3') errors.push('Recorrência não gerou 3 parcelas: ' + JSON.stringify(lanc));
 await clickText('Programação do dia');
-// Saldo inicial = contas + a receber (190 e 217; a 191 tem plano empresário e fica fora). A
-// empresa com saldo informado no dia não soma os recebíveis do dia (já estão no saldo bancário).
+// Card de parcelas a receber: 190 e 217 (a 191 tem plano empresário e fica fora). A empresa
+// com saldo informado no dia não soma os recebíveis do dia (já estão no saldo bancário).
 const cdSaldo = Number(tables.app_saldo_contas_manual[0]?.company_id);
 const recEsperado = (400000 - ({ 190: 100000, 217: 300000 }[cdSaldo] || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
-const cardSaldo = await page.getByText('Saldo inicial do dia', { exact: true }).first().locator('..').innerText();
-if (!cardSaldo.includes(`receber ${recEsperado}`) || !cardSaldo.includes('bens, permutas e financiamento') || !cardSaldo.includes('Exclui plano empresário: 1 empresa')) errors.push('Card Saldo inicial sem o a receber/observações: ' + cardSaldo);
+const cardRec = await page.getByText('Total de parcelas a receber', { exact: true }).first().locator('..').innerText();
+if (!cardRec.includes(`receber ${recEsperado} =`) || !cardRec.includes('bens, permutas e financiamento') || !cardRec.includes('Exclui plano empresário: 1 empresa')) errors.push('Card Parcelas a receber sem o a receber/observações: ' + cardRec);
 await page.screenshot({ path: `${out}/06c-programacao-receber.png` });
 await page.getByText('Ver análise', { exact: true }).first().click();
 await page.waitForTimeout(500);
