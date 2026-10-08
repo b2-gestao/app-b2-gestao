@@ -92,14 +92,17 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
   const lista: NfCadastro[] = s.nfLista || [];
   const q = (s.nfBusca || '').trim().toLowerCase();
   const situacao = s.nfSituacao || 'Todas';
+  // A avaliação do fornecedor deixou de ser exigida: avisos antigos dela não contam como pendência.
+  const avisosDe = (r: NfCadastro) => r.avisos.filter(a => !a.startsWith('Não foi possível gravar a avaliação do fornecedor'));
   const filtrada = lista.filter(r => {
-    if (situacao === 'Com pendência' && !(r.situacao !== 'cadastrada' || r.avisos.length || r.anexos.some(a => !a.ok))) return false;
+    if (situacao === 'Com pendência' && !(r.situacao !== 'cadastrada' || avisosDe(r).length || r.anexos.some(a => !a.ok))) return false;
     if (!q) return true;
     return [r.numero, r.fornecedor_nome, r.empresa_nome, r.pedido, r.obra_nome, String(r.sequencial), r.criado_por_email]
       .some(x => (x || '').toLowerCase().includes(q));
   });
   const historico = filtrada.map(r => {
-    const pendente = r.situacao !== 'cadastrada' || r.avisos.length > 0 || r.anexos.some(a => !a.ok);
+    const avisos = avisosDe(r);
+    const pendente = r.situacao !== 'cadastrada' || avisos.length > 0 || r.anexos.some(a => !a.ok);
     const em = new Date(r.criado_em);
     return {
       id: r.id,
@@ -119,7 +122,7 @@ export function notasCadastrosVals(this: AppLogic, subItemStyle: string) {
       anexos: r.anexos.length,
       situacao: r.situacao === 'itens_nao_vinculados' ? 'Insumos não vinculados' : pendente ? 'Com pendência' : 'Cadastrada',
       tom: r.situacao === 'itens_nao_vinculados' ? 'erro' : pendente ? 'aviso' : 'ok',
-      detalhes: [...r.avisos, ...r.anexos.filter(a => !a.ok).map(a => `Anexo ${a.descricao} (${a.nome}) não foi enviado${a.erro ? `: ${a.erro}` : ''}.`)],
+      detalhes: [...avisos, ...r.anexos.filter(a => !a.ok).map(a => `Anexo ${a.descricao} (${a.nome}) não foi enviado${a.erro ? `: ${a.erro}` : ''}.`)],
     };
   });
 
