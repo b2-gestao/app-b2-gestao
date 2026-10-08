@@ -174,6 +174,15 @@ export default function FluxoPage({ v }: { v: any }) {
               </svg>
               {v.fxSaveViewLabel}
             </button>
+            <button type="button" role="switch" aria-checked={v.fxAporteOn} onClick={v.fxAporteToggle} title={v.fxAporteTip} style={css(v.fxAporteBtnStyle)}>
+              <span style={css(v.fxAporteTrackStyle)}>
+                <span style={css(v.fxAporteKnobStyle)}></span>
+              </span>
+              Aportes
+              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "#94A3B8", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
+                ?
+              </span>
+            </button>
           </div>
           <div style={css(v.finPageOverlayStyle)} onClick={v.closeDropdowns}></div>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(200px,1fr))", "gap": "12px" }}>
@@ -279,10 +288,10 @@ export default function FluxoPage({ v }: { v: any }) {
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
                   <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
-                    Nenhuma empresa selecionada
+                    {v.fxEmptyTitle}
                   </div>
                   <div style={{ "fontSize": "12px", "color": "#64748B" }}>
-                    Marque ao menos uma empresa no filtro.
+                    {v.fxEmptySub}
                   </div>
                 </div>
               </div>

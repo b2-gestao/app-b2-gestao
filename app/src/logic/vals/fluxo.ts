@@ -4,6 +4,7 @@ import { addDays } from '../../lib/api';
 import { fluxoInsights } from '../insights';
 import { fluxoCfgVals } from './fluxoCfg';
 import { saldoAtualizacao } from '../data';
+import { aporteToggleVals, emptyStateVals } from './aporteToggle';
 
 export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -82,7 +83,10 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     { cd: 238, name: 'SPE Rio Verde VII – Zoe', tag: 'SPE', open: s.fxOpen_238 !== false, key: 238, badge: 'Recebe aporte em 5 dias', data: demo(zoe), aportes: null },
     { cd: 191, name: 'SPE Rio Verde I – Laguna', tag: 'SPE', open: s.fxOpen_191 !== false, key: 191, badge: 'Recebe aporte em 1 dia', data: demo(laguna), aportes: null },
   ];
-  const perEmp = baseGroups.filter(g => fxEmpSel.includes(g.cd)).map(g => (semRec[g.cd] != null && !L
+  // Filtro "Aportes": só as SPEs cujo saldo fica negativo no período (a holding envia aportes, não recebe).
+  const soAportes = !!s.fxSoAportes;
+  const precisaAporte = g => !g.aportes && (L ? g.aporteNec : needsOf(g.data)).some(v => v > 0.004);
+  const perEmp = baseGroups.filter(g => fxEmpSel.includes(g.cd) && (!soAportes || precisaAporte(g))).map(g => (semRec[g.cd] != null && !L
     ? { ...g, data: { ...g.data, receitas: g.data.receitas.map(() => 0) } }
     : g)).map(g => ({
     ...g,
@@ -238,6 +242,8 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     fxTableStyle: `min-width:${256 + 104 * N}px`,
     fxViewTabs: ['Consolidado', 'Por SPE'].map(l => ({ label: l, style: `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${view === l ? '#111827' : 'transparent'};color:${view === l ? '#FFFFFF' : '#64748B'}`, onClick: () => this.setState({ fxView: l }) })),
     ddFxEmp,
+    ...aporteToggleVals('fx', soAportes, () => this.setState({ fxSoAportes: !soAportes })),
+    ...emptyStateVals('fx', soAportes),
     fxSaveDefaultView: () => {
       try { localStorage.setItem('he_fluxo_empresas_default', JSON.stringify(fxEmpSel)); } catch { /* storage blocked */ }
       this.setState({ fxEmpDefault: fxEmpSel.slice() });

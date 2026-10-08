@@ -113,6 +113,15 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               </svg>
               {v.pgSaveViewLabel}
             </button>
+            <button type="button" role="switch" aria-checked={v.pgAporteOn} onClick={v.pgAporteToggle} title={v.pgAporteTip} style={css(v.pgAporteBtnStyle)}>
+              <span style={css(v.pgAporteTrackStyle)}>
+                <span style={css(v.pgAporteKnobStyle)}></span>
+              </span>
+              Aportes
+              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "#94A3B8", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
+                ?
+              </span>
+            </button>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px" }}>
               <div style={{ "display": "flex", "gap": "4px" }}>
                 {(v.pgPeriods || []).map((p: any, _i0: number) => (
@@ -278,10 +287,10 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
                   <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
-                    Nenhuma empresa selecionada
+                    {v.pgEmptyTitle}
                   </div>
                   <div style={{ "fontSize": "12px", "color": "#64748B" }}>
-                    Marque ao menos uma empresa no filtro.
+                    {v.pgEmptySub}
                   </div>
                 </div>
                 <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 1px 0 #EEEEF1", "fontVariantNumeric": "tabular-nums" }}>

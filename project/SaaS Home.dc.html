@@ -1412,6 +1412,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 4h10l4 4v12a1 1 0 01-1 1H6a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4v5h6V4" stroke="currentColor" stroke-width="1.6"/></svg>
           {{ pgSaveViewLabel }}
         </button>
+        <button type="button" role="switch" aria-checked="{{ pgAporteOn }}" onClick="{{ pgAporteToggle }}" title="{{ pgAporteTip }}" style="{{ pgAporteBtnStyle }}">
+          <span style="{{ pgAporteTrackStyle }}"><span style="{{ pgAporteKnobStyle }}"></span></span>
+          Aportes
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid #CBD5E1;color:#94A3B8;font-size:10px;font-weight:700;line-height:1">?</span>
+        </button>
         <div style="display:flex;align-items:center;gap:8px">
           <div style="display:flex;gap:4px">
             <sc-for list="{{ pgPeriods }}" as="p" hint-placeholder-count="4">
@@ -1491,8 +1496,8 @@
             </sc-for>
             <div style="{{ pgEmpEmptyStyle }}">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <div style="font-size:13.5px;font-weight:600;color:#111827">Nenhuma empresa selecionada</div>
-              <div style="font-size:12px;color:#64748B">Marque ao menos uma empresa no filtro.</div>
+              <div style="font-size:13.5px;font-weight:600;color:#111827">{{ pgEmptyTitle }}</div>
+              <div style="font-size:12px;color:#64748B">{{ pgEmptySub }}</div>
             </div>
             <div style="display:grid;grid-template-columns:28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px;gap:12px;align-items:center;padding:13px 18px;background:#FAFAFB;box-shadow:inset 0 1px 0 #EEEEF1;font-variant-numeric:tabular-nums">
               <div></div>
@@ -1620,6 +1625,11 @@
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6 4h10l4 4v12a1 1 0 01-1 1H6a1 1 0 01-1-1V5a1 1 0 011-1z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/><path d="M9 4v5h6V4" stroke="currentColor" stroke-width="1.6"/></svg>
           {{ fxSaveViewLabel }}
         </button>
+        <button type="button" role="switch" aria-checked="{{ fxAporteOn }}" onClick="{{ fxAporteToggle }}" title="{{ fxAporteTip }}" style="{{ fxAporteBtnStyle }}">
+          <span style="{{ fxAporteTrackStyle }}"><span style="{{ fxAporteKnobStyle }}"></span></span>
+          Aportes
+          <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:50%;border:1px solid #CBD5E1;color:#94A3B8;font-size:10px;font-weight:700;line-height:1">?</span>
+        </button>
       </div>
       <div style="{{ finPageOverlayStyle }}" onClick="{{ closeDropdowns }}"></div>
 
@@ -1679,8 +1689,8 @@
             </sc-for>
             <div style="{{ fxEmptyStyle }}">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" stroke-width="1.8"/><path d="M16 16l4.5 4.5" stroke="#CBD5E1" stroke-width="1.8" stroke-linecap="round"/></svg>
-              <div style="font-size:13.5px;font-weight:600;color:#111827">Nenhuma empresa selecionada</div>
-              <div style="font-size:12px;color:#64748B">Marque ao menos uma empresa no filtro.</div>
+              <div style="font-size:13.5px;font-weight:600;color:#111827">{{ fxEmptyTitle }}</div>
+              <div style="font-size:12px;color:#64748B">{{ fxEmptySub }}</div>
             </div>
           </div>
         </div>
