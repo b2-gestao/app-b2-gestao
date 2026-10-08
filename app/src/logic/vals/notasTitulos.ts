@@ -4,6 +4,7 @@ import {
   titulosApi, MAX_OBSERVACAO_TITULO, MAX_PARCELAS, MAX_APROPRIACOES,
   type AnaliseTitulo, type TituloCorpo, type NfTitulo, type OrcamentoObra,
 } from '../../lib/nfTitulos';
+import { chamadoVals } from './chamadoTomticket';
 
 // Notas Fiscais › Título a Pagar: histórico (app_nf_titulos) + assistente de cadastro do título
 // do contas a pagar no Sienge (edge function app-nf, ações titulo_*), sem pedido de compra:
@@ -68,7 +69,7 @@ const linhaObraVazia = (l: LinhaObra) => !l.obra.trim() && !l.unidade && !l.item
 export const NT_INICIAL = {
   ntEtapa: 'lista', ntArquivo: null, ntBusy: '', ntErro: '', ntAnalise: null, ntEmpresaManual: null, ntEmpresaModal: null,
   ntTipo: null, ntDocumento: null, ntCab: null, ntAprop: [], ntApropObra: [], ntOrc: {}, ntDescPrincipal: null, ntAnexos: [], ntRecusados: [],
-  ntSenha: null, ntResultado: null, ntEnvios: [],
+  ntSenha: null, ntResultado: null, ntEnvios: [], ntChamado: null,
 };
 
 export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
@@ -666,6 +667,7 @@ export function notasTitulosVals(this: AppLogic, subItemStyle: string) {
           reenviar: () => { if (resultado.billId) anexar(resultado.billId, e, resultado.tituloId).then(() => this.loadNtHistorico()); },
         })),
         enviando: envios.some(e => e.status === 'pendente' || e.status === 'enviando'),
+        chamado: chamadoVals.call(this, 'ntChamado', 'titulos', resultado.billId),
       } : null,
       outra: () => recomecar({ ntEtapa: 'envio' }),
       verHistorico: () => recomecar(),

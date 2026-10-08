@@ -1,10 +1,11 @@
 // Edge Function: app-tomticket
 //
-// Notas Fiscais › Cadastros: abre no TomTicket (Help Desk) o chamado de conferência do título
-// gerado pelo cadastro da nota. O chamado sai no nome de quem está logado: o e-mail vem do token
+// Notas Fiscais › Cadastros e › Título a Pagar: abre no TomTicket (Help Desk) o chamado de
+// conferência do título gerado pelo cadastro da nota ou do título. O chamado sai no nome de quem está logado: o e-mail vem do token
 // do usuário (nunca do corpo da requisição) e é o mesmo e-mail de cliente no TomTicket.
-// Chamada com o token do usuário logado (verify_jwt = true). Exige notas.cadastros (editar),
-// como a app-nf; o perfil de sistema (Administrador) sempre pode.
+// Chamada com o token do usuário logado (verify_jwt = true). Exige permissão de editar na tela
+// de origem (`origem`: "cadastros" → notas.cadastros, padrão; "titulos" → notas.titulos), como a
+// app-nf; o perfil de sistema (Administrador) sempre pode.
 //
 // Segredos (Edge Functions › Secrets):
 //   TOMTICKET_TOKEN             token da API v2.0 com "Pode criar e modificar dados", sem restrição de IP
@@ -13,8 +14,8 @@
 //   TOMTICKET_CATEGORIA_PADRAO  nome ou id da categoria sugerida (padrão Conferência de Títulos - Programação Vigente)
 //
 // Ações ({ acao, ... }):
-//   preparar { billId }                         → dados do modal (solicitante, departamento, categorias, assunto, mensagem)
-//   criar    { billId, categoriaId, mensagem }  → abre o chamado → { ok, mensagem, protocolo }
+//   preparar { billId, origem? }                         → dados do modal (solicitante, departamento, categorias, assunto, mensagem)
+//   criar    { billId, categoriaId, mensagem, origem? }  → abre o chamado → { ok, mensagem, protocolo }
 //            (protocolo lido em /ticket/list logo depois: /ticket/new não devolve o número)
 //
 // API: https://api.tomticket.com/v2.0, Bearer, POST em form-data, limite de 3 requisições por segundo
@@ -30,7 +31,8 @@ const DEPARTAMENTO = Deno.env.get("TOMTICKET_DEPARTAMENTO") || "Contabilidade";
 const CATEGORIA_PADRAO = Deno.env.get("TOMTICKET_CATEGORIA_PADRAO") || "Conferência de Títulos - Programação Vigente";
 
 const BASE = "https://api.tomticket.com/v2.0";
-const PERMISSAO = "notas.cadastros";
+/** Permissão exigida por tela de origem (lista fechada: o corpo da requisição só escolhe a chave). */
+const PERMISSOES: Record<string, string> = { cadastros: "notas.cadastros", titulos: "notas.titulos" };
 const ASSUNTO = "Conferência de Títulos a Pagar";
 const MAX_MENSAGEM = 5000;
 const CACHE_MS = 10 * 60 * 1000;
@@ -189,18 +191,21 @@ Deno.serve(async (req) => {
   if (req.method !== "POST") return json({ error: "Use POST." }, 405);
 
   try {
+    const corpo = await req.json().catch(() => ({})) as Record<string, unknown>;
+    const origem = corpo.origem == null ? "cadastros" : String(corpo.origem);
+    const permissao = Object.hasOwn(PERMISSOES, origem) ? PERMISSOES[origem] : null;
+    if (!permissao) throw new Erro("Origem do chamado inválida.");
+
     const auth = req.headers.get("Authorization") || "";
     const cliente = createClient(SUPABASE_URL, ANON_KEY, { global: { headers: { Authorization: auth } }, auth: { persistSession: false } });
     const [{ data: pode, error: pErr }, { data: quem }] = await Promise.all([
-      cliente.rpc("app_pode", { p_path: PERMISSAO, p_editar: true }),
+      cliente.rpc("app_pode", { p_path: permissao, p_editar: true }),
       cliente.auth.getUser(auth.replace(/^Bearer\s+/i, "")),
     ]);
     if (!quem?.user) throw new Erro("Sessão inválida.", 401);
     if (pErr || pode !== true) throw new Erro("Seu perfil não tem permissão para abrir chamados de notas fiscais.", 403);
     const email = (quem.user.email || "").trim().toLowerCase();
     if (!email) throw new Erro("Seu usuário não tem e-mail cadastrado.", 400);
-
-    const corpo = await req.json().catch(() => ({})) as Record<string, unknown>;
 
     switch (corpo.acao) {
       case "preparar": {
