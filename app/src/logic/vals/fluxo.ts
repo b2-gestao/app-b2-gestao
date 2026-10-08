@@ -101,16 +101,14 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     lines: buildLines(semRec[g.cd] != null, g.data, g.aportes, false, g.aportes ? undefined : (L ? g.aporteNec : needsOf(g.data))),
   }));
 
-  let sumCaixa = 0, sumRec = 0, sumPag = 0, sumInputs = 0, sumFinal = 0;
+  let sumCaixa = 0, sumRec = 0, sumPag = 0, sumInputs = 0;
   perEmp.forEach(g => {
     const src = g.data;
     const filteredRec = applyRecFilter(src);
-    const saldoCells = seriesFor(src.caixa, filteredRec, src.pagamentos, src.inputs);
     sumCaixa += src.caixa;
     sumRec += filteredRec.reduce((t, v) => t + v, 0);
     sumPag += src.pagamentos.reduce((t, v) => t + v, 0);
     sumInputs += src.inputs.reduce((t, v) => t + v, 0);
-    sumFinal += saldoCells[saldoCells.length - 1];
   });
   // Visão "Consolidado": one block summing the companies in the filter. Aportes are
   // transfers between them, so they cancel out and are not a line here.
@@ -154,11 +152,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const fxGroups = (view === 'Por SPE' ? perEmp : (perEmp.length ? [consGroup] : [])).map(compactify);
 
   const fxCards = [
-    { label: `Caixa inicial (${days[0]})`, val: 'R$ ' + f2(sumCaixa), sub: 'Saldos bancários do dia', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:100ms', valStyle: 'font-size:20px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
     { label: 'Receitas no período', val: 'R$ ' + f2(sumRec), sub: fxRecSel.length === recAll.length ? 'Todos os tipos' : fxRecSel.join(', '), style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:150ms', valStyle: 'font-size:20px;font-weight:700;color:#258B6C;font-variant-numeric:tabular-nums' },
     { label: 'Pagamentos + inputs', val: 'R$ ' + f2(-sumPag + sumInputs), sub: 'Títulos Sienge + manuais', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms', valStyle: 'font-size:20px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
     { label: 'Aportes às SPEs', val: L ? 'R$ ' + f2(L.totalAportes) : 'R$ 3.015.146,57', sub: 'Calculado pelo sistema', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:250ms', valStyle: 'font-size:20px;font-weight:700;color:#7C3AED;font-variant-numeric:tabular-nums' },
-    { label: `Saldo final (${days[N - 1]})`, val: `R$ ${f2(sumFinal)}`, sub: `${perEmp.length} de ${emps.length} empresas no filtro`, style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:300ms', valStyle: `font-size:20px;font-weight:700;color:${sumFinal < 0 ? '#DC2626' : '#111827'};font-variant-numeric:tabular-nums` },
   ];
 
   // Same searchable multi-select as Programação diária; selection is stored by company code (fxEmpSel), the dropdown works by name.
