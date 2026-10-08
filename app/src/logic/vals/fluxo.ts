@@ -26,10 +26,11 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const fxSavedDefault = s.fxEmpDefault;
   const fxIsSavedMatch = !!fxSavedDefault && fxSavedDefault.length === fxEmpSel.length && fxSavedDefault.every(c => fxEmpSel.indexOf(c) >= 0);
 
-  const seriesFor = (caixa, receitas, pagamentos, inputs, aportes?) => {
+  // `ajustes`: aportes added to the balance each day (− sent by the holding, + received by an SPE).
+  const seriesFor = (caixa, receitas, pagamentos, inputs, ajustes?: number[]) => {
     let saldo = caixa;
     const cells: any[] = [];
-    for (let i = 0; i < receitas.length; i++) { saldo = saldo + receitas[i] - pagamentos[i] + inputs[i] - (aportes ? (aportes[i] || 0) : 0); cells.push(saldo); }
+    for (let i = 0; i < receitas.length; i++) { saldo = saldo + receitas[i] - pagamentos[i] + inputs[i] + (ajustes ? (ajustes[i] || 0) : 0); cells.push(saldo); }
     return cells;
   };
 
@@ -45,9 +46,10 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   // Empresas sem recebíveis (engrenagem). Live data already comes zeroed from fluxoLive.
   const semRec: Record<number, string> = Object.fromEntries((s.fxSemRec || []).map(x => [x.cd, x.motivo]));
 
-  const buildLines = (semReceitas, e0, aportes, recFiltered?, aporteNecessario?: number[]) => {
+  const buildLines = (semReceitas, e0, aportes, recFiltered?, aporteNecessario?: number[], aporteEntra = true) => {
     const e = recFiltered ? e0 : Object.assign({}, e0, { receitas: applyRecFilter(e0) });
-    const saldoCells = seriesFor(e.caixa, e.receitas, e.pagamentos, e.inputs, aportes);
+    const entra = !!aporteNecessario && aporteEntra;
+    const saldoCells = seriesFor(e.caixa, e.receitas, e.pagamentos, e.inputs, aportes ? aportes.map(v => -v) : (entra ? aporteNecessario : undefined));
     const caixaRow = [e.caixa].concat(saldoCells.slice(0, N - 1));
     const mk = (op, lbl, vals, color?, weight?, indent?) => ({
       op, opStyle: `font-size:11px;font-weight:700;color:${op === '(=)' ? '#4161FF' : '#94A3B8'};width:22px;flex:none`,
@@ -65,17 +67,18 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     ];
     // Aporte lines are the ones kept by the "Visão compacta".
     if (aportes) lines.push({ ...mk('(−)', 'Aportes enviados às SPEs', aportes.map(v => v ? -v : null), '#7C3AED'), compact: true });
-    // Informative: what the holding must send that day (to this SPE, or to all of them in the
-    // consolidado, where aportes between companies cancel out). It does not enter the saldo below.
-    if (aporteNecessario) lines.push({ ...mk('(i)', 'Aporte necessário', aporteNecessario.map(v => v > 0.004 ? v : null), '#7C3AED', 600), compact: true });
+    // What the holding sends that day: an inflow of this SPE, added to the saldo below. In the
+    // consolidado with the holding in the filter, aportes between companies cancel out, so the
+    // line is only informative there.
+    if (aporteNecessario) lines.push({ ...mk(entra ? '(+)' : '(i)', 'Aporte necessário', aporteNecessario.map(v => v > 0.004 ? v : null), '#7C3AED', 600), compact: true });
     lines.push(mk('(=)', 'Saldo final', saldoCells, '#111827', 700));
     return lines;
   };
 
-  // Demo: aporte an SPE needs each day = growth of its shortfall (same rule as fluxoLive).
+  // Demo: aporte an SPE needs each day = shortfall not yet covered by earlier aportes (same rule as fluxoLive).
   const needsOf = e => {
-    let prev = 0;
-    return seriesFor(e.caixa, applyRecFilter(e), e.pagamentos, e.inputs).map(v => { const d = Math.max(0, -v); const a = Math.max(0, d - prev); prev = d; return a; });
+    let covered = 0;
+    return seriesFor(e.caixa, applyRecFilter(e), e.pagamentos, e.inputs).map(v => { const a = Math.max(0, -v - covered); covered += a; return a; });
   };
 
   const baseGroups: any[] = L ? L.groups : [
@@ -110,8 +113,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     sumPag += src.pagamentos.reduce((t, v) => t + v, 0);
     sumInputs += src.inputs.reduce((t, v) => t + v, 0);
   });
-  // Visão "Consolidado": one block summing the companies in the filter. Aportes are
-  // transfers between them, so they cancel out and are not a line here.
+  // Visão "Consolidado": one block summing the companies in the filter. With the holding in
+  // the filter, aportes are transfers between them and cancel out; without it, they are an
+  // inflow of the SPEs and enter the saldo.
   const sumArr = (pick: (g: any) => number[]) => days.map((_, i) => perEmp.reduce((t, g) => t + (pick(g)[i] || 0), 0));
   const consData = {
     caixa: sumCaixa,
@@ -119,10 +123,11 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     pagamentos: sumArr(g => g.data.pagamentos),
     inputs: sumArr(g => g.data.inputs),
   };
-  const consCells = seriesFor(consData.caixa, consData.receitas, consData.pagamentos, consData.inputs);
-  const consNeg = consCells.findIndex(v => v < 0);
   // Demo: the holding's sample aportes stand in for what the SPEs need each day.
   const aporteDia: number[] = L ? L.aportesDia : (baseGroups.find(g => g.aportes)?.aportes || days.map(() => 0));
+  const aporteEntraCons = !perEmp.some(g => g.aportes);
+  const consCells = seriesFor(consData.caixa, consData.receitas, consData.pagamentos, consData.inputs, aporteEntraCons ? aporteDia : undefined);
+  const consNeg = consCells.findIndex(v => v < -0.004);
   const consOpen = s.fxOpen_cons !== false;
   const consGroup = {
     cd: 'Σ', key: 'cons', name: perEmp.length === 1 ? perEmp[0].name : `Consolidado · ${perEmp.length} empresas`,
@@ -134,7 +139,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     badge: consNeg >= 0 ? `Saldo consolidado negativo em ${days[consNeg]}` : '',
     badgeStyle: `display:${consNeg >= 0 ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:#FFF0DD;border-radius:20px;padding:3px 9px;white-space:nowrap`,
     semRecStyle: 'display:none', semRecTitle: '',
-    lines: buildLines(false, consData, null, true, aporteDia),
+    lines: buildLines(false, consData, null, true, aporteDia, aporteEntraCons),
   };
   // Visão compacta: each company shows only its header and aporte line; clicking the header
   // expands that one company to the full lines.

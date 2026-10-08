@@ -47,7 +47,8 @@ const holdingNome = (e: any, fallback: string) => (e && (e.nome_fantasia || e.no
  *   pagamentos     = parcelas_pagar_raw net open balance due each day (minus withheld taxes/discount)
  *   input          = manual entries (entrada +, saída −)
  * An SPE whose running balance goes negative needs an aporte; the holding sends the
- * new shortfall of each day as an outflow ("Aportes enviados às SPEs").
+ * new shortfall of each day as an outflow ("Aportes enviados às SPEs") and the SPE
+ * receives it as an inflow ("Aporte necessário", added to its saldo final).
  */
 export function fluxoLive(this: AppLogic) {
   const s = this.state;
@@ -98,13 +99,16 @@ export function fluxoLive(this: AppLogic) {
 
   const fxEmpSel: number[] = s.fxEmpSel || emps.map(e => e.cd);
   const selected = emps.filter(e => fxEmpSel.includes(e.cd));
-  /** Aportes an SPE needs: each day, the growth of its shortfall (running balance below zero). */
+  /**
+   * Aportes an SPE needs, given its running balance without aportes. Each aporte enters the
+   * SPE's balance, so it covers that day's shortfall and stays there: the next one is only the
+   * growth beyond the largest shortfall already covered (balance + aportes never goes negative).
+   */
   const needs = (cells: number[], upTo = cells.length) => {
-    let prevDeficit = 0;
+    let covered = 0;
     return cells.slice(0, upTo).map(v => {
-      const deficit = Math.max(0, -v);
-      const a = Math.max(0, deficit - prevDeficit);
-      prevDeficit = deficit;
+      const a = Math.max(0, -v - covered);
+      covered += a;
       return a;
     });
   };
