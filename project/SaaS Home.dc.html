@@ -1448,7 +1448,7 @@
         <div style="overflow-x:auto">
           <div style="min-width:1120px">
             <div style="display:grid;grid-template-columns:28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px 74px;gap:12px;align-items:center;padding:11px 18px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1;font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;font-weight:600">
-              <div></div><div>Empresa</div><div style="text-align:right">Saldo inicial</div><div style="text-align:right">Títulos Sienge</div><div style="text-align:right">Manuais</div><div style="text-align:right">Total a pagar</div><div style="text-align:right">Saldo após</div><div style="text-align:right">Aporte necessário</div><div style="text-align:right">Itens</div>
+              <div></div><div>Empresa</div><div style="text-align:right">Saldo inicial</div><div style="text-align:right">Títulos a Pagar - Sienge</div><div style="text-align:right">Manuais</div><div style="text-align:right">Total a pagar</div><div style="text-align:right">Saldo após</div><div style="text-align:right">Aporte necessário</div><div style="text-align:right">Itens</div>
               <div style="display:flex;gap:6px;justify-content:flex-end">
                 <button onClick="{{ pgExpandAll }}" title="Expandir todas" style="display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:6px;border:1px solid #E7E7EA;background:#FFFFFF;color:#64748B;cursor:pointer;transition:all .15s;font-size:0" style-hover="border-color:#4161FF;color:#4161FF">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
@@ -1545,10 +1545,11 @@
       <footer style="margin-top:4px;padding:14px 18px;border-radius:10px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1">
         <div style="font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#94A3B8;margin-bottom:8px">Regras de cálculo</div>
         <ul style="margin:0;padding-left:18px;display:flex;flex-direction:column;gap:5px;font-size:12px;line-height:1.5;color:#64748B">
-          <li><span style="color:#374151;font-weight:600">Saldo inicial:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período + parcelas a receber em aberto com vencimento no período.</li>
+          <li><span style="color:#374151;font-weight:600">Saldo inicial do dia:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período.</li>
+          <li><span style="color:#374151;font-weight:600">Parcelas a receber:</span> parcelas a receber em aberto com vencimento no período.</li>
           <li><span style="color:#374151;font-weight:600">Recebíveis fora:</span> parcelas de Bens, Permuta e Financiamento e todas as parcelas das empresas com plano empresário (engrenagem do Fluxo de caixa).</li>
           <li><span style="color:#374151;font-weight:600">Dia do saldo:</span> na empresa com saldo informado no primeiro dia, os recebíveis que vencem nesse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma todos os recebíveis do período.</li>
-          <li><span style="color:#374151;font-weight:600">Saldo após pagamentos:</span> saldo inicial − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.</li>
+          <li><span style="color:#374151;font-weight:600">Saldo após pagamentos:</span> saldo inicial + parcelas a receber − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.</li>
         </ul>
       </footer>
     </main>
@@ -3287,7 +3288,7 @@ class Component extends DCLogic {
     const noteStyle = on => `display:${on ? 'block' : 'none'};font-size:11px;line-height:1.45;color:#94A3B8;white-space:pre-line;text-wrap:pretty;cursor:default`;
     const pgCards = [
       { label: 'Saldo inicial do dia', val: f2(totSaldo), sub: `Contas ${f2(totSaldo)} + receber 0,00`, note: 'Sem bens, permutas e financiamento\nExclui plano empresário: 1 empresa', noteTip: 'Plano empresário vigente (recebíveis não considerados):\nEmpresa 231', noteStyle: noteStyle(true), style: cardBase(0), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },
-      { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
+      { label: 'Títulos a Pagar - Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
       { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
       { label: 'Aporte necessário', val: f2(totAporte), sub: totAporte ? 'Empresas com saldo insuficiente' : 'Nenhuma empresa precisa de aporte', style: cardBase(3), valStyle: `font-size:21px;font-weight:700;color:${totAporte ? '#7C3AED' : '#111827'};font-variant-numeric:tabular-nums` },
       { label: 'Saldo após pagamentos', val: f2(totSaldo - totTit - totMan), sub: 'Consolidado do dia', style: cardBase(4), valStyle: 'font-size:21px;font-weight:700;color:#111827;font-variant-numeric:tabular-nums' },

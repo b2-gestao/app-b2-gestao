@@ -120,7 +120,7 @@ export function exportProgramacaoXlsx(groups: any[], from: string, to: string) {
     { head: 'Código', width: 9, style: S_INT },
     { head: 'Empresa', width: 42 },
     { head: 'Saldo inicial', width: 16, style: S_NUM },
-    { head: 'Títulos Sienge', width: 16, style: S_NUM },
+    { head: 'Títulos a Pagar - Sienge', width: 16, style: S_NUM },
     { head: 'Manuais', width: 14, style: S_NUM },
     { head: 'Total a pagar', width: 16, style: S_NUM },
     { head: 'Saldo após', width: 16, style: S_NUM },
