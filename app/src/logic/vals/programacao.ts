@@ -3,6 +3,7 @@ import { progLiveGroups } from './programacaoData';
 import { todayIso } from '../../lib/api';
 import { progInsights } from '../insights';
 import { exportProgramacaoXlsx } from '../programacaoExcel';
+import { aporteToggleVals, emptyStateVals } from './aporteToggle';
 
 export function progVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -11,12 +12,15 @@ export function progVals(this: AppLogic, subItemStyle: string) {
   const f2 = v => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const show = s.pgShow || 'Todas';
   const closed = !!s.pgClosed;
+  const soAportes = !!s.pgSoAportes;
   const semRec = new Set<number>((s.fxSemRec || []).map(x => Number(x.cd)));
 
   const empCatalog = live ? live.catalog : this.pgSeed().map(g => ({ id: String(g.cd), name: g.emp }));
   const empAllNames = empCatalog.map(c => c.name);
   const pgEmpSel = s.pgEmpSel || empAllNames;
-  const groups = allGroups.filter(g => pgEmpSel.indexOf(g.emp) >= 0);
+  // Aporte da empresa = quanto falta do saldo inicial para cobrir o que está marcado para pagar.
+  const precisaAporte = g => g.saldo - g.items.filter(it => it.on).reduce((t, it) => t + it.val, 0) < -0.004;
+  const groups = allGroups.filter(g => pgEmpSel.indexOf(g.emp) >= 0 && (!soAportes || precisaAporte(g)));
   const ddPgEmp = this.mkMultiDropdown('pgEmp', s, pgEmpSel, empCatalog,
     name => this.setState({ pgEmpSel: pgEmpSel.indexOf(name) >= 0 ? pgEmpSel.filter(x => x !== name) : pgEmpSel.concat([name]) }),
     list => this.setState({ pgEmpSel: list }));
@@ -126,6 +130,8 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     onDateFromChange: (e) => this.setState({ pgDateFrom: e.target.value }),
     onDateToChange: (e) => this.setState({ pgDateTo: e.target.value }),
     ddPgEmp,
+    ...aporteToggleVals('pg', soAportes, () => this.setState({ pgSoAportes: !soAportes })),
+    ...emptyStateVals('pg', soAportes),
     pgEmpEmptyStyle: `display:${groups.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:36px 20px;text-align:center`,
     pgSaveDefaultView: () => {
       try { localStorage.setItem('he_prog_empresas_default', JSON.stringify(pgEmpSel)); } catch { /* storage blocked */ }
