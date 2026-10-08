@@ -4,6 +4,7 @@ import { todayIso } from '../../lib/api';
 import { progInsights } from '../insights';
 import { exportProgramacaoXlsx } from '../programacaoExcel';
 import { aporteToggleVals, emptyStateVals } from './aporteToggle';
+import { grupoDropdown, noGrupo } from './grupos';
 
 export function progVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -15,17 +16,25 @@ export function progVals(this: AppLogic, subItemStyle: string) {
   const soAportes = !!s.pgSoAportes;
   const semRec = new Set<number>((s.fxSemRec || []).map(x => Number(x.cd)));
 
-  const empCatalog = live ? live.catalog : this.pgSeed().map(g => ({ id: String(g.cd), name: g.emp }));
-  const empAllNames = empCatalog.map(c => c.name);
+  const empCatalogAll = live ? live.catalog : this.pgSeed().map(g => ({ id: String(g.cd), name: g.emp }));
+  const empAllNames = empCatalogAll.map(c => c.name);
   const pgEmpSel = s.pgEmpSel || empAllNames;
+  // Grupo narrows the Empresas dropdown and the rows; the company selection outside it is kept.
+  const ddPgGrupo = grupoDropdown(this, 'pg', empCatalogAll.map(c => c.id));
+  const empCatalog = empCatalogAll.filter(c => noGrupo(this, 'pg', c.id));
+  const visNames = empCatalog.map(c => c.name);
+  const pgEmpSelVis = pgEmpSel.filter(n => visNames.indexOf(n) >= 0);
   // Aporte da empresa = quanto falta do saldo inicial para cobrir o que está marcado para pagar.
   const precisaAporte = g => g.saldo - g.items.filter(it => it.on).reduce((t, it) => t + it.val, 0) < -0.004;
-  const groups = allGroups.filter(g => pgEmpSel.indexOf(g.emp) >= 0 && (!soAportes || precisaAporte(g)));
-  const ddPgEmp = this.mkMultiDropdown('pgEmp', s, pgEmpSel, empCatalog,
+  const groups = allGroups.filter(g => pgEmpSel.indexOf(g.emp) >= 0 && noGrupo(this, 'pg', g.cd) && (!soAportes || precisaAporte(g)));
+  const ddPgEmp = this.mkMultiDropdown('pgEmp', s, pgEmpSelVis, empCatalog,
     name => this.setState({ pgEmpSel: pgEmpSel.indexOf(name) >= 0 ? pgEmpSel.filter(x => x !== name) : pgEmpSel.concat([name]) }),
-    list => this.setState({ pgEmpSel: list }));
+    list => this.setState({ pgEmpSel: pgEmpSel.filter(n => visNames.indexOf(n) < 0).concat(list) }));
   const savedDefault = s.pgEmpDefault;
-  const isSavedMatch = !!savedDefault && savedDefault.length === pgEmpSel.length && savedDefault.every(n => pgEmpSel.indexOf(n) >= 0);
+  const pgGrupoSel: string[] | undefined = s.pgGrupoSel;
+  const sameGrupos = (a?: string[], b?: string[]) => (!a && !b) || (!!a && !!b && a.length === b.length && a.every(g => b.indexOf(g) >= 0));
+  const isSavedMatch = !!savedDefault && savedDefault.length === pgEmpSel.length && savedDefault.every(n => pgEmpSel.indexOf(n) >= 0)
+    && sameGrupos(s.pgGrupoDefault, pgGrupoSel);
 
   let totSaldo = 0, totContas = 0, totRec = 0, totTit = 0, totMan = 0, totAporte = 0, totCount = 0;
   const fromIso: string = s.pgDateFrom || todayIso();
@@ -126,13 +135,17 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     onDateFromChange: (e) => this.setState({ pgDateFrom: e.target.value }),
     onDateToChange: (e) => this.setState({ pgDateTo: e.target.value }),
     ddPgEmp,
+    ddPgGrupo,
     ...aporteToggleVals('pg', soAportes, () => this.setState({ pgSoAportes: !soAportes })),
     ...emptyStateVals('pg', soAportes),
     pgEmpEmptyStyle: `display:${groups.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:36px 20px;text-align:center`,
     pgSaveDefaultView: () => {
-      try { localStorage.setItem('he_prog_empresas_default', JSON.stringify(pgEmpSel)); } catch { /* storage blocked */ }
-      this.setState({ pgEmpDefault: pgEmpSel.slice() });
-      this.toast(`Visão padrão salva \u00b7 ${pgEmpSel.length} de ${empAllNames.length} empresas.`);
+      try {
+        localStorage.setItem('he_prog_empresas_default', JSON.stringify(pgEmpSel));
+        localStorage.setItem('he_prog_grupos_default', JSON.stringify(pgGrupoSel || null));
+      } catch { /* storage blocked */ }
+      this.setState({ pgEmpDefault: pgEmpSel.slice(), pgGrupoDefault: pgGrupoSel ? pgGrupoSel.slice() : undefined });
+      this.toast(`Visão padrão salva \u00b7 ${pgEmpSelVis.length} de ${empAllNames.length} empresas${pgGrupoSel ? ` \u00b7 ${pgGrupoSel.length} grupo${pgGrupoSel.length === 1 ? '' : 's'}` : ''}.`);
     },
     pgSaveViewLabel: isSavedMatch ? 'Visão padrão salva' : 'Salvar como visão padrão',
     pgSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${isSavedMatch ? '#C7EEE0' : '#E7E7EA'};background:${isSavedMatch ? '#E1F7EF' : '#FFFFFF'};color:${isSavedMatch ? '#258B6C' : '#374151'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,

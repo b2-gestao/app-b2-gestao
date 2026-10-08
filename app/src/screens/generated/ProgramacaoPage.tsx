@@ -60,6 +60,52 @@ export default function ProgramacaoPage({ v }: { v: any }) {
             </button>
           </div>
           <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "12px", "flexWrap": "wrap", "padding": "12px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "40ms" }}>
+            <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 180px", "position": "relative", "minWidth": "0" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                Grupo
+              </span>
+              <button onClick={v.ddPgGrupo.toggle} style={css(v.ddPgGrupo.btnStyle)}>
+                <span style={{ "overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap" }}>
+                  {v.ddPgGrupo.label}
+                </span>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={css(v.ddPgGrupo.chevStyle)}>
+                  <path d="M6 9l6 6 6-6" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
+              </button>
+              {v.ddPgGrupo.isOpen ? (
+                <>
+                  <div style={css(v.ddPgGrupo.panelStyle)}>
+                    {v.ddPgGrupo.hasSearch ? (
+                      <>
+                        <input value={v.ddPgGrupo.query} onChange={v.ddPgGrupo.onQuery} onClick={v.stopProp} placeholder="Buscar grupo..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                      </>
+                    ) : null}
+                    <button onClick={v.ddPgGrupo.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
+                      {v.ddPgGrupo.allOnLabel}
+                    </button>
+                    <div style={css(v.ddPgGrupo.listStyle)}>
+                      <div style={css(v.ddPgGrupo.noResultStyle)}>
+                        Nenhum grupo encontrado
+                      </div>
+                      {(v.ddPgGrupo.items || []).map((it: any, _i0: number) => (
+                        <Fragment key={_i0}>
+                          <div onClick={it.onClick} style={css(it.style)} className={hv(it.hoverStyle, undefined, undefined)}>
+                            <span style={css(it.boxStyle)}>
+                              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" style={css(it.checkStyle)}>
+                                <path d="M5 12.5l4.5 4.5L19 7" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
+                              </svg>
+                            </span>
+                            <span style={{ "overflow": "hidden", "textOverflow": "ellipsis", "whiteSpace": "nowrap" }}>
+                              {it.name}
+                            </span>
+                          </div>
+                        </Fragment>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              ) : null}
+            </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 230px", "position": "relative", "minWidth": "0" }}>
               <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
                 Empresas

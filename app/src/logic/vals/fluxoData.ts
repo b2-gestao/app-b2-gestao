@@ -1,6 +1,7 @@
 import type { AppLogic } from '../AppLogic';
 import { todayIso, addDays } from '../../lib/api';
 import { FLUXO_DAYS, type FluxoDia } from '../data';
+import { noGrupo } from './grupos';
 
 const DOWS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
@@ -98,7 +99,7 @@ export function fluxoLive(this: AppLogic) {
     .map((e: any) => ({ cd: e.cd, name: e.cd === HOLDING_ID ? holdingNome(this.empresaById()[e.cd], this.empresaNome(e.cd)) : this.empresaNome(e.cd), kind: e.cd === HOLDING_ID ? 'holding' : 'spe', data: e }));
 
   const fxEmpSel: number[] = s.fxEmpSel || emps.map(e => e.cd);
-  const selected = emps.filter(e => fxEmpSel.includes(e.cd));
+  const selected = emps.filter(e => fxEmpSel.includes(e.cd) && noGrupo(this, 'fx', e.cd));
   /**
    * Aportes an SPE needs, given its running balance without aportes. Each aporte enters the
    * SPE's balance, so it covers that day's shortfall and stays there: the next one is only the

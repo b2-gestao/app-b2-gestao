@@ -415,7 +415,10 @@ export class AppLogic extends Component<any, any> {
   }
 
   // Multi-select company filter: searchable + scrollable checkbox list, for use with a large (Supabase-backed) company catalog.
-  mkMultiDropdown(key, s, selected, catalog, onToggle, onSetMany?) {
+  // `labels` overrides the company wording (e.g. the Grupo filter: "Todos os grupos", "1 selecionado").
+  mkMultiDropdown(key, s, selected, catalog, onToggle, onSetMany?, labels?: { all: string; none: string; fem?: boolean }) {
+    const L = labels || { all: 'Todas as empresas', none: 'Nenhuma empresa', fem: true };
+    const sufixo = L.fem === false ? 'o' : 'a';
     const open = s.ddOpen === key;
     const hasSearch = catalog.length > 6;
     const query = (s.ddQuery || '').trim().toLowerCase();
@@ -423,7 +426,7 @@ export class AppLogic extends Component<any, any> {
     const allOn = catalog.length > 0 && selected.length === catalog.length;
     return {
       isOpen: open,
-      label: catalog.length === 0 ? 'Todas as empresas' : (allOn ? 'Todas as empresas' : (selected.length ? `${selected.length} selecionada${selected.length > 1 ? 's' : ''}` : 'Nenhuma empresa')),
+      label: catalog.length === 0 ? L.all : (allOn ? L.all : (selected.length ? `${selected.length} selecionad${sufixo}${selected.length > 1 ? 's' : ''}` : L.none)),
       hasSearch,
       query: s.ddQuery || '',
       onQuery: e => this.setState({ ddQuery: e.target.value }),
@@ -433,7 +436,7 @@ export class AppLogic extends Component<any, any> {
       panelStyle: 'position:absolute;top:calc(100% + 6px);left:0;min-width:260px;width:max-content;max-width:300px;z-index:80;background:#FFFFFF;border-radius:10px;border:1px solid #EEEEF1;box-shadow:0 14px 34px rgba(9,10,16,.16);padding:8px;display:flex;flex-direction:column;gap:6px;animation:modalIn .15s ease-out both',
       listStyle: 'max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:1px',
       noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:10px;font-size:12px;color:#94A3B8;text-align:center`,
-      allOnLabel: allOn ? 'Limpar seleção' : 'Selecionar todas',
+      allOnLabel: allOn ? 'Limpar seleção' : `Selecionar tod${sufixo}s`,
       toggleAllVisible: e => {
         e.stopPropagation();
         const names = filtered.map(c => c.name);
@@ -1162,6 +1165,13 @@ export class AppLogic extends Component<any, any> {
       const savedFxEmp = JSON.parse(localStorage.getItem('he_fluxo_empresas_default') || 'null');
       if (Array.isArray(savedFxEmp)) this.setState({ fxEmpDefault: savedFxEmp, fxEmpSel: savedFxEmp });
     } catch { /* storage blocked */ }
+    // Saved Grupo filter of each screen (null = todos os grupos).
+    for (const [k, p] of [['he_prog_grupos_default', 'pg'], ['he_fluxo_grupos_default', 'fx']] as const) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(k) || 'null');
+        if (Array.isArray(saved) && saved.every(g => typeof g === 'string')) this.setState({ [p + 'GrupoDefault']: saved, [p + 'GrupoSel']: saved });
+      } catch { /* storage blocked */ }
+    }
     this.loadWeather();
     this.loadIndicators();
     if (this.live) {

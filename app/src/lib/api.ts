@@ -10,6 +10,8 @@ export interface Empresa {
   cnpj: string | null;
   /** Empreendimento names from de_para_sharepoint (LEFT JOIN — may be null). */
   empreendimentos: string | null;
+  /** Grupo da empresa (grupo_empresas_sharepoint — LEFT JOIN, may be null). */
+  grupo?: string | null;
 }
 
 export interface CentroCusto {
