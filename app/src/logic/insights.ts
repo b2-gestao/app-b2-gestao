@@ -3,6 +3,7 @@ import type { RelatorioIaFluxo, RelatorioIaProg } from '../lib/relatorioIaPdf';
 import { todayIso } from '../lib/api';
 import { progLiveGroups } from './vals/programacaoData';
 import { fluxoLive, fluxoPeriodo } from './vals/fluxoData';
+import { noGrupo } from './vals/grupos';
 
 // Rule-based insights over the live data, shown in the "Análise com IA" banner and
 // panel of Programação do dia and Fluxo de caixa. Each item: [label, text, color, action?].
@@ -14,7 +15,7 @@ const brlK = (v: number) => (Math.abs(v) >= 1e6 ? `R$ ${(v / 1e6).toFixed(1).rep
 export function progInsights(app: AppLogic) {
   const { groups, loading } = progLiveGroups.call(app);
   const sel: string[] | undefined = app.state.pgEmpSel;
-  const gs = sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups;
+  const gs = groups.filter((g: any) => (!sel || sel.includes(g.emp)) && noGrupo(app, 'pg', g.cd));
   const items: Item[] = [];
 
   const short = gs
@@ -125,7 +126,7 @@ const r2 = (v: number) => Math.round(v * 100) / 100;
 export function iaContextoProg(app: AppLogic) {
   const { groups } = progLiveGroups.call(app);
   const sel: string[] | undefined = app.state.pgEmpSel;
-  const sgs = sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups;
+  const sgs = groups.filter((g: any) => (!sel || sel.includes(g.emp)) && noGrupo(app, 'pg', g.cd));
   const gs = sgs.map((g: any) => {
     const on = g.items.filter((i: any) => i.on);
     const tit = on.filter((i: any) => i.tag === 'Título');
@@ -232,7 +233,7 @@ export function relatorioProg(app: AppLogic): RelatorioIaProg {
   const s = app.state;
   const { groups } = progLiveGroups.call(app);
   const sel: string[] | undefined = s.pgEmpSel;
-  const gs = sel ? groups.filter((g: any) => sel.includes(g.emp)) : groups;
+  const gs = groups.filter((g: any) => (!sel || sel.includes(g.emp)) && noGrupo(app, 'pg', g.cd));
   const f2 = (v: number) => (Number.isFinite(Number(v)) ? Number(v) : 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
   let totSaldo = 0, totTit = 0, totMan = 0, totAporte = 0;

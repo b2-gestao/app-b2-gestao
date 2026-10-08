@@ -5,6 +5,7 @@ import { fluxoInsights } from '../insights';
 import { fluxoCfgVals } from './fluxoCfg';
 import { saldoAtualizacao } from '../data';
 import { aporteToggleVals, emptyStateVals } from './aporteToggle';
+import { grupoDropdown, noGrupo } from './grupos';
 
 export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const s: any = this.state;
@@ -24,7 +25,13 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const fxRecSel = s.fxRecSel || recAll.slice();
   const fxEmpSel = s.fxEmpSel || emps.map(e => e.cd);
   const fxSavedDefault = s.fxEmpDefault;
-  const fxIsSavedMatch = !!fxSavedDefault && fxSavedDefault.length === fxEmpSel.length && fxSavedDefault.every(c => fxEmpSel.indexOf(c) >= 0);
+  const fxGrupoSel: string[] | undefined = s.fxGrupoSel;
+  const sameGrupos = (a?: string[], b?: string[]) => (!a && !b) || (!!a && !!b && a.length === b.length && a.every(g => b.indexOf(g) >= 0));
+  const fxIsSavedMatch = !!fxSavedDefault && fxSavedDefault.length === fxEmpSel.length && fxSavedDefault.every(c => fxEmpSel.indexOf(c) >= 0)
+    && sameGrupos(s.fxGrupoDefault, fxGrupoSel);
+  // Grupo narrows the Empresas dropdown and the blocks; the company selection outside it is kept.
+  const ddFxGrupo = grupoDropdown(this, 'fx', emps.map(e => e.cd));
+  const empsVis = emps.filter(e => noGrupo(this, 'fx', e.cd));
 
   // `ajustes`: aportes added to the balance each day (− sent by the holding, + received by an SPE).
   const seriesFor = (caixa, receitas, pagamentos, inputs, ajustes?: number[]) => {
@@ -89,7 +96,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   // Filtro "Aportes": só as SPEs cujo saldo fica negativo no período (a holding envia aportes, não recebe).
   const soAportes = !!s.fxSoAportes;
   const precisaAporte = g => !g.aportes && (L ? g.aporteNec : needsOf(g.data)).some(v => v > 0.004);
-  const perEmp = baseGroups.filter(g => fxEmpSel.includes(g.cd) && (!soAportes || precisaAporte(g))).map(g => (semRec[g.cd] != null && !L
+  const perEmp = baseGroups.filter(g => fxEmpSel.includes(g.cd) && noGrupo(this, 'fx', g.cd) && (!soAportes || precisaAporte(g))).map(g => (semRec[g.cd] != null && !L
     ? { ...g, data: { ...g.data, receitas: g.data.receitas.map(() => 0) } }
     : g)).map(g => ({
     ...g,
@@ -163,11 +170,12 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   ];
 
   // Same searchable multi-select as Programação diária; selection is stored by company code (fxEmpSel), the dropdown works by name.
-  const fxEmpNames: string[] = emps.filter(e => fxEmpSel.includes(e.cd)).map(e => e.name);
+  const fxEmpNames: string[] = empsVis.filter(e => fxEmpSel.includes(e.cd)).map(e => e.name);
   const cdOf = (name: string) => emps.find(e => e.name === name)?.cd;
-  const ddFxEmp = this.mkMultiDropdown('fxEmp', s, fxEmpNames, emps.map(e => ({ name: e.name })),
+  const visCds = empsVis.map(e => e.cd);
+  const ddFxEmp = this.mkMultiDropdown('fxEmp', s, fxEmpNames, empsVis.map(e => ({ name: e.name })),
     name => this.setState(st => { const cd = cdOf(name); const cur: any[] = st.fxEmpSel || emps.map(x => x.cd); return { fxEmpSel: cur.includes(cd) ? cur.filter(c => c !== cd) : cur.concat(cd) }; }),
-    list => this.setState({ fxEmpSel: list.map(cdOf).filter(c => c != null) }));
+    list => this.setState(st => { const cur: any[] = st.fxEmpSel || emps.map(x => x.cd); return { fxEmpSel: cur.filter(c => !visCds.includes(c)).concat(list.map(cdOf).filter(c => c != null)) }; }));
   const ddFxRec = { toggle: () => this.setState({ ddOpen: s.ddOpen === 'fxRec' ? null : 'fxRec' }), isOpen: s.ddOpen === 'fxRec', label: fxRecSel.length === recAll.length ? 'Todas' : `${fxRecSel.length} selecionadas`, btnStyle: this.mkDropdown('fxRec', s, '', [], () => {}).btnStyle, chevStyle: `transition:transform .18s;transform:rotate(${s.ddOpen === 'fxRec' ? 180 : 0}deg)`, panelStyle: this.mkDropdown('fxRec', s, '', [], () => {}).panelStyle };
   const chkItem = (sel, label, on, toggle) => ({
     // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button and close the panel.
@@ -243,12 +251,16 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     fxTableStyle: `min-width:${256 + 104 * N}px`,
     fxViewTabs: ['Consolidado', 'Por SPE'].map(l => ({ label: l, style: `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${view === l ? '#111827' : 'transparent'};color:${view === l ? '#FFFFFF' : '#64748B'}`, onClick: () => this.setState({ fxView: l }) })),
     ddFxEmp,
+    ddFxGrupo,
     ...aporteToggleVals('fx', soAportes, () => this.setState({ fxSoAportes: !soAportes })),
     ...emptyStateVals('fx', soAportes),
     fxSaveDefaultView: () => {
-      try { localStorage.setItem('he_fluxo_empresas_default', JSON.stringify(fxEmpSel)); } catch { /* storage blocked */ }
-      this.setState({ fxEmpDefault: fxEmpSel.slice() });
-      this.toast(`Visão padrão salva \u00b7 ${fxEmpSel.length} de ${emps.length} empresas.`);
+      try {
+        localStorage.setItem('he_fluxo_empresas_default', JSON.stringify(fxEmpSel));
+        localStorage.setItem('he_fluxo_grupos_default', JSON.stringify(fxGrupoSel || null));
+      } catch { /* storage blocked */ }
+      this.setState({ fxEmpDefault: fxEmpSel.slice(), fxGrupoDefault: fxGrupoSel ? fxGrupoSel.slice() : undefined });
+      this.toast(`Visão padrão salva \u00b7 ${fxEmpNames.length} de ${emps.length} empresas${fxGrupoSel ? ` \u00b7 ${fxGrupoSel.length} grupo${fxGrupoSel.length === 1 ? '' : 's'}` : ''}.`);
     },
     fxSaveViewLabel: fxIsSavedMatch ? 'Visão padrão salva' : 'Salvar como visão padrão',
     fxSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${fxIsSavedMatch ? '#C7EEE0' : '#E7E7EA'};background:${fxIsSavedMatch ? '#E1F7EF' : '#FFFFFF'};color:${fxIsSavedMatch ? '#258B6C' : '#374151'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;align-self:flex-end`,
