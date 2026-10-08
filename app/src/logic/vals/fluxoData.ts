@@ -151,7 +151,8 @@ export function fluxoLive(this: AppLogic) {
     loading: !entry || entry.status === 'loading',
     emps,
     groups,
-    totalAportes: holding || s.fxSoAportes ? aportes.reduce((t, v) => t + v, 0) : 0,
+    /** Aportes the selected SPEs need in the period, whether or not the holding is in the filter. */
+    totalAportes: aportes.reduce((t, v) => t + v, 0),
     /** Aporte the selected SPEs need each day, whether or not the holding is in the filter. */
     aportesDia: aportes,
     days: dates.map(shortDate),
