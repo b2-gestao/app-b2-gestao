@@ -28,7 +28,6 @@ export function progVals(this: AppLogic, subItemStyle: string) {
   const isSavedMatch = !!savedDefault && savedDefault.length === pgEmpSel.length && savedDefault.every(n => pgEmpSel.indexOf(n) >= 0);
 
   let totSaldo = 0, totContas = 0, totRec = 0, totTit = 0, totMan = 0, totAporte = 0, totCount = 0;
-  let recNoSaldoN = 0, recNoSaldoTot = 0;
   const fromIso: string = s.pgDateFrom || todayIso();
   const fromLabel = fromIso.split('-').reverse().slice(0, 2).join('/');
   const offRows: any[] = [];
@@ -44,7 +43,6 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     const aporte = after < 0 ? -after : 0;
     const contas = g.contas ?? g.saldo, rec = g.receber || 0;
     totSaldo += g.saldo; totContas += contas; totRec += rec; totTit += tit; totMan += man; totAporte += aporte; totCount += onItems.length;
-    if (g.recNoSaldo) { recNoSaldoN++; recNoSaldoTot += g.recNoSaldo; }
     const open = s['pgOpen_' + g.cd] === true;
     return {
       cd: g.cd, emp: g.emp, saldo: f2(g.saldo),
@@ -72,11 +70,6 @@ export function progVals(this: AppLogic, subItemStyle: string) {
   }).filter(Boolean);
 
 
-  // Empresas com plano empresário vigente (engrenagem do Fluxo de caixa): recebíveis fora.
-  const planoNomes = [...semRec].map(cd => this.live ? this.empresaNome(cd) : `Empresa ${cd}`);
-  const saldoNote = 'Sem bens, permutas e financiamento'
-    + (planoNomes.length ? `\nExclui plano empresário: ${planoNomes.length} empresa${planoNomes.length > 1 ? 's' : ''}` : '')
-    + (recNoSaldoN ? `\nRecebíveis de ${fromLabel} já no saldo bancário: ${recNoSaldoN} empresa${recNoSaldoN > 1 ? 's' : ''} (${f2(recNoSaldoTot)})` : '');
   const noteStyle = (on: boolean) => `display:${on ? 'block' : 'none'};font-size:11px;line-height:1.45;color:#94A3B8;white-space:pre-line;text-wrap:pretty;cursor:default`;
   const cardBase = i => `display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${100 + i * 50}ms;transition:transform .2s ease`;
   const pgCards = [
@@ -88,8 +81,6 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     {
       label: 'Total de parcelas a receber', val: f2(totRec),
       sub: `Contas ${f2(totContas)} + receber ${f2(totRec)} = ${f2(totSaldo)}`,
-      note: saldoNote, noteStyle: noteStyle(true),
-      noteTip: planoNomes.length ? `Plano empresário vigente (recebíveis não considerados):\n${planoNomes.join('\n')}` : '',
       style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#16A34A;font-variant-numeric:tabular-nums',
     },
     { label: 'Títulos Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },

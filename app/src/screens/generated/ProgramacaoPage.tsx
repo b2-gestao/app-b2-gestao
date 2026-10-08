@@ -382,7 +382,10 @@ export default function ProgramacaoPage({ v }: { v: any }) {
             </div>
             <ul style={{ "margin": "0", "paddingLeft": "18px", "display": "flex", "flexDirection": "column", "gap": "5px", "fontSize": "12px", "lineHeight": "1.5", "color": "#64748B" }}>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Saldo inicial:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período + parcelas a receber em aberto com vencimento no período.
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Saldo inicial do dia:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período.
+              </li>
+              <li>
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Parcelas a receber:</span> parcelas a receber em aberto com vencimento no período.
               </li>
               <li>
                 <span style={{ "color": "#374151", "fontWeight": "600" }}>Recebíveis fora:</span> parcelas de Bens, Permuta e Financiamento e todas as parcelas das empresas com plano empresário (engrenagem do Fluxo de caixa).
@@ -391,7 +394,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                 <span style={{ "color": "#374151", "fontWeight": "600" }}>Dia do saldo:</span> na empresa com saldo informado no primeiro dia, os recebíveis que vencem nesse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma todos os recebíveis do período.
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Saldo após pagamentos:</span> saldo inicial − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.
+                <span style={{ "color": "#374151", "fontWeight": "600" }}>Saldo após pagamentos:</span> saldo inicial + parcelas a receber − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.
               </li>
             </ul>
           </footer>

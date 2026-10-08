@@ -216,7 +216,7 @@ await clickText('Programação do dia');
 const cdSaldo = Number(tables.app_saldo_contas_manual[0]?.company_id);
 const recEsperado = (400000 - ({ 190: 100000, 217: 300000 }[cdSaldo] || 0)).toLocaleString('pt-BR', { minimumFractionDigits: 2 });
 const cardRec = await page.getByText('Total de parcelas a receber', { exact: true }).first().locator('..').innerText();
-if (!cardRec.includes(`receber ${recEsperado} =`) || !cardRec.includes('bens, permutas e financiamento') || !cardRec.includes('Exclui plano empresário: 1 empresa')) errors.push('Card Parcelas a receber sem o a receber/observações: ' + cardRec);
+if (!cardRec.includes(`receber ${recEsperado} =`)) errors.push('Card Parcelas a receber sem o a receber: ' + cardRec);
 await page.screenshot({ path: `${out}/06c-programacao-receber.png` });
 await page.getByText('Ver análise', { exact: true }).first().click();
 await page.waitForTimeout(500);
