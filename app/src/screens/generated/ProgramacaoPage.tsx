@@ -15,7 +15,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
             <div style={{ "flex": "1 1 420px", "minWidth": "0" }}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
                 <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
-                  Programação do dia
+                  Programação diária
                 </div>
                 <span style={css(v.pgStatusPill)}>
                   <span style={css(v.pgStatusDot)}></span>

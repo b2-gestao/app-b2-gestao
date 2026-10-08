@@ -78,11 +78,11 @@ export default function Sidebar({ v }: { v: any }) {
               <a href="#" onClick={v.goLanc} style={css(v.lancItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
                 Lançamentos manuais
               </a>
-              <a href="#" onClick={v.goProg} style={css(v.progItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
-                Programação do dia
-              </a>
               <a href="#" onClick={v.goFluxo} style={css(v.fluxoItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
                 Fluxo de caixa
+              </a>
+              <a href="#" onClick={v.goProg} style={css(v.progItemStyle)} className={hv("background:rgba(255,255,255,.06);color:#F5F5F7", undefined, "outline:none")}>
+                Programação diária
               </a>
             </div>
           </div>

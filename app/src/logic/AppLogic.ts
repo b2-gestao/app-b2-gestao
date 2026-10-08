@@ -773,8 +773,8 @@ export class AppLogic extends Component<any, any> {
     { key: 'financeiro', label: 'Financeiro', subs: [
       { key: 'saldos', label: 'Saldos bancários' },
       { key: 'lancamentos', label: 'Lançamentos manuais' },
-      { key: 'programacao', label: 'Programação do dia' },
       { key: 'fluxo', label: 'Fluxo de caixa' },
+      { key: 'programacao', label: 'Programação diária' },
     ] },
     { key: 'notas', label: 'Notas Fiscais', subs: [
       { key: 'cadastros', label: 'Cadastros' },
