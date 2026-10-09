@@ -60,14 +60,30 @@ export function sbLive(app: AppLogic, date: string, onlySelected = true) {
 }
 
 // Same names as contas_correntes, so every line maps back to an account there.
-const CSV_HEAD = ['company_id', 'account_number', 'account_type_description', 'saldo'];
+const CSV_HEAD = ['data', 'company_id', 'account_number', 'account_type_description', 'saldo'];
+// "data" was added later: older templates without it still import into the date picked on screen.
+const CSV_REQUIRED = CSV_HEAD.filter(h => h !== 'data');
 
-/** Template pre-filled with every ENABLED conta corrente (rows = sbLive(..., false)); the user only fills "saldo". */
+const isoToBr = (iso: string) => iso.split('-').reverse().join('/');
+
+/** dd/mm/aaaa (or aaaa-mm-dd) → aaaa-mm-dd; '' when empty, null when invalid. */
+function parseData(v: string): string | null {
+  const t = v.trim();
+  if (!t) return '';
+  const m = t.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/) || t.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!m) return null;
+  const [y, mo, d] = t.includes('/') ? [m[3], m[2], m[1]] : [m[1], m[2], m[3]];
+  const iso = `${y}-${mo.padStart(2, '0')}-${d.padStart(2, '0')}`;
+  const dt = new Date(`${iso}T00:00:00Z`);
+  return !isNaN(dt.getTime()) && dt.toISOString().slice(0, 10) === iso ? iso : null;
+}
+
+/** Template pre-filled with every ENABLED conta corrente (rows = sbLive(..., false)) and the selected date; the user fills "saldo" (and may change "data"). */
 export function downloadTemplate(app: AppLogic, rows: any[], date: string) {
   const esc = (v: unknown) => `"${String(v ?? '').replace(/"/g, '""')}"`;
   const f2 = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false });
   // ="0000088420" keeps Excel from dropping leading zeros / turning the number into 8,8E+04.
-  const lines = [CSV_HEAD.join(';')].concat(rows.map(r => [esc(r.cd), `="${String(r.cc).replace(/"/g, '')}"`, esc(r.tipo), esc(r.saldo != null ? f2(r.saldo) : '')].join(';')));
+  const lines = [CSV_HEAD.join(';')].concat(rows.map(r => [esc(isoToBr(date)), esc(r.cd), `="${String(r.cc).replace(/"/g, '')}"`, esc(r.tipo), esc(r.saldo != null ? f2(r.saldo) : '')].join(';')));
   // ";" is Excel's separator in pt-BR.
   const nome = baixarCsv(lines, `saldos_modelo_${date}.csv`);
   app.toast(`Planilha-modelo baixada · ${nome}`);
@@ -105,9 +121,10 @@ const cell = (v: string | undefined) => String(v ?? '').trim().replace(/^="?|"$/
 const digits = (v: string) => v.replace(/\D/g, '').replace(/^0+/, '');
 
 /**
- * Imports the CSV template (company_id;account_number;account_type_description;saldo).
+ * Imports the CSV template (data;company_id;account_number;account_type_description;saldo).
  * rows = every ENABLED conta corrente; a line only counts if it matches one of them
  * (company_id + account_number, and the type when filled). Matched accounts join the listing.
+ * Each line is saved under its own "data"; empty (or missing column) falls back to `date`.
  */
 export async function importCsv(app: AppLogic, file: File, rows: any[], date: string) {
   if (!/\.csv$/i.test(file.name)) {
@@ -118,7 +135,7 @@ export async function importCsv(app: AppLogic, file: File, rows: any[], date: st
   const table = parseCsv(text);
   const head = (table.shift() || []).map(h => h.trim().toLowerCase());
   const col = (n: string) => head.indexOf(n);
-  if (CSV_HEAD.some(h => col(h) < 0)) {
+  if (CSV_REQUIRED.some(h => col(h) < 0)) {
     app.toast('Cabeçalho inválido. Esperado: ' + CSV_HEAD.join(';'));
     return;
   }
@@ -130,11 +147,15 @@ export async function importCsv(app: AppLogic, file: File, rows: any[], date: st
     const k = `${r.cd}|${digits(String(r.cc))}`;
     loose.set(k, (loose.get(k) || []).concat(r));
   });
-  const patch: Record<string, any> = {};
+  const patches: Record<string, Record<string, any>> = {};
   const unmatched: string[] = [];
+  const badDate: string[] = [];
   for (const line of table) {
     const saldo = parseBRL(line[col('saldo')] || '');
     if (saldo == null) continue;
+    const rawData = col('data') >= 0 ? cell(line[col('data')]) : '';
+    const dia = parseData(rawData);
+    if (dia == null) { badDate.push(rawData); continue; }
     const cd = cell(line[col('company_id')]).replace(/\D/g, ''), cc = cell(line[col('account_number')]), tipo = norm(cell(line[col('account_type_description')]));
     const okTipo = (r: any) => !tipo || norm(r.tipo) === tipo;
     let r = exact.get(`${cd}|${cc}`);
@@ -144,13 +165,20 @@ export async function importCsv(app: AppLogic, file: File, rows: any[], date: st
       if (cands.length === 1) r = cands[0];
     }
     if (!r) { unmatched.push(`${cd} · ${cc}`); continue; }
-    patch[r.id] = { saldo, upd: app.nowStamp(), origem: 'Planilha' };
+    (patches[dia || date] ||= {})[r.id] = { saldo, upd: app.nowStamp(), origem: 'Planilha' };
   }
-  const n = Object.keys(patch).length;
-  if (n && !(await app.addContasSel(Object.keys(patch)))) return;
-  if (n && !(await app.writeSaldos(date, patch))) return;
-  const miss = unmatched.length
-    ? ` · ${unmatched.length} linha(s) sem conta ativa correspondente em contas_correntes (${unmatched.slice(0, 3).join('; ')}${unmatched.length > 3 ? '…' : ''})`
+  const dias = Object.keys(patches).sort();
+  const ids = [...new Set(dias.flatMap(d => Object.keys(patches[d])))];
+  if (ids.length && !(await app.addContasSel(ids))) return;
+  for (const d of dias) if (!(await app.writeSaldos(d, patches[d]))) return;
+  const n = dias.reduce((t, d) => t + Object.keys(patches[d]).length, 0);
+  const lista = (v: string[]) => `${v.slice(0, 3).join('; ')}${v.length > 3 ? '…' : ''}`;
+  const emDias = dias.length > 1 || (dias.length === 1 && dias[0] !== date)
+    ? ` em ${dias.length === 1 ? isoToBr(dias[0]) : `${dias.length} datas`}`
     : '';
-  app.toast(`${file.name} importada · ${n} ${n === 1 ? 'conta atualizada' : 'contas atualizadas'}${miss}.`);
+  const miss = unmatched.length
+    ? ` · ${unmatched.length} linha(s) sem conta ativa correspondente em contas_correntes (${lista(unmatched)})`
+    : '';
+  const bad = badDate.length ? ` · ${badDate.length} linha(s) com data inválida, use dd/mm/aaaa (${lista(badDate)})` : '';
+  app.toast(`${file.name} importada · ${n} ${n === 1 ? 'saldo atualizado' : 'saldos atualizados'}${emDias}${miss}${bad}.`);
 }
