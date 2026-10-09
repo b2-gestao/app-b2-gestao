@@ -22,6 +22,7 @@ import BiPage from '../BiPage';
 import BiCfgModal from '../BiCfgModal';
 import CategoriasPage from '../CategoriasPage';
 import CategoriaModal from '../CategoriaModal';
+import GeraisPage from '../GeraisPage';
 import EnviarEmailModal from '../EnviarEmailModal';
 import NotasCadastrosPage from '../NotasCadastrosPage';
 import NotasTitulosPage from '../NotasTitulosPage';
@@ -47,6 +48,7 @@ export default function AppRoot({ v }: { v: any }) {
           <DashboardPage v={v} />
           <BiPage v={v} />
           <CategoriasPage v={v} />
+          <GeraisPage v={v} />
           <NotasCadastrosPage v={v} />
           <NotasTitulosPage v={v} />
           <CrcEntregasPage v={v} />

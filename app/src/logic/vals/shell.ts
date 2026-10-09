@@ -198,7 +198,7 @@ export function renderVals(this: AppLogic) {
       if (it.name === 'CRC') return pageVals.goCrcEntregas();
       if (isCadFin(it)) return pageVals.goCategorias();
       if (it.name === 'Configurações') {
-        const page = ['usuarios', 'departamentos', 'perfis'].find(p => this.pode(this.pagePerm[p]));
+        const page = ['usuarios', 'departamentos', 'perfis', 'gerais'].find(p => this.pode(this.pagePerm[p]));
         if (this.semAcesso(!!page)) return;
         return this.setState({ view: 'app', module: it.name, collapsed: false, page, configOpen: true });
       }
@@ -224,6 +224,7 @@ export function renderVals(this: AppLogic) {
     ...this.usersVals(subItemStyle),
     ...this.deptsVals(),
     ...this.categoriasVals(),
+    ...this.geraisVals(subItemStyle),
     ...this.perfisVals(subItemStyle),
     ...this.saldosVals(subItemStyle),
     ...this.lancVals(subItemStyle),
@@ -260,8 +261,8 @@ export function renderVals(this: AppLogic) {
     isHome: s.view === 'home',
     dateLabel: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
     expanded: !c,
-    crumbLabel: s.page === 'bi' ? 'BI' : (s.page === 'nfCadastros' || s.page === 'nfTitulos') ? 'Notas Fiscais' : s.page === 'crcEntregas' ? '' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
-    pageTitle: s.page === 'bi' ? pageVals.biTitle : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'nfTitulos' ? 'Título a Pagar' : s.page === 'crcEntregas' ? 'CRC' : s.page === 'categorias' ? 'Categorias' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação diária' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
+    crumbLabel: s.page === 'bi' ? 'BI' : (s.page === 'nfCadastros' || s.page === 'nfTitulos') ? 'Notas Fiscais' : s.page === 'crcEntregas' ? '' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis' || s.page === 'gerais') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
+    pageTitle: s.page === 'bi' ? pageVals.biTitle : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'nfTitulos' ? 'Título a Pagar' : s.page === 'crcEntregas' ? 'CRC' : s.page === 'categorias' ? 'Categorias' : s.page === 'gerais' ? 'Gerais' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação diária' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
     goHome: () => this.setState({ view: 'home', page: 'dashboard', userMenuOpen: false }),
     homeShellStyle: `position:relative;height:100vh;width:100%;overflow:hidden;background:${homeBg}`,
     scrimStyle: s.bgMode === 'image'
