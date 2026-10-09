@@ -66,7 +66,7 @@
     <span id="crcSyncStatus" class="crc-sync"></span>
     <button class="btn secondary sm" onclick="openImportModal()">📥 Importar planilha</button>
     <button class="btn secondary sm" onclick="openModal('modalNewCommittee')">+ Novo projeto</button>
-    <button class="btn sm" onclick="switchView('ai')">🤖 Analisar reunião</button>
+    <button class="btn blue sm" onclick="switchView('ai')">🤖 Analisar reunião</button>
   </div>
 </div>
 
@@ -166,6 +166,7 @@
     <button class="btn ghost sm" onclick="clearCommFilters()">Limpar</button>
     <div style="margin-left:auto;display:flex;gap:6px">
       <button class="btn secondary sm" onclick="openModal('modalNewBlock')">+ Bloco</button>
+      <button class="btn secondary sm" onclick="openCloneBlockPicker()">📋 Clonar bloco</button>
       <button class="btn secondary sm" onclick="openObraUpdate()">🏗️ Atualizar % obra</button>
     </div>
   </div>
@@ -379,40 +380,100 @@
 
 <!-- MODAL: novo projeto -->
 <div class="modal-backdrop" id="modalNewCommittee">
-  <div class="modal">
-    <div class="modal-head"><h2>Novo projeto</h2><button class="close-x" onclick="closeModal('modalNewCommittee')">×</button></div>
+  <div class="modal lg" id="modalNewCommitteeInner">
+    <div class="modal-head"><h2>➕ Novo projeto</h2><button class="close-x" onclick="closeModal('modalNewCommittee')">×</button></div>
     <div class="modal-body">
-      <div class="field"><label>Nome do empreendimento</label><input id="ncName" placeholder="Ex: Casa Laguna"></div>
-      <div class="field"><label>Empresa (Sienge)</label><select id="ncEmpresa"></select></div>
-      <div class="field-row">
-        <div class="field"><label>Data prevista de entrega</label><input id="ncDelivery" type="date"></div>
-        <div class="field"><label>Início do projeto</label><input id="ncStart" type="date"></div>
-      </div>
+
+      <!-- Seletor de modo em cards -->
       <div class="field"><label>Como começar?</label>
-        <select id="ncFrom" onchange="toggleCloneOptions()">
-          <option value="blank">Em branco</option>
-          <option value="template">A partir de um modelo (estrutura pronta, sem dados)</option>
-          <option value="clone">Clonar de um projeto existente</option>
-        </select>
-      </div>
-      <div class="field hidden" id="ncTemplateWrap"><label>Escolher modelo</label><select id="ncTemplate"></select></div>
-      <div class="field hidden" id="ncCloneWrap">
-        <label>Clonar de qual projeto?</label>
-        <select id="ncClone"></select>
-        <div class="hint" style="margin-top:10px">O que trazer:</div>
-        <div class="checklist">
-          <label><input type="checkbox" checked disabled> Estrutura de blocos e ações</label>
-          <label><input type="checkbox" id="cloneResp" checked> Responsáveis (áreas)</label>
-          <label><input type="checkbox" id="cloneDates"> Datas planejadas</label>
-          <label><input type="checkbox" id="cloneObs"> Observações e notas</label>
-          <label><input type="checkbox" id="cloneHist"> Histórico de replanejamentos</label>
-          <label><input type="checkbox" id="cloneStatus"> Status atuais</label>
+        <div class="nc-mode-row">
+          <button type="button" class="nc-mode" data-mode="blank" onclick="setNewProjectMode('blank')">
+            <div class="nc-mode-icon">📄</div>
+            <div class="nc-mode-title">Em branco</div>
+            <div class="nc-mode-sub">Começar do zero</div>
+          </button>
+          <button type="button" class="nc-mode" data-mode="template" onclick="setNewProjectMode('template')">
+            <div class="nc-mode-icon">📚</div>
+            <div class="nc-mode-title">Modelo</div>
+            <div class="nc-mode-sub">Estrutura pronta</div>
+          </button>
+          <button type="button" class="nc-mode" data-mode="clone" onclick="setNewProjectMode('clone')">
+            <div class="nc-mode-icon">📋</div>
+            <div class="nc-mode-title">Clonar projeto</div>
+            <div class="nc-mode-sub">Copiar existente</div>
+          </button>
         </div>
+      </div>
+
+      <!-- Layout: 1 coluna no modo blank, 2 colunas nos modos template/clone -->
+      <div class="clone-grid" id="ncGrid">
+
+        <!-- Coluna esquerda: identificação -->
+        <div>
+          <div class="clone-card">
+            <div class="clone-card-head">⚙️ Identificação</div>
+            <div class="clone-card-body">
+              <div class="field"><label>Nome do empreendimento</label><input id="ncName" placeholder="Ex: Casa Laguna"></div>
+              <div class="field"><label>Empresa (Sienge)</label><select id="ncEmpresa"></select></div>
+              <div class="field"><label>Data prevista de entrega</label><input id="ncDelivery" type="date"></div>
+              <div class="field" style="margin-bottom:0"><label>Início do projeto</label><input id="ncStart" type="date"></div>
+            </div>
+          </div>
+
+          <!-- Modelo -->
+          <div class="clone-card hidden" id="ncTemplateWrap" style="margin-top:12px">
+            <div class="clone-card-head">📚 Modelo</div>
+            <div class="clone-card-body">
+              <div class="field" style="margin-bottom:0"><label>Modelo base</label><select id="ncTemplate"></select></div>
+            </div>
+          </div>
+
+          <!-- Clone: fonte + o que trazer -->
+          <div class="clone-card hidden" id="ncCloneConfig" style="margin-top:12px">
+            <div class="clone-card-head">📋 Projeto de origem</div>
+            <div class="clone-card-body">
+              <div class="field" style="margin-bottom:0"><label>Clonar de qual projeto?</label><select id="ncClone" onchange="refreshNcCloneBlocks()"></select></div>
+            </div>
+          </div>
+
+          <div class="clone-card hidden" id="ncCloneDataWrap" style="margin-top:12px">
+            <div class="clone-card-head">📑 Dados a copiar</div>
+            <div class="clone-card-body compact">
+              <div class="clone-opts-grid">
+                <label class="required on"><input type="checkbox" checked disabled> Estrutura</label>
+                <label id="lblNcResp" class="on"><input type="checkbox" id="cloneResp" checked onchange="document.getElementById('lblNcResp').classList.toggle('on',this.checked)"> Responsáveis</label>
+                <label id="lblNcMile" class="on"><input type="checkbox" id="cloneMile" checked onchange="document.getElementById('lblNcMile').classList.toggle('on',this.checked)"> Marcos ⭐</label>
+                <label id="lblNcDates"><input type="checkbox" id="cloneDates" onchange="document.getElementById('lblNcDates').classList.toggle('on',this.checked)"> Datas planejadas</label>
+                <label id="lblNcStatus"><input type="checkbox" id="cloneStatus" onchange="document.getElementById('lblNcStatus').classList.toggle('on',this.checked)"> Status atuais</label>
+                <label id="lblNcObs"><input type="checkbox" id="cloneObs" onchange="document.getElementById('lblNcObs').classList.toggle('on',this.checked)"> Observações</label>
+                <label id="lblNcHist"><input type="checkbox" id="cloneHist" onchange="document.getElementById('lblNcHist').classList.toggle('on',this.checked)"> Histórico</label>
+                <label id="lblNcAtt"><input type="checkbox" id="cloneAtt" onchange="document.getElementById('lblNcAtt').classList.toggle('on',this.checked)"> Anexos</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna direita: seleção de blocos (modo clone) -->
+        <div id="ncBlocksPanel" class="hidden">
+          <div class="clone-card">
+            <div class="clone-card-head">
+              <span>📂 Blocos a clonar</span>
+              <span class="clone-count-pill empty" id="ncBlocksCount">0 de 0</span>
+            </div>
+            <div class="clone-scope-row">
+              <button type="button" class="active" onclick="setNcCloneScope('all')" id="ncScopeAll">Todos</button>
+              <button type="button" onclick="setNcCloneScope('none')" id="ncScopeNone">Nenhum</button>
+              <button type="button" onclick="setNcCloneScope('some')" id="ncScopeSome">Escolher</button>
+            </div>
+            <div class="clone-acts" id="ncBlocksList"></div>
+          </div>
+        </div>
+
       </div>
     </div>
     <div class="modal-foot">
       <button class="btn secondary" onclick="closeModal('modalNewCommittee')">Cancelar</button>
-      <button class="btn" onclick="createCommittee()">Criar projeto</button>
+      <button class="btn blue" onclick="createCommittee()">➕ Criar projeto</button>
     </div>
   </div>
 </div>
@@ -540,6 +601,78 @@
     <div class="modal-foot">
       <button class="btn secondary" onclick="closeModal('modalNewBlock')">Cancelar</button>
       <button class="btn" onclick="saveBlock()">Salvar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: clonar bloco -->
+<div class="modal-backdrop" id="modalCloneBlock">
+  <div class="modal lg">
+    <div class="modal-head"><h2>📋 Clonar bloco</h2><button class="close-x" onclick="closeModal('modalCloneBlock')">×</button></div>
+    <div class="modal-body">
+
+      <div class="clone-grid">
+
+        <!-- Coluna esquerda: configuração -->
+        <div>
+          <div class="clone-card">
+            <div class="clone-card-head">⚙️ Configuração</div>
+            <div class="clone-card-body">
+              <div class="field">
+                <label>Bloco de origem</label>
+                <select id="cbSource" onchange="refreshCloneActions()"></select>
+              </div>
+              <div class="field">
+                <label>Nome do novo bloco</label>
+                <input id="cbNewName" placeholder="Ex: Ligações - 2ª etapa">
+              </div>
+              <div class="field" style="margin-bottom:0">
+                <label>Posição no projeto</label>
+                <select id="cbPosition">
+                  <option value="after">Logo após o bloco de origem</option>
+                  <option value="end">No final da lista</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="clone-card" style="margin-top:12px" id="cbCloneOptsWrap">
+            <div class="clone-card-head">📑 Dados a copiar</div>
+            <div class="clone-card-body compact">
+              <div class="clone-opts-grid">
+                <label class="required on"><input type="checkbox" checked disabled> Nomes das atividades</label>
+                <label id="lblResps" class="on"><input type="checkbox" id="cbResps" checked onchange="document.getElementById('lblResps').classList.toggle('on',this.checked)"> Responsáveis</label>
+                <label id="lblMile" class="on"><input type="checkbox" id="cbMilestones" checked onchange="document.getElementById('lblMile').classList.toggle('on',this.checked)"> Marcos ⭐</label>
+                <label id="lblDates"><input type="checkbox" id="cbDates" onchange="document.getElementById('lblDates').classList.toggle('on',this.checked)"> Datas planejadas</label>
+                <label id="lblStatus"><input type="checkbox" id="cbStatus" onchange="document.getElementById('lblStatus').classList.toggle('on',this.checked)"> Status atuais</label>
+                <label id="lblObs"><input type="checkbox" id="cbObs" onchange="document.getElementById('lblObs').classList.toggle('on',this.checked)"> Observações</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Coluna direita: lista de atividades -->
+        <div>
+          <div class="clone-card">
+            <div class="clone-card-head">
+              <span>✅ Atividades a clonar</span>
+              <span class="clone-count-pill" id="cbCount">0 de 0</span>
+            </div>
+            <div class="clone-scope-row">
+              <button type="button" onclick="setCloneScope('all')" id="cbScopeAll">Todas</button>
+              <button type="button" onclick="setCloneScope('none')" id="cbScopeNone">Nenhuma</button>
+              <button type="button" class="active" onclick="setCloneScope('some')" id="cbScopeSome">Escolher</button>
+            </div>
+            <div class="clone-acts" id="cbActionsList"></div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+    <div class="modal-foot">
+      <button class="btn secondary" onclick="closeModal('modalCloneBlock')">Cancelar</button>
+      <button class="btn blue" onclick="doCloneBlock()">📋 Clonar bloco</button>
     </div>
   </div>
 </div>
