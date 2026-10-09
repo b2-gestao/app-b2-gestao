@@ -111,6 +111,8 @@ export const api = {
   pagarSegmentos: (de: string, ate: string) => rpc<PagarSegmento[]>('app_pagar_segmentos', { p_de: de, p_ate: ate }),
   ultimoSync: () => rpc<string | null>('app_ultimo_sync'),
   pagosDiario: (de: string, ate: string) => rpc<PagoDia[]>('app_pagos_diario', { p_de: de, p_ate: ate }),
+  /** Configurações › Gerais: companies the user can access, including the desconsideradas. */
+  empresasGerais: () => rpc<Empresa[]>('app_empresas_gerais'),
 };
 
 /** Display name used across the app: "Nome fantasia – Empreendimento(s)". */
@@ -245,6 +247,7 @@ export interface Lancamento {
 export type LancamentoNovo = Omit<Lancamento, 'id'>;
 /** Empresa whose parcelas a receber are left out of the Fluxo de caixa (already committed). */
 export interface EmpresaSemReceber { company_id: number; motivo: string }
+export interface EmpresaDesconsiderada { company_id: number; motivo: string }
 
 /** Power BI report published to the web (app_bi_paineis). */
 export interface BiPainel { id: string; nome: string; url: string; ordem: number; ativo: boolean; ocultar_rodape: boolean }
@@ -287,6 +290,14 @@ export const cadastrosApi = {
   salvarFluxoSemReceber: async (rows: EmpresaSemReceber[], remover: number[]) => {
     if (remover.length) await run(db().from('app_fluxo_empresas_sem_receber').delete().in('company_id', remover));
     if (rows.length) await run(db().from('app_fluxo_empresas_sem_receber').upsert(rows, { onConflict: 'company_id' }));
+  },
+
+  /** Configurações › Gerais: companies ignored by the whole app (app_filtra_empresas / app_pode_empresa). */
+  empresasDesconsideradas: () => run<EmpresaDesconsiderada[]>(db().from('app_empresas_desconsideradas').select('company_id, motivo').order('company_id')),
+  /** Upserts `rows` (new or changed), deletes the companies in `remover`. */
+  salvarEmpresasDesconsideradas: async (rows: EmpresaDesconsiderada[], remover: number[]) => {
+    if (remover.length) await run(db().from('app_empresas_desconsideradas').delete().in('company_id', remover));
+    if (rows.length) await run(db().from('app_empresas_desconsideradas').upsert(rows, { onConflict: 'company_id' }));
   },
 
   /** Painéis the profile can see (RLS: bi.<id> to view, bi.gerenciar sees all). */
