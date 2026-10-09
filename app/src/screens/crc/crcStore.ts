@@ -291,11 +291,12 @@ class CrcStore {
     }
   }
 
-  /** Sobe para o Storage os anexos novos (base64 em memória). Projeto precisa estar gravado antes. */
+  /** Sobe para o Storage os anexos novos (base64 em memória) e copia os de projeto clonado
+   *  (x.copyFrom = caminho do arquivo de origem). Projeto precisa estar gravado antes. */
   private async enviarAnexos(db: any) {
     const pend: { c: any; a: any; x: any }[] = [];
     for (const c of db.committees || []) for (const b of c.blocks || []) for (const a of b.actions || []) {
-      for (const x of a.attachments || []) if (!x.path && x.data) pend.push({ c, a, x });
+      for (const x of a.attachments || []) if (!x.path && (x.data || x.copyFrom)) pend.push({ c, a, x });
     }
     if (!pend.length) return;
     // projeto/ação precisam existir para a política do Storage e para a FK do anexo
@@ -303,11 +304,17 @@ class CrcStore {
     for (const { c, a, x } of pend) {
       if (!x.id) x.id = 'att_' + rid();
       const path = `${c.id}/${a.id}/${x.id}-${nomeArquivo(x.name)}`;
-      const blob = await (await fetch(x.data)).blob();
-      const { error } = await sb().storage.from(BUCKET).upload(path, blob, { contentType: x.type || 'application/octet-stream', upsert: true });
-      if (error) throw new Error(`anexo "${x.name}": ${error.message}`);
+      if (x.data) {
+        const blob = await (await fetch(x.data)).blob();
+        const { error } = await sb().storage.from(BUCKET).upload(path, blob, { contentType: x.type || 'application/octet-stream', upsert: true });
+        if (error) throw new Error(`anexo "${x.name}": ${error.message}`);
+      } else {
+        const { error } = await sb().storage.from(BUCKET).copy(x.copyFrom, path);
+        if (error) throw new Error(`anexo "${x.name}": ${error.message}`);
+      }
       x.path = path;
       delete x.data;
+      delete x.copyFrom;
     }
   }
 

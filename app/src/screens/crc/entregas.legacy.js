@@ -891,6 +891,7 @@ function renderCommittee(){
         <div class="block-progress"><div class="block-progress-fill ${cls}" style="width:${p.pct}%"></div></div>
         <div style="font-size:12px;font-weight:600;width:38px;text-align:right">${p.pct}%</div>
         <div class="block-actions">
+          <button class="btn xs secondary" onclick="openCloneBlock('${b.id}')" title="Clonar bloco">📋</button>
           <button class="btn xs secondary" onclick="editBlock('${b.id}')" title="Renomear">✏️</button>
           <button class="btn xs danger" onclick="deleteBlock('${b.id}')" title="Excluir">🗑️</button>
         </div>
@@ -1041,6 +1042,147 @@ function saveBlock(){
   else { c.blocks.push({id:uid('b'),name,actions:[],_open:true}) }
   editingBlockId=null; save(); closeModal('modalNewBlock'); renderAll();
 }
+/* ========= CLONAR BLOCO ========= */
+let cloneSelectedActs = {}; // {aid: true}
+function openCloneBlock(bid){
+  // Aberto a partir do botão do próprio bloco → bloco de origem já definido
+  openCloneBlockBase(bid);
+}
+function openCloneBlockPicker(){
+  // Aberto pela toolbar — usuário escolhe o bloco de origem
+  const c = currentCommittee();
+  if(!c || !c.blocks.length){ crcAlert('Não há blocos para clonar.'); return }
+  openCloneBlockBase(c.blocks[0].id);
+}
+function openCloneBlockBase(bid){
+  const c = currentCommittee();
+  const sel = document.getElementById('cbSource');
+  sel.innerHTML = c.blocks.map(b=>`<option value="${b.id}" ${b.id===bid?'selected':''}>${esc(b.name)} (${b.actions.length} atividade${b.actions.length===1?'':'s'})</option>`).join('');
+  document.getElementById('cbPosition').value = 'after';
+  document.getElementById('cbResps').checked = true;
+  document.getElementById('cbDates').checked = false;
+  document.getElementById('cbStatus').checked = false;
+  document.getElementById('cbObs').checked = false;
+  document.getElementById('cbMilestones').checked = true;
+  ['Resps','Mile'].forEach(k=>{const el=document.getElementById('lbl'+k);if(el)el.classList.add('on')});
+  ['Dates','Status','Obs'].forEach(k=>{const el=document.getElementById('lbl'+k);if(el)el.classList.remove('on')});
+  refreshCloneActions();
+  // Marca todas por padrão
+  setCloneScope('all');
+  openModal('modalCloneBlock');
+}
+function refreshCloneActions(){
+  const c = currentCommittee();
+  const bid = document.getElementById('cbSource').value;
+  const b = c.blocks.find(x=>x.id===bid); if(!b) return;
+  document.getElementById('cbNewName').value = b.name + ' (cópia)';
+  // Reset seleção quando trocar de bloco
+  cloneSelectedActs = {};
+  b.actions.forEach(a=>{ cloneSelectedActs[a.id] = true });
+  highlightCloneScope('all');
+  renderCloneActionsList();
+}
+function renderCloneActionsList(){
+  const c = currentCommittee();
+  const b = c.blocks.find(x=>x.id===document.getElementById('cbSource').value); if(!b) return;
+  const list = document.getElementById('cbActionsList');
+  list.innerHTML = b.actions.length ? b.actions.map(a=>{
+    const checked = !!cloneSelectedActs[a.id];
+    const resps = actionResps(a);
+    const chips = [];
+    if(a.milestone) chips.push('<span class="act-chip milestone">⭐ marco</span>');
+    if(resps.length) chips.push(`<span class="act-chip">${esc(resps.slice(0,2).join('+'))}${resps.length>2?' +'+(resps.length-2):''}</span>`);
+    return `<label class="${checked?'checked':''}">
+      <input type="checkbox" ${checked?'checked':''} onchange="toggleCloneAct('${a.id}', this.checked)">
+      <span class="act-text">${esc(a.name)}</span>
+      ${chips.length?`<span class="act-chips">${chips.join('')}</span>`:''}
+    </label>`;
+  }).join('') : '<div class="clone-acts-empty">Bloco de origem está vazio</div>';
+  updateCloneCount();
+}
+function toggleCloneAct(aid, v){
+  if(v) cloneSelectedActs[aid] = true;
+  else delete cloneSelectedActs[aid];
+  // Qualquer alteração manual passa automaticamente para o modo "escolher"
+  const n = Object.keys(cloneSelectedActs).length;
+  const b = currentCommittee().blocks.find(x=>x.id===document.getElementById('cbSource').value);
+  const total = b ? b.actions.length : 0;
+  let scope = 'some';
+  if(n===0) scope = 'none';
+  else if(n===total) scope = 'all';
+  highlightCloneScope(scope);
+  renderCloneActionsList();
+}
+function setCloneScope(scope){
+  const b = currentCommittee().blocks.find(x=>x.id===document.getElementById('cbSource').value); if(!b) return;
+  if(scope==='all'){
+    cloneSelectedActs = {};
+    b.actions.forEach(a=>{ cloneSelectedActs[a.id] = true });
+  } else if(scope==='none'){
+    cloneSelectedActs = {};
+  }
+  // "some" não altera a seleção — apenas destaca
+  highlightCloneScope(scope);
+  renderCloneActionsList();
+}
+function highlightCloneScope(scope){
+  ['All','None','Some'].forEach(k=>{
+    const el = document.getElementById('cbScope'+k);
+    if(el) el.classList.toggle('active', scope===k.toLowerCase());
+  });
+}
+function updateCloneCount(){
+  const n = Object.keys(cloneSelectedActs).length;
+  const total = (currentCommittee().blocks.find(x=>x.id===document.getElementById('cbSource').value)?.actions||[]).length;
+  const pill = document.getElementById('cbCount');
+  pill.textContent = `${n} de ${total}`;
+  pill.classList.toggle('empty', n===0);
+  // Esconde opções de "o que copiar" quando nenhuma atividade estiver marcada
+  const opts = document.getElementById('cbCloneOptsWrap');
+  if(opts) opts.style.display = n>0 ? '' : 'none';
+}
+function doCloneBlock(){
+  const c = currentCommittee();
+  const srcId = document.getElementById('cbSource').value;
+  const src = c.blocks.find(x=>x.id===srcId); if(!src){ crcAlert('Selecione o bloco de origem.'); return }
+  const name = (document.getElementById('cbNewName').value||'').trim() || (src.name+' (cópia)');
+  const pos = document.getElementById('cbPosition').value;
+  const optResp = document.getElementById('cbResps').checked;
+  const optDates = document.getElementById('cbDates').checked;
+  const optStatus = document.getElementById('cbStatus').checked;
+  const optObs = document.getElementById('cbObs').checked;
+  const optMile = document.getElementById('cbMilestones').checked;
+
+  const selectedActs = src.actions.filter(a=>cloneSelectedActs[a.id]);
+  const newBlock = {
+    id: uid('b'), name, _open: true,
+    actions: selectedActs.map(a=>{
+      const na = {
+        id: uid('a'), name: a.name,
+        resps: optResp ? [...actionResps(a)] : [],
+        status: optStatus ? a.status : 'NÃO INICIADO',
+        start: optDates ? a.start : null,
+        end: optDates ? a.end : null,
+        actualEnd: null,
+        obs: optObs ? (a.obs||'') : '',
+        milestone: optMile ? !!a.milestone : false,
+        history: [], notes: [], attachments: []
+      };
+      pushHistory(na, 'CRIADO', `Clonada do bloco "${src.name}"`);
+      return na;
+    })
+  };
+
+  const idx = c.blocks.findIndex(x=>x.id===srcId);
+  if(pos==='after' && idx>=0) c.blocks.splice(idx+1, 0, newBlock);
+  else c.blocks.push(newBlock);
+  save();
+  closeModal('modalCloneBlock');
+  cloneSelectedActs = {};
+  renderAll();
+  crcAlert(`✓ Bloco "${name}" clonado com ${newBlock.actions.length} atividade(s).`);
+}
+
 async function deleteBlock(bid){
   const b=currentCommittee().blocks.find(b=>b.id===bid);
   if(!(await crcConfirm(`Excluir o bloco "${b.name}" e todas as suas ${b.actions.length} ações?`, {danger:true, okLabel:'Excluir'}))) return;
@@ -1438,44 +1580,157 @@ function saveMeetingNote(){
 }
 
 /* ========= NEW COMMITTEE ========= */
+let newProjectMode = 'blank';
+let ncSelectedBlocks = {}; // {bid: true}
+
 function openNewCommittee(){
   document.getElementById('ncName').value='';
   document.getElementById('ncDelivery').value='';
   document.getElementById('ncStart').value=today();
-  document.getElementById('ncFrom').value='blank';
   const cur=currentCommittee(); fillEmpresaSelect(document.getElementById('ncEmpresa'), cur?cur.companyId:null);
-  document.getElementById('ncTemplate').innerHTML=db.templates.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
-  document.getElementById('ncClone').innerHTML=db.committees.map(c=>`<option value="${c.id}">${c.name}</option>`).join('');
-  toggleCloneOptions();
+  document.getElementById('ncTemplate').innerHTML=db.templates.map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join('');
+  document.getElementById('ncClone').innerHTML=db.committees.map(c=>{
+    const nActs = c.blocks.reduce((s,b)=>s+b.actions.length,0);
+    const marker = c.completed?' ✓':c.paused?' ⏸':'';
+    return `<option value="${c.id}">${esc(c.name)}${marker} (${c.blocks.length} blocos · ${nActs} ativ.)</option>`;
+  }).join('');
+  // Reset opções de clonar
+  document.getElementById('cloneResp').checked = true;
+  document.getElementById('cloneMile').checked = true;
+  document.getElementById('cloneDates').checked = false;
+  document.getElementById('cloneStatus').checked = false;
+  document.getElementById('cloneObs').checked = false;
+  document.getElementById('cloneHist').checked = false;
+  document.getElementById('cloneAtt').checked = false;
+  ['Resp','Mile'].forEach(k=>{const el=document.getElementById('lblNc'+k);if(el)el.classList.add('on')});
+  ['Dates','Status','Obs','Hist','Att'].forEach(k=>{const el=document.getElementById('lblNc'+k);if(el)el.classList.remove('on')});
+  setNewProjectMode('blank');
 }
-function toggleCloneOptions(){
-  const v=document.getElementById('ncFrom').value;
-  document.getElementById('ncTemplateWrap').classList.toggle('hidden',v!=='template');
-  document.getElementById('ncCloneWrap').classList.toggle('hidden',v!=='clone');
+function setNewProjectMode(mode){
+  newProjectMode = mode;
+  crcRoot.querySelectorAll('.nc-mode').forEach(el=>el.classList.toggle('active', el.dataset.mode===mode));
+  document.getElementById('ncTemplateWrap').classList.toggle('hidden', mode!=='template');
+  document.getElementById('ncCloneConfig').classList.toggle('hidden', mode!=='clone');
+  document.getElementById('ncCloneDataWrap').classList.toggle('hidden', mode!=='clone');
+  document.getElementById('ncBlocksPanel').classList.toggle('hidden', mode!=='clone');
+  // Duas colunas só no modo clone (quando há a lista de blocos à direita)
+  document.getElementById('ncGrid').classList.toggle('single', mode!=='clone');
+  if(mode==='clone') refreshNcCloneBlocks();
 }
+function refreshNcCloneBlocks(){
+  const src = db.committees.find(c=>c.id===document.getElementById('ncClone').value);
+  ncSelectedBlocks = {};
+  if(!src){ document.getElementById('ncBlocksList').innerHTML=''; updateNcBlocksCount(); return }
+  src.blocks.forEach(b=>{ ncSelectedBlocks[b.id] = true });
+  renderNcBlocksList();
+  highlightNcScope('all');
+}
+function renderNcBlocksList(){
+  const src = db.committees.find(c=>c.id===document.getElementById('ncClone').value);
+  if(!src) return;
+  const list = document.getElementById('ncBlocksList');
+  list.innerHTML = src.blocks.length ? src.blocks.map(b=>{
+    const checked = !!ncSelectedBlocks[b.id];
+    const nActs = b.actions.length;
+    const nMile = b.actions.filter(a=>a.milestone).length;
+    const chips = [];
+    chips.push(`<span class="act-chip">${nActs} ativ.</span>`);
+    if(nMile) chips.push(`<span class="act-chip milestone">⭐ ${nMile}</span>`);
+    return `<label class="${checked?'checked':''}">
+      <input type="checkbox" ${checked?'checked':''} onchange="toggleNcBlock('${b.id}', this.checked)">
+      <span class="act-text">${esc(b.name)}</span>
+      <span class="act-chips">${chips.join('')}</span>
+    </label>`;
+  }).join('') : '<div class="clone-acts-empty">Projeto sem blocos</div>';
+  updateNcBlocksCount();
+}
+function toggleNcBlock(bid, v){
+  if(v) ncSelectedBlocks[bid] = true;
+  else delete ncSelectedBlocks[bid];
+  const src = db.committees.find(c=>c.id===document.getElementById('ncClone').value);
+  const total = src?src.blocks.length:0;
+  const n = Object.keys(ncSelectedBlocks).length;
+  let scope = 'some';
+  if(n===0) scope='none';
+  else if(n===total) scope='all';
+  highlightNcScope(scope);
+  // Re-render para atualizar o highlight da linha
+  renderNcBlocksList();
+}
+function setNcCloneScope(scope){
+  const src = db.committees.find(c=>c.id===document.getElementById('ncClone').value);
+  if(!src) return;
+  if(scope==='all'){
+    ncSelectedBlocks = {};
+    src.blocks.forEach(b=>{ ncSelectedBlocks[b.id] = true });
+  } else if(scope==='none'){
+    ncSelectedBlocks = {};
+  }
+  highlightNcScope(scope);
+  renderNcBlocksList();
+}
+function highlightNcScope(scope){
+  ['All','None','Some'].forEach(k=>{
+    const el = document.getElementById('ncScope'+k);
+    if(el) el.classList.toggle('active', scope===k.toLowerCase());
+  });
+}
+function updateNcBlocksCount(){
+  const src = db.committees.find(c=>c.id===document.getElementById('ncClone').value);
+  const total = src?src.blocks.length:0;
+  const n = Object.keys(ncSelectedBlocks).length;
+  const pill = document.getElementById('ncBlocksCount');
+  pill.textContent = `${n} de ${total}`;
+  pill.classList.toggle('empty', n===0);
+}
+
 function createCommittee(){
-  const name=document.getElementById('ncName').value.trim(); if(!name) return crcAlert('Informe o nome');
+  const name=document.getElementById('ncName').value.trim(); if(!name) return crcAlert('Informe o nome do projeto.');
   const delivery=document.getElementById('ncDelivery').value||null;
   const start=document.getElementById('ncStart').value||null;
-  const from=document.getElementById('ncFrom').value;
   const companyId=+document.getElementById('ncEmpresa').value||null; if(!companyId) return crcAlert('Escolha a empresa do projeto');
   let nc;
-  if(from==='blank'){ nc={id:uid('c'),name,delivery,start,units:null,obraHistory:[],blocks:[]} }
-  else if(from==='template'){ const tpl=db.templates.find(t=>t.id===document.getElementById('ncTemplate').value); nc=committeeFromTemplate(tpl,name,delivery,start) }
-  else{
+  if(newProjectMode==='blank'){
+    nc={id:uid('c'),name,delivery,start,units:null,obraHistory:[],blocks:[]};
+  } else if(newProjectMode==='template'){
+    const tpl=db.templates.find(t=>t.id===document.getElementById('ncTemplate').value);
+    if(!tpl) return crcAlert('Selecione um modelo.');
+    nc=committeeFromTemplate(tpl,name,delivery,start);
+  } else { // clone
     const src=db.committees.find(c=>c.id===document.getElementById('ncClone').value);
+    if(!src) return crcAlert('Selecione o projeto de origem.');
+    const selectedBlockIds = Object.keys(ncSelectedBlocks);
+    if(!selectedBlockIds.length) return crcAlert('Selecione pelo menos um bloco para clonar (ou escolha "Em branco").');
     const optResp=document.getElementById('cloneResp').checked;
+    const optMile=document.getElementById('cloneMile').checked;
     const optDates=document.getElementById('cloneDates').checked;
+    const optStatus=document.getElementById('cloneStatus').checked;
     const optObs=document.getElementById('cloneObs').checked;
     const optHist=document.getElementById('cloneHist').checked;
-    const optStatus=document.getElementById('cloneStatus').checked;
-    nc={id:uid('c'),name,delivery,start,units:null,obraHistory:[],blocks:src.blocks.map(b=>({
-      id:uid('b'),name:b.name,
-      actions:b.actions.map(a=>({id:uid('a'),name:a.name,resps:optResp?[...actionResps(a)]:[],status:optStatus?a.status:'NÃO INICIADO',start:optDates?a.start:null,end:optDates?a.end:null,actualEnd:null,obs:optObs?a.obs:'',milestone:a.milestone||false,history:optHist?[...(a.history||[])]:[],notes:[]}))
+    const optAtt=document.getElementById('cloneAtt').checked;
+    nc={id:uid('c'),name,delivery,start,units:null,obraHistory:[],blocks:src.blocks.filter(b=>ncSelectedBlocks[b.id]).map(b=>({
+      id:uid('b'),name:b.name,_open:false,
+      actions:b.actions.map(a=>({
+        id:uid('a'),name:a.name,
+        resps:optResp?[...actionResps(a)]:[],
+        status:optStatus?a.status:'NÃO INICIADO',
+        start:optDates?a.start:null,
+        end:optDates?a.end:null,
+        actualEnd:null,
+        obs:optObs?(a.obs||''):'',
+        milestone:optMile?!!a.milestone:false,
+        history:optHist?(a.history||[]).map(h=>({...h})):[{when:new Date().toISOString(),event:'CRIADO',note:`Clonada de "${src.name}"`,user:db.settings.userName||'Sistema'}],
+        notes:[],
+        // O anexo clonado ganha uma cópia própria do arquivo no Storage (crcStore copia de copyFrom ao salvar).
+        attachments:optAtt?(a.attachments||[]).map(x=>{
+          const {path, ...rest} = x;
+          return path ? {...rest, id:uid('att'), copyFrom:path} : {...rest, id:uid('att')};
+        }):[]
+      }))
     }))};
   }
   nc.companyId=companyId;
-  db.committees.push(nc); currentCommitteeId=nc.id; save(); closeModal('modalNewCommittee'); renderAll();
+  db.committees.push(nc); currentCommitteeId=nc.id; save(); closeModal('modalNewCommittee'); switchView('project'); renderAll();
 }
 
 /* ========= TEMPLATES ========= */
