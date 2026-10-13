@@ -2,6 +2,7 @@ import { Component } from 'react';
 import { usersVals } from './vals/usuarios';
 import { deptsVals } from './vals/departamentos';
 import { categoriasVals } from './vals/categorias';
+import { geraisVals, loadGerais } from './vals/gerais';
 import { perfisVals } from './vals/perfis';
 import { saldosVals } from './vals/saldos';
 import { lancVals } from './vals/lancamentos';
@@ -19,7 +20,7 @@ import { nfApi } from '../lib/nf';
 import { titulosApi } from '../lib/nfTitulos';
 import {
   loadCatalogs, rangeData, neededRanges, ensureRanges, empresaById, empresaNome,
-  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel,
+  readSaldos, writeSaldos, saldoPorEmpresa, loadLanc, loadFxSemRec, loadBi, loadContasSel, setContaSel, addContasSel, recarregarDados,
 } from './data';
 import { progInsights, fluxoInsights, iaContextoProg, iaContextoFluxo, relatorioProg, relatorioFluxo } from './insights';
 import { abrirEnvioEmail, enviarEmail, envioEmailVals, type EnvioEmail } from './vals/envioEmail';
@@ -113,6 +114,16 @@ export class AppLogic extends Component<any, any> {
     editingCatId: null,
     cForm: null,
     catFormErr: '',
+    // Configurações › Gerais: empresas desconsideradas ({ cd, motivo }) e o catálogo da tela.
+    gerLista: null,
+    gerCatalogo: null,
+    gerDraft: null,
+    gerQuery: '',
+    gerPick: null,
+    gerMotivo: '',
+    gerErr: '',
+    gerSaving: false,
+    gerLoading: false,
     toastMsg: '',
     iaPanel: null,
     // "Enviar por e-mail" (logic/vals/envioEmail.ts): { envio, para, busy, erro } | null.
@@ -263,7 +274,7 @@ export class AppLogic extends Component<any, any> {
   /** Page → menu permission key (Painel has none). */
   pagePerm: Record<string, string> = {
     saldos: 'financeiro.saldos', lancamentos: 'financeiro.lancamentos', programacao: 'financeiro.programacao', fluxo: 'financeiro.fluxo',
-    usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis',
+    usuarios: 'configuracoes.usuarios', departamentos: 'configuracoes.departamentos', perfis: 'configuracoes.perfis', gerais: 'configuracoes.gerais',
     categorias: 'cadastros.categorias',
     nfCadastros: 'notas.cadastros',
     nfTitulos: 'notas.titulos',
@@ -805,6 +816,7 @@ export class AppLogic extends Component<any, any> {
       { key: 'usuarios', label: 'Usuários' },
       { key: 'departamentos', label: 'Departamentos' },
       { key: 'perfis', label: 'Perfis' },
+      { key: 'gerais', label: 'Gerais' },
       { key: 'auditoria', label: 'Auditoria' },
     ] },
     { key: 'cadastros', label: 'Cadastros', subs: [
@@ -1206,6 +1218,7 @@ export class AppLogic extends Component<any, any> {
     // Notas Fiscais history loads on first visit (menu, tile or a reopened URL).
     if (this.state.page === 'nfCadastros' && this.state.nfLista == null && this.pode(this.pagePerm.nfCadastros)) this.loadNfHistorico();
     if (this.state.page === 'nfTitulos' && this.state.ntLista == null && this.pode(this.pagePerm.nfTitulos)) this.loadNtHistorico();
+    if (this.state.page === 'gerais' && this.state.gerLista == null && !this.state.gerLoading && this.pode(this.pagePerm.gerais)) this.loadGerais();
     // Page the profile cannot open (menus are hidden, but a tile or old state may lead here).
     const need = this.pagePerm[this.state.page];
     if (this.live && this.state.view === 'app' && need && !this.pode(need)) {
@@ -1459,12 +1472,15 @@ export class AppLogic extends Component<any, any> {
   loadFxSemRec(): Promise<void> { return loadFxSemRec.call(this); }
   loadBi(): Promise<void> { return loadBi.call(this); }
   loadContasSel(): Promise<void> { return loadContasSel.call(this); }
+  recarregarDados(): Promise<void> { return recarregarDados.call(this); }
+  loadGerais(): Promise<void> { return loadGerais.call(this); }
   setContaSel(c: any, add: boolean): Promise<boolean> { return setContaSel.call(this, c, add); }
   addContasSel(ids: string[]): Promise<boolean> { return addContasSel.call(this, ids); }
 
   usersVals(subItemStyle: string): any { return usersVals.call(this, subItemStyle); }
   deptsVals(): any { return deptsVals.call(this); }
   categoriasVals(): any { return categoriasVals.call(this); }
+  geraisVals(subItemStyle: string): any { return geraisVals.call(this, subItemStyle); }
   perfisVals(subItemStyle: string): any { return perfisVals.call(this, subItemStyle); }
   saldosVals(subItemStyle: string): any { return saldosVals.call(this, subItemStyle); }
   lancVals(subItemStyle: string): any { return lancVals.call(this, subItemStyle); }

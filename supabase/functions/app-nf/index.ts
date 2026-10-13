@@ -454,8 +454,37 @@ async function anexarComHistorico(corpo: Record<string, unknown>, tabela: "app_n
 
 /** A análise do título leva junto as listas dos seletores (documentos e planos financeiros do Sienge). */
 async function analiseComListas(analise: AnaliseTitulo, cliente: Cliente) {
-  const [documentos, planos] = await Promise.all([documentosSienge(cliente), planosFinanceiros(cliente)]);
-  return { ...analise, documentos, planos };
+  const [documentos, planos, comBloqueio] = await Promise.all([
+    documentosSienge(cliente), planosFinanceiros(cliente), bloquearDesconsiderada(analise, cliente),
+  ]);
+  return { ...comBloqueio, documentos, planos };
+}
+
+// ---------- Configurações › Gerais: empresas desconsideradas no app ----------
+const avisoDesconsiderada = (empresaId: number) =>
+  `A empresa ${empresaId} está desconsiderada no sistema (Configurações › Gerais) e não pode receber lançamentos.`;
+
+/** RLS: o usuário só enxerga as desconsideradas das empresas a que tem acesso. */
+async function empresaDesconsiderada(cliente: Cliente, empresaId: number): Promise<boolean> {
+  const { data, error } = await cliente.from("app_empresas_desconsideradas").select("company_id").eq("company_id", empresaId).maybeSingle();
+  if (error) console.error("app_empresas_desconsideradas:", error.message);
+  return !error && !!data;
+}
+
+/** Bloqueio na análise quando a empresa identificada está desconsiderada. */
+async function bloquearDesconsiderada<T extends { empresa: { id: number } | null; bloqueios: string[] }>(analise: T, cliente: Cliente): Promise<T> {
+  if (!analise.empresa || !(await empresaDesconsiderada(cliente, analise.empresa.id))) return analise;
+  return { ...analise, bloqueios: [avisoDesconsiderada(analise.empresa.id), ...analise.bloqueios] };
+}
+
+/** app_pode_empresa já barra as desconsideradas; aqui só troca a mensagem genérica de acesso. */
+function podeEmpresa(cliente: Cliente) {
+  return async (empresaId: number): Promise<boolean> => {
+    const { data, error } = await cliente.rpc("app_pode_empresa", { p_company: empresaId });
+    if (!error && data === true) return true;
+    if (await empresaDesconsiderada(cliente, empresaId)) throw new ErroAplicacao("sem_permissao", avisoDesconsiderada(empresaId), 403);
+    return false;
+  };
 }
 
 /** Segredo que autoriza o pg_cron a sincronizar (Vault app_nf_sync_key), lido pela service_role. */
@@ -595,7 +624,7 @@ Deno.serve(async (req) => {
     switch (corpo.acao) {
       case "analisar": {
         const documento = await extrairDocumento(limparBase64(corpo.pdfBase64));
-        return json(await buscarPedidosDoDocumento(documento));
+        return json(await bloquearDesconsiderada(await buscarPedidosDoDocumento(documento), cliente));
       }
 
       case "pedidos": {
@@ -603,7 +632,7 @@ Deno.serve(async (req) => {
         if (!documento.success) invalido("Envie o documento lido na análise em documento.");
         const empresaId = codigoEmpresa(corpo.empresaId);
         if (!empresaId) invalido("Informe o código da empresa.");
-        return json(await buscarPedidosDoDocumento(documento.data, empresaId));
+        return json(await bloquearDesconsiderada(await buscarPedidosDoDocumento(documento.data, empresaId), cliente));
       }
 
       case "preview": {
@@ -631,10 +660,7 @@ Deno.serve(async (req) => {
         const entrada = await validarConfirmacao(corpo);
         const nomes = { fornecedor: corpo.fornecedorNome, empresa: corpo.empresaNome, valor: corpo.valor };
         try {
-          const { contexto, ...resultado } = await confirmarCadastro(entrada, bytesDoBase64(entrada.pdfBase64), async (empresaId) => {
-            const { data, error } = await cliente.rpc("app_pode_empresa", { p_company: empresaId });
-            return !error && data === true;
-          });
+          const { contexto, ...resultado } = await confirmarCadastro(entrada, bytesDoBase64(entrada.pdfBase64), podeEmpresa(cliente));
           const anexoFalhou = resultado.avisos.some((a) => a.startsWith("Não foi possível anexar"));
           const cadastroId = await registrar(linhaHistorico(usuario, entrada, contexto, {
             situacao: "cadastrada",
@@ -685,10 +711,7 @@ Deno.serve(async (req) => {
 
       case "titulo_cadastrar": {
         const entrada = await validarTitulo(corpo);
-        const { contexto, ...resultado } = await confirmarTitulo(entrada, bytesDoBase64(entrada.pdfBase64), async (empresaId) => {
-          const { data, error } = await cliente.rpc("app_pode_empresa", { p_company: empresaId });
-          return !error && data === true;
-        });
+        const { contexto, ...resultado } = await confirmarTitulo(entrada, bytesDoBase64(entrada.pdfBase64), podeEmpresa(cliente));
         const tituloId = await registrarTitulo(usuario, entrada, contexto, resultado);
         return json({ ...resultado, tituloId }, 201);
       }

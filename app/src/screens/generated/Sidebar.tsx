@@ -331,6 +331,9 @@ export default function Sidebar({ v }: { v: any }) {
               <a href="#" onClick={v.goPerfis} style={css(v.perfisItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Perfis
               </a>
+              <a href="#" onClick={v.goGerais} style={css(v.geraisItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+                Gerais
+              </a>
               <a href="#" onClick={v.beta.auditoria} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Auditoria
                 <span style={css(v.betaTagStyle)}>Beta</span>

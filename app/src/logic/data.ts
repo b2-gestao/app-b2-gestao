@@ -40,6 +40,16 @@ export async function loadCatalogs(this: AppLogic) {
   }
 }
 
+/**
+ * Drops every cached data set and reloads the catalogs; used after Configurações › Gerais
+ * changes which companies the database returns. Range data refetches on the next update.
+ */
+export async function recarregarDados(this: AppLogic) {
+  this._retried = {};
+  this.setState({ dbRanges: {}, nfLista: null, ntLista: null });
+  await this.loadCatalogs();
+}
+
 function rangeKey(kind: RangeKind, from: string, to: string) {
   return `${kind}:${from}:${to}`;
 }
@@ -86,7 +96,7 @@ export function neededRanges(this: AppLogic): [RangeKind, string, string][] {
     saldo(from);
   }
   if (s.page === 'fluxo') { const p = fluxoPeriodo(s); out.push(['fluxo', p.anchor, p.to]); saldo(p.anchor); }
-  const pages = ['usuarios', 'departamentos', 'perfis', 'saldos', 'lancamentos', 'programacao', 'fluxo'];
+  const pages = ['usuarios', 'departamentos', 'perfis', 'gerais', 'saldos', 'lancamentos', 'programacao', 'fluxo'];
   if (!pages.includes(s.page)) {
     out.push(['fluxo', addDays(today, -DASH_BACK_DAYS), addDays(today, DASH_AHEAD_DAYS)]);
     out.push(['pagar', today, addDays(today, DASH_AHEAD_DAYS)]);
