@@ -27,6 +27,9 @@ import EnviarEmailModal from '../EnviarEmailModal';
 import NotasCadastrosPage from '../NotasCadastrosPage';
 import NotasTitulosPage from '../NotasTitulosPage';
 import CrcEntregasPage from '../crc/CrcEntregasPage';
+import PermutasCadastroPage from '../permutas/PermutasCadastroPage';
+import PermutasVisaoPage from '../permutas/PermutasVisaoPage';
+import PermutasInsightsPage from '../permutas/PermutasInsightsPage';
 import Toast from './Toast';
 
 export default function AppRoot({ v }: { v: any }) {
@@ -52,6 +55,9 @@ export default function AppRoot({ v }: { v: any }) {
           <NotasCadastrosPage v={v} />
           <NotasTitulosPage v={v} />
           <CrcEntregasPage v={v} />
+          <PermutasCadastroPage v={v} />
+          <PermutasVisaoPage v={v} />
+          <PermutasInsightsPage v={v} />
         </div>
         <UserModal v={v} />
         <DeptModal v={v} />

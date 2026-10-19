@@ -19,7 +19,7 @@
 //
 // Sem IA_API_KEY ou IA_MODEL a função responde 503 e o app mostra a análise por regras.
 //
-// Entrada:  { tela: "prog" | "fluxo", contexto: {...}, regras: [{ label, text }] }
+// Entrada:  { tela: "prog" | "fluxo" | "permutas", contexto: {...}, regras: [{ label, text }] }
 //           { tela: "modelo" } devolve só { modelo }
 //           { tela: "crc", tipo: "analise" | "resumo", prompt } devolve { texto, modelo } (CRC › Entregas)
 // Saída:    { headline, items: [{ label, text, nivel: "critico" | "atencao" | "info" | "positivo" }], modelo,
@@ -38,7 +38,7 @@ const JSON_MODE = Deno.env.get("IA_JSON_MODE") !== "false";
 const EFFORT = Deno.env.get("IA_REASONING_EFFORT") || "";
 const CACHE_HORAS = Number(Deno.env.get("IA_CACHE_HORAS") || 4);
 // Mudou o prompt? Suba a versão: as respostas antigas do cache deixam de valer.
-const PROMPT_VERSAO = "v2";
+const PROMPT_VERSAO = "v3";
 const admin = SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } }) : null;
 
 async function sha256(t: string) {
@@ -58,6 +58,7 @@ function json(body: unknown, status = 200) {
 
 const TELAS: Record<string, string> = {
   prog: "Programação do dia: títulos a pagar do Sienge e lançamentos manuais do período, por empresa, confrontados com o saldo bancário inicial informado. Empresa com saldo insuficiente precisa de aporte.",
+  permutas: "Permutas de terrenos: áreas recebidas em permuta (matrícula × coeficiente × % = área de permuta), pagas em unidades no próprio empreendimento ou em empreendimentos diversos. Inclui as unidades vinculadas a cada permutante, observações em texto livre, pendências, documentos e datas de entrega dos empreendimentos.",
   fluxo: "Fluxo de caixa projetado para os próximos dias, por empresa: caixa inicial, receitas (parcelas a receber), pagamentos (parcelas a pagar) e lançamentos manuais. A holding envia aportes às SPEs que ficam negativas.",
 };
 
@@ -69,6 +70,24 @@ como estão, sem somar, recalcular ou arredondar de outro jeito. Cite empresas e
 Responda somente com JSON no formato:
 {"headline": "frase curta com o ponto mais importante",
  "items": [{"label": "título curto", "text": "explicação em 1 ou 2 frases", "nivel": "critico|atencao|info|positivo"}]}`;
+
+// Permutas › Terrenos › Insights: o mesmo formato de saída, com o olhar de controladoria de permutas.
+const SISTEMA_PERMUTAS = `Você é analista sênior de controladoria de uma incorporadora imobiliária brasileira e acompanha
+permutas de terrenos (o dono do terreno recebe unidades prontas em troca da área).
+Analise os dados recebidos e aponte de 3 a 6 pontos de atenção objetivos e acionáveis, em português do Brasil:
+- qualidade dos dados: inconsistências entre área de permuta e soma das unidades, % divergente, unidades duplicadas
+  entre permutantes, unidades fora do cadastro do Sienge, cadastros incompletos; leia o texto livre das observações
+  (ex.: "Apto 1701; vagas 04, 05 e 167; escaninho 54") e diga quando ele indica unidades, vagas, escaninhos ou direitos
+  de uso que não estão estruturados;
+- concentração por terreno e por empreendimento e o peso da permuta em empreendimentos diversos (maior risco de controle);
+- permutantes com unidade pendente de definição, com mais de 100% alocado ou com menos do que o contratado, sobretudo
+  quando a entrega do empreendimento estiver próxima.
+Para cada ponto, diga a causa provável e o próximo passo. Use apenas os dados fornecidos; não invente nomes, áreas ou datas.
+Áreas em m² no formato 1.234,56 m². Os totais do bloco "resumo" já vêm calculados: use-os exatamente como estão.
+Cite permutantes, terrenos e empreendimentos pelo nome exato.
+Responda somente com JSON no formato:
+{"headline": "frase curta com o ponto mais importante",
+ "items": [{"label": "título curto", "text": "explicação em 1 a 3 frases, com causa provável e próximo passo", "nivel": "critico|atencao|info|positivo"}]}`;
 
 // CRC › Entregas: análise da transcrição da reunião do comitê (tipo "analise", devolve JSON) e
 // resumo para e-mail/WhatsApp (tipo "resumo", devolve texto). O prompt é montado pela tela com as
@@ -121,6 +140,13 @@ Deno.serve(async (req) => {
     if (b.tela === "crc") return await crc(cliente, b);
     const tela = String(b.tela || "");
     if (!TELAS[tela]) return json({ error: "Tela inválida." }, 400);
+    if (tela === "permutas") {
+      const [{ data: c }, { data: vg }] = await Promise.all([
+        cliente.rpc("app_pode", { p_path: "permutas.cadastro" }),
+        cliente.rpc("app_pode", { p_path: "permutas.visao" }),
+      ]);
+      if (c !== true && vg !== true) return json({ error: "Sem permissão para Permutas." }, 403);
+    }
     const contexto = JSON.stringify(b.contexto ?? {});
     if (contexto.length > 60000) return json({ error: "Contexto grande demais." }, 413);
     const regras = JSON.stringify(b.regras ?? []);
@@ -140,7 +166,7 @@ Deno.serve(async (req) => {
     const corpo: Record<string, unknown> = {
       model: MODEL,
       messages: [
-        { role: "system", content: SISTEMA },
+        { role: "system", content: tela === "permutas" ? SISTEMA_PERMUTAS : SISTEMA },
         { role: "user", content: `Tela: ${TELAS[tela]}\nData de hoje: ${hoje}\n\nDados (JSON):\n${contexto}\n\nPontos já detectados por regras fixas (pode confirmar, refinar ou descartar):\n${regras}` },
       ],
     };

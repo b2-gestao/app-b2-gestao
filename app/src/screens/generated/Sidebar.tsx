@@ -244,9 +244,22 @@ export default function Sidebar({ v }: { v: any }) {
           </div>
           <div style={css(v.permutasContentStyle)}>
             <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column", "paddingLeft": "40px" }}>
-              <a href="#" onClick={v.beta.permutasCadastro} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
-                Cadastro
+              <a href="#" onClick={v.togglePermutasTerrenos} style={css(v.permutasTerrenosStyle)} aria-expanded={v.permutasTerrenosChevron !== 'rotate(0deg)'} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+                Terrenos
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" style={css(`margin-left:auto;flex:none;transform:${v.permutasTerrenosChevron};transition:transform .15s`)}>
+                  <path d="M6 9l6 6 6-6" stroke="#71717a" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
+                </svg>
               </a>
+              <div style={css(v.permutasTerrenosContentStyle)}>
+                <div style={{ "overflow": "hidden", "display": "flex", "flexDirection": "column" }}>
+                  <a href="#" onClick={v.goPermutasCadastro} style={css(v.permutasCadastroItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+                    Cadastros
+                  </a>
+                  <a href="#" onClick={v.goPermutasVisao} style={css(v.permutasVisaoItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+                    Visão Geral
+                  </a>
+                </div>
+              </div>
               <a href="#" onClick={v.beta.permutasAcompanhamento} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
                 Acompanhamento
               </a>

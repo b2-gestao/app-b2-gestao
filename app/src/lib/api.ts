@@ -330,7 +330,7 @@ export const apoioApi = {
   /** BCB/SGS via edge function app-indicadores: { SELIC: { valor, data } | null, ... } */
   indicadores: () => invoke<{ indicadores: Record<string, { valor: number; data: string } | null> }>('app-indicadores'),
   /** Análise com IA (edge function app-ia). 503 = IA não configurada. */
-  ia: (tela: 'prog' | 'fluxo', contexto: unknown, regras: { label: string; text: string }[]) =>
+  ia: (tela: 'prog' | 'fluxo' | 'permutas', contexto: unknown, regras: { label: string; text: string }[]) =>
     invoke<IaResposta>('app-ia', { tela, contexto, regras }),
   /** Só o id do modelo configurado em IA_MODEL. */
   iaModelo: () => invoke<{ modelo: string }>('app-ia', { tela: 'modelo' }),

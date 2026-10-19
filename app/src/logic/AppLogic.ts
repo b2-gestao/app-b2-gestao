@@ -12,6 +12,7 @@ import { biVals } from './vals/bi';
 import { notasCadastrosVals, NF_INICIAL } from './vals/notasCadastros';
 import { notasTitulosVals, NT_INICIAL } from './vals/notasTitulos';
 import { crcEntregasVals } from './vals/crcEntregas';
+import { permutasVals } from './vals/permutas';
 import { renderVals } from './vals/shell';
 import { isLive, supabase } from '../lib/supabase';
 import { baixarCsv } from '../lib/download';
@@ -279,6 +280,9 @@ export class AppLogic extends Component<any, any> {
     nfCadastros: 'notas.cadastros',
     nfTitulos: 'notas.titulos',
     crcEntregas: 'crc.entregas',
+    permutasCadastro: 'permutas.cadastro',
+    permutasVisao: 'permutas.visao',
+    permutasInsights: 'permutas.visao',
   };
 
   /** Any menu under a module (e.g. 'rh' → rh.colaboradores, rh.folha) visible to the profile. */
@@ -800,7 +804,8 @@ export class AppLogic extends Component<any, any> {
     ] },
     { key: 'veiculos', label: 'Veículos', subs: [] },
     { key: 'permutas', label: 'Permutas', subs: [
-      { key: 'cadastro', label: 'Cadastro' },
+      { key: 'cadastro', label: 'Terrenos › Cadastros' },
+      { key: 'visao', label: 'Terrenos › Visão Geral' },
       { key: 'acompanhamento', label: 'Acompanhamento' },
     ] },
     { key: 'vendas', label: 'Vendas', subs: [
@@ -1122,7 +1127,7 @@ export class AppLogic extends Component<any, any> {
       { name:'Notas Fiscais', sub:'Cadastro de NF e títulos no Sienge', c:'#14B8A6', d:'M6 3h9l4 4v14H6zM15 3v4h4M9 12h7M9 16h5' },
       { name:'RH', perm:'rh', beta:true, sub:'Colaboradores e folha', c:'#43B997', d:'M9 5a3 3 0 100 6 3 3 0 000-6M3 20c0-3.2 2.7-5.3 6-5.3s6 2.1 6 5.3M17 6.6a2.4 2.4 0 100 4.8 2.4 2.4 0 000-4.8M15.6 14.5c2.4.3 4.2 2.1 4.2 5' },
       { name:'Veículos', perm:'veiculos', beta:true, sub:'Frota e manutenção', c:'#0EA5E9', d:'M3 16l1.6-5.6h14.8L21 16M3 16h18v3.5H3zM7 19.5v1M17 19.5v1' },
-      { name:'Permutas', perm:'permutas', beta:true, sub:'Cadastro e acompanhamento', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
+      { name:'Permutas', perm:'permutas', beta:true, sub:'Terrenos, cadastro e visão geral', c:'#7C3AED', d:'M3 8h14M13 4l4 4-4 4M21 16H7M11 12l-4 4 4 4' },
       { name:'Vendas', perm:'vendas', beta:true, sub:'Propostas e contratos', c:'#F59E0B', d:'M3 17l5-5 4 3 8-9M15 6h5v5' },
       { name:'Cobrança', perm:'cobranca', beta:true, sub:'Carteira e inadimplência', c:'#EC4899', d:'M5 3h14v18H5zM8 8h8M8 12h8M8 16h5' },
       { name:'Jurídico', perm:'juridico', beta:true, sub:'Processos e distratos', c:'#43B997', d:'M12 4v16M7 20h10M5 9h14M5 9l2.5 6h-5zM19 9l2.5 6h-5z' },
@@ -1490,5 +1495,6 @@ export class AppLogic extends Component<any, any> {
   notasCadastrosVals(subItemStyle: string): any { return notasCadastrosVals.call(this, subItemStyle); }
   notasTitulosVals(subItemStyle: string): any { return notasTitulosVals.call(this, subItemStyle); }
   crcEntregasVals(subItemStyle: string): any { return crcEntregasVals.call(this, subItemStyle); }
+  permutasVals(subItemStyle: string): any { return permutasVals.call(this, subItemStyle); }
   renderVals(): any { return renderVals.call(this); }
 }

@@ -1,5 +1,8 @@
 import type { AppLogic } from '../AppLogic';
+import { TITULO_PERMUTAS } from './permutas';
 import { dashSource } from './dashboardData';
+
+const PERMUTAS_PAGES = ['permutasCadastro', 'permutasVisao', 'permutasInsights'];
 
 export function renderVals(this: AppLogic) {
   const s: any = this.state;
@@ -191,6 +194,8 @@ export function renderVals(this: AppLogic) {
     tileStyle: tileStyle + `;animation-delay:${60 + i * 34}ms`,
     chipStyle: `width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${it.c}22;border:1px solid ${it.c}55`,
     open: () => {
+      // Permutas segue Beta (Acompanhamento em desenvolvimento), mas o Cadastro já abre.
+      if (it.name === 'Permutas') return !this.pode('permutas.cadastro') && this.pode('permutas.visao') ? pageVals.goPermutasVisao() : pageVals.goPermutasCadastro();
       if (it.beta) return this.abrirBeta(it.perm);
       if (it.name === 'BI') return pageVals.openFirstBi();
       // Abre Cadastros; quem só tem Título a Pagar no perfil vai direto para ele.
@@ -234,6 +239,7 @@ export function renderVals(this: AppLogic) {
     ...this.notasCadastrosVals(subItemStyle),
     ...this.notasTitulosVals(subItemStyle),
     ...this.crcEntregasVals(subItemStyle),
+    ...this.permutasVals(subItemStyle),
   };
   pageVals.categoriasItemStyle = s.page === 'categorias'
     ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997'
@@ -247,7 +253,7 @@ export function renderVals(this: AppLogic) {
     beta: {
       rhColaboradores: beta('rh.colaboradores'), rhFolha: beta('rh.folha'),
       veiculos: beta('veiculos'),
-      permutasCadastro: beta('permutas.cadastro'), permutasAcompanhamento: beta('permutas.acompanhamento'),
+      permutasAcompanhamento: beta('permutas.acompanhamento'),
       vendasPropostas: beta('vendas.propostas'), vendasContratos: beta('vendas.contratos'),
       cobranca: beta('cobranca'), juridico: beta('juridico'),
       auditoria: beta('configuracoes.auditoria'),
@@ -261,8 +267,8 @@ export function renderVals(this: AppLogic) {
     isHome: s.view === 'home',
     dateLabel: new Date().toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }),
     expanded: !c,
-    crumbLabel: s.page === 'bi' ? 'BI' : (s.page === 'nfCadastros' || s.page === 'nfTitulos') ? 'Notas Fiscais' : s.page === 'crcEntregas' ? '' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis' || s.page === 'gerais') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
-    pageTitle: s.page === 'bi' ? pageVals.biTitle : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'nfTitulos' ? 'Título a Pagar' : s.page === 'crcEntregas' ? 'CRC' : s.page === 'categorias' ? 'Categorias' : s.page === 'gerais' ? 'Gerais' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação diária' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
+    crumbLabel: s.page === 'bi' ? 'BI' : PERMUTAS_PAGES.includes(s.page) ? 'Permutas › Terrenos' : (s.page === 'nfCadastros' || s.page === 'nfTitulos') ? 'Notas Fiscais' : s.page === 'crcEntregas' ? '' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis' || s.page === 'gerais') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
+    pageTitle: s.page === 'bi' ? pageVals.biTitle : PERMUTAS_PAGES.includes(s.page) ? TITULO_PERMUTAS[s.page] : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'nfTitulos' ? 'Título a Pagar' : s.page === 'crcEntregas' ? 'CRC' : s.page === 'categorias' ? 'Categorias' : s.page === 'gerais' ? 'Gerais' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação diária' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
     goHome: () => this.setState({ view: 'home', page: 'dashboard', userMenuOpen: false }),
     homeShellStyle: `position:relative;height:100vh;width:100%;overflow:hidden;background:${homeBg}`,
     scrimStyle: s.bgMode === 'image'
