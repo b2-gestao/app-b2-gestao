@@ -143,7 +143,7 @@ $f$;
 revoke all on function public.app_permutas_pode(boolean) from public, anon;
 grant execute on function public.app_permutas_pode(boolean) to authenticated;
 
-do $
+do $$
 declare
   t text;
 begin
