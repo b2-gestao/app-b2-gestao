@@ -1,5 +1,4 @@
 // Permutas › Cadastro: dados e regras de cálculo (migration 20261016100000_app_permutas.sql).
-// Sem Supabase (modo demonstração) a tela usa os dados de exemplo daqui, só em memória.
 import { supabase } from './supabase';
 
 export const TIPOS_ANEXO = ['Contrato', 'Escritura', 'Matrícula', 'Aditivo', 'Outro'] as const;
@@ -228,47 +227,3 @@ export const permutasApi = {
     return data!.signedUrl;
   },
 };
-
-// ---------- modo demonstração (amostra real do DB Fluxo) ----------
-export const DEMO_NEGOCIOS: Negocio[] = [
-  { id: 'n1', nome: 'Área Fazenda Boa Vista' },
-  { id: 'n2', nome: 'Gleba Setor Norte – Jataí' },
-];
-const demoU = (enterprise_id: number, empreendimento: string | null, company_id: number | null, lista: [string, number][]) =>
-  lista.map(([unidade, area], i) => ({ enterprise_id, empreendimento, company_id, unidade_id: enterprise_id * 1000 + i, unidade, area_privativa: area }));
-export const DEMO_UNIDADES: UnidadeCatalogo[] = [
-  ...demoU(101, 'Ilhas Santorini', 2, [['1', 85.23], ['2', 85.23], ['3', 85.23], ['4', 85.23], ['5', 85.23]]),
-  ...demoU(22111, 'Jardins', 2, [['APTO 101', 96.91], ['APTO 102', 169.64], ['APTO 103', 67.36], ['APTO 201', 103.2]]),
-  ...demoU(22120, 'New Life', 120, [['1001 A', 88.5], ['1001 B', 88.5], ['1002 A', 88.5], ['1002 B', 88.5], ['1003 A', 88.5]]),
-  ...demoU(22132, 'Seven', 132, [['101', 78.04], ['102', 82.35], ['1001', 78.04], ['1002', 77.76]]),
-  ...demoU(22112, null, null, [['QD01LT01', 217.94], ['QD01LT02', 221.5]]),
-];
-export const DEMO_PERMUTAS: Permuta[] = [
-  {
-    id: 'd1', empresa_id: 120, negocio_id: null, permutante: 'João Batista Ferreira', num_matricula: '45.812',
-    area_matricula: 1250, coeficiente: 2, pct_permuta: 0.12, area_propria: 177, area_informada: null,
-    observacao: 'Unidades do próprio empreendimento entregues na torre A.', pendencia: null,
-    unidades: [
-      { enterprise_id: 22120, unidade_id: 22120000, unidade_nome: '1001 A', area_privativa: 88.5, valor_unidade: null },
-      { enterprise_id: 22120, unidade_id: 22120001, unidade_nome: '1001 B', area_privativa: 88.5, valor_unidade: null },
-      { enterprise_id: 22132, unidade_id: 22132002, unidade_nome: '1001', area_privativa: 78.04, valor_unidade: null },
-    ],
-    anexos: [{ id: 'a1', tipo: 'Contrato', descricao: null, nome: 'Contrato_permuta_assinado.pdf', mime: 'application/pdf', tamanho: 2516582, storage_path: '', adicionado_em: '2026-10-14T12:00:00Z' }],
-  },
-  {
-    id: 'd2', empresa_id: null, negocio_id: 'n1', permutante: 'Ricardo Mendes', num_matricula: '51.902',
-    area_matricula: 5400, coeficiente: 1, pct_permuta: 0.12, area_propria: 0, area_informada: null,
-    observacao: null, pendencia: 'Confirmar m² com o comercial',
-    unidades: [{ enterprise_id: 22111, unidade_id: 22111003, unidade_nome: 'APTO 201', area_privativa: 103.2, valor_unidade: null }],
-    anexos: [],
-  },
-];
-export const DEMO_FICHAS: EmpreendimentoFicha[] = [
-  { id: 'f1', enterprise_id: 22120, nome: 'New Life', tipo: 'Vertical', tipo_permuta: 'Física no Empreendimento', status: 'Temos contrato', alerta: null, acao: null },
-  { id: 'f2', enterprise_id: 22132, nome: 'Seven', tipo: 'Vertical', tipo_permuta: 'Física de outro Empreendimento', status: 'Temos lançamento no Sienge', alerta: 'Fluxo está errado', acao: 'Checar lançamento do permutante e baixas por bens' },
-  { id: 'f3', enterprise_id: null, nome: 'Área Interlagos', tipo: null, tipo_permuta: null, status: 'Considerações', alerta: null, acao: null },
-];
-export const DEMO_DIRETAS: UnidadeDireta[] = [
-  { id: 'u1', enterprise_id: 22111, unidade_id: 22111000, unidade_nome: 'APTO 101', area_privativa: 96.91, valor_unidade: null, permutante: 'Mara Sania de Freitas Machado', data_contrato: '2024-12-18', observacao: null },
-  { id: 'u2', enterprise_id: 101, unidade_id: 101001, unidade_nome: '2', area_privativa: 85.23, valor_unidade: null, permutante: 'Wang Wen Wei', data_contrato: '2024-02-27', observacao: 'Vagas 04 e 05' },
-];

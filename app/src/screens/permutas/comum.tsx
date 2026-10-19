@@ -14,12 +14,6 @@ export interface PermutasCtx {
   ir: (p: PaginaPermutas) => void;
 }
 
-const DEMO_EMPRESAS: EmpresaOpcao[] = [
-  { id: 2, nome: 'HABITAT INCORPORADORA', emp: 'Jardins' }, { id: 3, nome: 'SPE Park dos Sonhos', emp: null },
-  { id: 120, nome: 'SPE NEW LIFE', emp: 'New Life' }, { id: 127, nome: 'SPE ALCANCE', emp: 'Alcance' },
-  { id: 128, nome: 'SPE ALTEZZA', emp: 'Altezza' }, { id: 132, nome: 'SPE SEVEN', emp: 'Seven' },
-];
-
 export const dataBr = (iso?: string | null) => (iso ? iso.slice(0, 10).split('-').reverse().join('/') : '');
 export const semAcento = (t: string) => t.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 
@@ -32,9 +26,8 @@ export function useBasePermutas(v: any, pagina: PaginaPermutas) {
   useEffect(() => { if (ativo) permutasStore.carregar(live); }, [ativo, live]);
   const empresasCtx = ctx?.empresas;
   const empresas = useMemo(() => {
-    const l = empresasCtx ? empresasCtx() : [];
-    return l.length || live ? l : DEMO_EMPRESAS;
-  }, [empresasCtx, live]);
+    return empresasCtx ? empresasCtx() : [];
+  }, [empresasCtx]);
   const nomeOrigem = (p: Permuta) => p.empresa_id != null
     ? (empresas.find(e => e.id === p.empresa_id)?.nome || `Empresa ${p.empresa_id}`)
     : (dados.negocios.find(n => n.id === p.negocio_id)?.nome || 'Negócio');

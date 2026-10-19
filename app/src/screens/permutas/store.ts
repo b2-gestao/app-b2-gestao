@@ -1,9 +1,9 @@
 // Permutas › Terrenos: dados compartilhados pelas telas Cadastros, Visão Geral e Insights.
 // Carrega uma vez (ou de novo com recarregar()) e avisa as telas a cada mudança.
-// Sem Supabase (modo demonstração) tudo fica em memória, a partir dos exemplos de lib/permutas.ts.
+// Sem Supabase (modo demonstração) as telas abrem vazias e o que for cadastrado fica só em memória.
 import { useSyncExternalStore } from 'react';
 import {
-  permutasApi, DEMO_NEGOCIOS, DEMO_PERMUTAS, DEMO_UNIDADES, DEMO_FICHAS, DEMO_DIRETAS,
+  permutasApi,
   type AnexoNovo, type EmpreendimentoFicha, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
   type PermutaUnidade, type UnidadeCatalogo, type UnidadeDireta,
 } from '../../lib/permutas';
@@ -48,8 +48,7 @@ export const permutasStore = {
     if (estado.carregado || estado.carregando) return;
     set({ carregando: true, erro: '' });
     try {
-      if (!live) set({ permutas: DEMO_PERMUTAS, negocios: DEMO_NEGOCIOS, catalogo: DEMO_UNIDADES, fichas: DEMO_FICHAS, diretas: DEMO_DIRETAS });
-      else await buscarTudo();
+      if (live) await buscarTudo();
       set({ carregado: true, carregando: false });
     } catch (e: any) {
       set({ erro: e?.message || String(e), carregando: false });
