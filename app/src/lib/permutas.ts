@@ -156,9 +156,12 @@ export const permutasApi = {
   },
 
   async unidades(): Promise<UnidadeCatalogo[]> {
+    // jsonb com arrays posicionais (o catálogo passa de 20 mil unidades; ver migration 20261019100000).
     const { data, error } = await sb().rpc('app_permutas_unidades');
     erro(error);
-    return ((data || []) as any[]).map(u => ({ ...u, area_privativa: numOuNull(u.area_privativa) }));
+    return ((data || []) as any[]).map(([enterprise_id, empreendimento, company_id, unidade_id, unidade, area, entrega]) => ({
+      enterprise_id, empreendimento, company_id, unidade_id, unidade: String(unidade), area_privativa: numOuNull(area), entrega,
+    }));
   },
 
   async criarNegocio(nome: string): Promise<Negocio> {
