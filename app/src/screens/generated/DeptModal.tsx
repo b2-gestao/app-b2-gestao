@@ -10,7 +10,7 @@ export default function DeptModal({ v }: { v: any }) {
     <>
     <div style={css(v.deptOverlayStyle)} onClick={v.closeDeptModal}>
       <div onClick={v.stopProp} style={css(v.deptModalCardStyle)}>
-        <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "14px", "padding": "20px 24px 16px", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
+        <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "14px", "padding": "20px 24px 16px", "boxShadow": "inset 0 -1px 0 var(--border-soft)" }}>
           <div style={{ "width": "38px", "height": "38px", "flex": "none", "borderRadius": "11px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <rect x="3" y="4" width="18" height="16" rx="2" stroke="#43B997" strokeWidth="1.6"></rect>
@@ -36,7 +36,7 @@ export default function DeptModal({ v }: { v: any }) {
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Nome do departamento{" "}
-                <span style={{ "color": "#EF4444" }}>
+                <span style={{ "color": "var(--danger-text-2)" }}>
                   *
                 </span>
               </span>
@@ -70,8 +70,8 @@ export default function DeptModal({ v }: { v: any }) {
             {v.deptFormErr}
           </div>
         </div>
-        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap", "padding": "14px 24px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
-          <button onClick={v.removeDept} style={css(v.deleteDeptBtnStyle)} className={hv("background:var(--tint-red);border-color:#FCA5A5", undefined, undefined)}>
+        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap", "padding": "14px 24px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 var(--border-soft)" }}>
+          <button onClick={v.removeDept} style={css(v.deleteDeptBtnStyle)} className={hv("background:var(--tint-red);border-color:var(--danger-border)", undefined, undefined)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M5 7h14M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
             </svg>

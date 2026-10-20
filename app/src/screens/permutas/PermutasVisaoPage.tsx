@@ -92,13 +92,13 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
       {erro ? <div className="pm-err">Não foi possível carregar: {erro}</div> : null}
 
       <div className="pm-kpis">
-        <Kpi fundo="#EAF1FF" rotulo="Unidades permutadas" valor={String(linhas.length)} sub="Vinculadas no cadastro da permuta"
+        <Kpi fundo="var(--tint-blue)" rotulo="Unidades permutadas" valor={String(linhas.length)} sub="Vinculadas no cadastro da permuta"
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="#4161FF" strokeWidth="1.7" /><path d="M8 8h2M14 8h2M8 12h2M14 12h2M10 20.5v-4h4v4" stroke="#4161FF" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
-        <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="Área privativa" valor={m2(area)} un="m²" sub={semM2 ? `${semM2} unid. sem m² informado` : 'todas com m²'}
+        <Kpi cor="#258B6C" fundo="var(--tint-green)" rotulo="Área privativa" valor={m2(area)} un="m²" sub={semM2 ? `${semM2} unid. sem m² informado` : 'todas com m²'}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#35AD88" strokeWidth="1.7" /><path d="M4 12h16M12 4v16" stroke="#35AD88" strokeWidth="1.5" /></svg>} />
-        <Kpi fundo="#F1E9FF" rotulo="Permutantes" valor={String(nPerm)} sub={`em ${nEmp} empreendimento${nEmp === 1 ? '' : 's'}`}
+        <Kpi fundo="var(--tint-purple)" rotulo="Permutantes" valor={String(nPerm)} sub={`em ${nEmp} empreendimento${nEmp === 1 ? '' : 's'}`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3" stroke="#7C3AED" strokeWidth="1.6" /><path d="M3.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5M16 5.5a3 3 0 010 5.5M18 14.5c1.4.7 2.3 2.2 2.6 4.5" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
-        <Kpi cor="#D97706" fundo="#FFF0DD" rotulo="Via permutas de áreas" valor={String(nVia)} sub="unidades citadas nos Cadastros"
+        <Kpi cor="#D97706" fundo="var(--tint-amber)" rotulo="Via permutas de áreas" valor={String(nVia)} sub="unidades citadas nos Cadastros"
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3.5-3.5M17 17H5l3.5 3.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
       </div>
 

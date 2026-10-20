@@ -33,11 +33,11 @@ export default function FluxoCfgModal({ v }: { v: any }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', borderRadius: '10px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px var(--border-soft)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
-                <span style={label}>Empresa <span style={{ color: '#EF4444' }}>*</span></span>
+                <span style={label}>Empresa <span style={{ color: 'var(--danger-text-2)' }}>*</span></span>
                 <input value={v.fxCfgQuery} onChange={v.onFxCfgQuery} placeholder="Pesquisar por código ou nome" autoFocus style={css(v.fxCfgQueryStyle)} />
               </label>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
-                <span style={label}>Motivo de não considerar <span style={{ color: '#EF4444' }}>*</span></span>
+                <span style={label}>Motivo de não considerar <span style={{ color: 'var(--danger-text-2)' }}>*</span></span>
                 <input value={v.fxCfgMotivo} onChange={v.onFxCfgMotivo} onKeyDown={v.onFxCfgMotivoKey} placeholder="Ex.: recebíveis 100% comprometidos" style={css(v.fxCfgMotivoStyle)} />
               </label>
             </div>
@@ -45,7 +45,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
               <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '220px', overflowY: 'auto', borderRadius: '8px', background: 'var(--surface)', boxShadow: '0 0 0 1px var(--border)', padding: '4px' }}>
                 {v.fxCfgResults.map((r: any) => (
                   <div key={r.cd} onClick={r.onClick} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '7px', fontSize: '12.5px', color: 'var(--text-b)', cursor: 'pointer', transition: 'background .12s' }} className={hv('background:var(--surface-3)', undefined, undefined)}>
-                    <span style={{ flex: 'none', minWidth: '34px', padding: '2px 6px', borderRadius: '5px', background: 'var(--tint-blue)', color: '#2445E8', fontSize: '10.5px', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.cd}</span>
+                    <span style={{ flex: 'none', minWidth: '34px', padding: '2px 6px', borderRadius: '5px', background: 'var(--tint-blue)', color: 'var(--tx-2445e8)', fontSize: '10.5px', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.cd}</span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                   </div>
                 ))}
@@ -55,7 +55,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
               <div style={{ fontSize: '12px', color: 'var(--text-4)' }}>Nenhuma empresa encontrada (ou já está na lista).</div>
             ) : null}
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={v.addFxCfg} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 14px', borderRadius: '8px', border: '1px solid #C9D5FF', background: 'var(--surface)', color: '#4161FF', fontSize: '12.5px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,transform .15s' }} className={hv('background:var(--tint-blue-3)', 'transform:scale(.97)', undefined)}>
+              <button onClick={v.addFxCfg} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 14px', borderRadius: '8px', border: '1px solid var(--bd-c9d5ff)', background: 'var(--surface)', color: 'var(--accent-text)', fontSize: '12.5px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,transform .15s' }} className={hv('background:var(--tint-blue-3)', 'transform:scale(.97)', undefined)}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                 </svg>
@@ -69,13 +69,13 @@ export default function FluxoCfgModal({ v }: { v: any }) {
             {v.fxCfgRows.length ? (
               <div style={{ borderRadius: '10px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
                 {v.fxCfgRows.map((r: any, i: number) => (
-                  <div key={r.cd} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr) 32px', gap: '12px', alignItems: 'center', padding: '10px 12px', boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
+                  <div key={r.cd} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr) 32px', gap: '12px', alignItems: 'center', padding: '10px 12px', boxShadow: i ? 'inset 0 1px 0 var(--line-faint)' : 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
-                      <span style={{ flex: 'none', minWidth: '34px', padding: '2px 6px', borderRadius: '5px', background: 'var(--tint-blue)', color: '#2445E8', fontSize: '10.5px', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.cd}</span>
+                      <span style={{ flex: 'none', minWidth: '34px', padding: '2px 6px', borderRadius: '5px', background: 'var(--tint-blue)', color: 'var(--tx-2445e8)', fontSize: '10.5px', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.cd}</span>
                       <span title={r.name} style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
                     </div>
                     <input value={r.motivo} onChange={r.onMotivo} placeholder="Motivo" aria-label={`Motivo da empresa ${r.cd}`} style={css(r.motivoStyle + ';height:34px')} />
-                    <button onClick={r.remove} title="Remover da lista" style={{ width: '30px', height: '30px', borderRadius: '7px', border: '1px solid var(--border-soft)', background: 'var(--surface)', color: 'var(--text-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color .15s,background .15s,color .15s' }} className={hv('background:var(--tint-red);border-color:#FCA5A5;color:#DC2626', undefined, undefined)}>
+                    <button onClick={r.remove} title="Remover da lista" style={{ width: '30px', height: '30px', borderRadius: '7px', border: '1px solid var(--border-soft)', background: 'var(--surface)', color: 'var(--text-4)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'border-color .15s,background .15s,color .15s' }} className={hv('background:var(--tint-red);border-color:var(--danger-border);color:var(--danger-text)', undefined, undefined)}>
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                         <path d="M5 7h14M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
                       </svg>
@@ -91,7 +91,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
           </div>
 
           {v.fxCfgErr ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '9px', background: 'var(--tint-red)', border: '1px solid #FCA5A5', color: '#DC2626', fontSize: '12.5px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '9px', background: 'var(--tint-red)', border: '1px solid var(--danger-border)', color: 'var(--danger-text)', fontSize: '12.5px' }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
                 <circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeWidth="1.7"></circle>
                 <path d="M12 8v5M12 16h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>

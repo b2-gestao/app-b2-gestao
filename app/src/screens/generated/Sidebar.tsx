@@ -112,7 +112,7 @@ export default function Sidebar({ v }: { v: any }) {
                 </a>
               ))}
               {v.biMenuEmpty ? (
-                <span style={css(v.subItemStyle + ';color:#52525B;cursor:default')}>
+                <span style={css(v.subItemStyle + ';color:var(--tx-52525b);cursor:default')}>
                   Nenhum painel
                 </span>
               ) : null}

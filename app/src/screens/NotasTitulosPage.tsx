@@ -79,7 +79,7 @@ function Passos({ passos }: { passos: any[] }) {
               ) : p.numero}
             </span>
             <span style={{ fontSize: '12.5px', fontWeight: atual ? 700 : 600, color: atual ? 'var(--text)' : feito ? 'var(--text-b)' : 'var(--text-4)', whiteSpace: 'nowrap' }}>{p.label}</span>
-            {i < passos.length - 1 ? <span style={{ flex: 1, height: '1px', minWidth: '16px', margin: '0 6px', background: feito ? '#43B997' : '#EEEEF1' }}></span> : null}
+            {i < passos.length - 1 ? <span style={{ flex: 1, height: '1px', minWidth: '16px', margin: '0 6px', background: feito ? '#43B997' : 'var(--track-2)' }}></span> : null}
           </div>
         );
       })}
@@ -108,11 +108,11 @@ function Historico({ nt }: { nt: any }) {
           <span style={colHead}>Situação</span>
           <div style={{ display: 'flex', gap: '2px', background: 'var(--surface-3)', borderRadius: '8px', padding: '3px' }}>
             {nt.situacaoTabs.map((t: any) => (
-              <button key={t.label} onClick={t.onClick} style={css(`border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${t.ativo ? '#111827' : 'transparent'};color:${t.ativo ? '#FFFFFF' : 'var(--text-3)'}`)}>{t.label}</button>
+              <button key={t.label} onClick={t.onClick} style={css(`border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${t.ativo ? 'var(--ink)' : 'transparent'};color:${t.ativo ? '#FFFFFF' : 'var(--text-3)'}`)}>{t.label}</button>
             ))}
           </div>
         </div>
-        {nt.filtrado ? <button onClick={nt.limparFiltros} style={css(btnSec + ';color:#4161FF')}>Limpar filtros</button> : null}
+        {nt.filtrado ? <button onClick={nt.limparFiltros} style={css(btnSec + ';color:var(--accent-text)')}>Limpar filtros</button> : null}
       </div>
 
       <div style={css(`${card};overflow:hidden;${anim(110)}`)}>
@@ -129,13 +129,13 @@ function Historico({ nt }: { nt: any }) {
             </div>
             {nt.carregando ? (
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '44px', fontSize: '12.5px', color: 'var(--text-3)' }}>
-                <Spinner color="#4161FF" /> Carregando os títulos cadastrados…
+                <Spinner color="var(--accent-text)" /> Carregando os títulos cadastrados…
               </div>
             ) : null}
             {nt.historico.map((r: any, i: number) => {
               const aberto = nt.aberto === r.id;
               return (
-                <div key={r.id} style={{ boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
+                <div key={r.id} style={{ boxShadow: i ? 'inset 0 1px 0 var(--line-faint)' : 'none' }}>
                   <div onClick={() => nt.alternar(r.id)} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:12px 18px;cursor:pointer;opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`)} className={hv('background:var(--surface-2)', undefined, undefined)}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontSize: '12.5px', color: 'var(--text)', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{r.dia}</div>
@@ -143,7 +143,7 @@ function Historico({ nt }: { nt: any }) {
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                       <div style={{ width: '32px', height: '32px', flex: 'none', borderRadius: '9px', background: 'var(--tint-blue-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        <DocIcon size={15} color="#4161FF" />
+                        <DocIcon size={15} color="var(--accent-text)" />
                       </div>
                       <div style={{ minWidth: 0 }}>
                         <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.documento}</div>
@@ -177,11 +177,11 @@ function Historico({ nt }: { nt: any }) {
                           <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: 'var(--surface-3)', color: 'var(--text-b)', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
                         ))}
                         {r.apropriacoesObra.map((a: string) => (
-                          <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: 'var(--tint-blue-3)', color: '#3148B8', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
+                          <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: 'var(--tint-blue-3)', color: 'var(--tx-3148b8)', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
                         ))}
                       </div>
                       {r.detalhes.length ? <Alerta tom="aviso" titulo="Pendências para ajuste manual no Sienge" itens={r.detalhes} /> : (
-                        <div style={{ fontSize: '12px', color: '#1F7A5C' }}>Sem pendências: título, apropriações e anexos gravados.</div>
+                        <div style={{ fontSize: '12px', color: 'var(--tx-1f7a5c)' }}>Sem pendências: título, apropriações e anexos gravados.</div>
                       )}
                     </div>
                   ) : null}
@@ -193,7 +193,7 @@ function Historico({ nt }: { nt: any }) {
         {!nt.carregando && nt.historico.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '52px 20px', textAlign: 'center' }}>
             <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'var(--tint-blue-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <DocIcon size={22} color="#4161FF" />
+              <DocIcon size={22} color="var(--accent-text)" />
             </div>
             <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text)' }}>{nt.filtrado ? 'Nenhum título encontrado' : 'Nenhum título cadastrado pelo app ainda'}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-4)', maxWidth: '420px' }}>
@@ -220,11 +220,11 @@ function Envio({ nt }: { nt: any }) {
         onDragOver={nt.onArrastar}
         onDragLeave={nt.onSair}
         onDrop={nt.onSoltar}
-        style={css(`display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:180px;padding:24px;border-radius:12px;border:1.5px dashed ${nt.arrastando ? '#4161FF' : 'var(--border-strong)'};background:${nt.arrastando ? '#F2F5FF' : 'var(--surface-2)'};cursor:${lendo ? 'default' : 'pointer'};text-align:center;transition:border-color .15s,background .15s`)}
-        className={lendo ? undefined : hv('border-color:#4161FF;background:#F7F9FF', undefined, undefined)}
+        style={css(`display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:180px;padding:24px;border-radius:12px;border:1.5px dashed ${nt.arrastando ? '#4161FF' : 'var(--border-strong)'};background:${nt.arrastando ? 'var(--tint-blue-2)' : 'var(--surface-2)'};cursor:${lendo ? 'default' : 'pointer'};text-align:center;transition:border-color .15s,background .15s`)}
+        className={lendo ? undefined : hv('border-color:#4161FF;background:var(--bg-f7f9ff)', undefined, undefined)}
       >
         <input type="file" accept="application/pdf" hidden disabled={lendo} onChange={nt.onArquivo} />
-        <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: nt.arquivo ? '#E8F8F6' : 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 6px ${nt.arquivo ? 'rgba(20,184,166,.07)' : 'rgba(65,97,255,.06)'}` }}>
+        <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: nt.arquivo ? 'var(--bg-e8f8f6)' : 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 6px ${nt.arquivo ? 'rgba(20,184,166,.07)' : 'rgba(65,97,255,.06)'}` }}>
           {nt.arquivo ? <DocIcon size={22} color="#14B8A6" /> : (
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
               <path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" stroke="#4161FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -277,7 +277,7 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
             </select>
           </Campo>
           <Campo rotulo="Número do documento *"><input value={c.numero} onChange={c.onNumero} maxLength={20} style={css(input)} /></Campo>
-          <Campo rotulo="Valor do título *" dica={c.valorAlterado ? <span style={{ color: '#92590A' }}>Alterado · no PDF: {c.valorLido}</span> : 'Valor bruto do documento'}>
+          <Campo rotulo="Valor do título *" dica={c.valorAlterado ? <span style={{ color: 'var(--tx-92590a)' }}>Alterado · no PDF: {c.valorLido}</span> : 'Valor bruto do documento'}>
             <input value={c.valor} onChange={c.onValor} inputMode="decimal" placeholder="0,00" style={css(input + ';text-align:right;font-variant-numeric:tabular-nums')} />
           </Campo>
           <Campo rotulo="Desconto" dica={`Valor líquido ${c.liquido}`}>
@@ -328,24 +328,24 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
                 <div key={a.id} style={css(`display:grid;${gridAp};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}animation:rowIn .25s ease-out both`)}>
                   <div style={{ minWidth: 0 }}>
                     <Sugestoes value={a.centro} onChange={a.onCentro} opcoes={c.centrosOpcoes} inputMode="numeric" placeholder="Código" ariaLabel={`Centro de custo da linha ${i + 1}`} />
-                    <div style={{ fontSize: '11px', color: a.centroNome ? '#1F7A5C' : 'var(--text-4)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.centroNome}>{a.centroNome || 'Digite ou escolha o código'}</div>
+                    <div style={{ fontSize: '11px', color: a.centroNome ? 'var(--tx-1f7a5c)' : 'var(--text-4)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.centroNome}>{a.centroNome || 'Digite ou escolha o código'}</div>
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <Sugestoes value={a.plano} onChange={a.onPlano} opcoes={c.planosOpcoes} porNome placeholder="Buscar pelo nome ou digitar o código" ariaLabel={`Plano financeiro da linha ${i + 1}`} />
-                    <div style={{ fontSize: '11px', color: a.planoNome ? '#1F7A5C' : 'var(--text-4)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.planoNome}>{a.planoNome || 'Código sem máscara, ex.: 201030101 · conferido no Sienge ao salvar'}</div>
+                    <div style={{ fontSize: '11px', color: a.planoNome ? 'var(--tx-1f7a5c)' : 'var(--text-4)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.planoNome}>{a.planoNome || 'Código sem máscara, ex.: 201030101 · conferido no Sienge ao salvar'}</div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
                     <span style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
                       <input value={a.percentual} onChange={a.onPercentual} inputMode="decimal" aria-label={`Percentual da linha ${i + 1}`} aria-invalid={a.problema ? true : undefined}
-                        style={css(input + `;height:34px;text-align:right;padding-right:24px;font-variant-numeric:tabular-nums;border-color:${a.problema ? '#FCA5A5' : 'var(--border)'}`)} />
+                        style={css(input + `;height:34px;text-align:right;padding-right:24px;font-variant-numeric:tabular-nums;border-color:${a.problema ? 'var(--danger-border)' : 'var(--border)'}`)} />
                       <span style={{ position: 'absolute', right: '10px', fontSize: '12px', color: 'var(--text-4)', pointerEvents: 'none' }}>%</span>
                     </span>
                   </div>
                   <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', paddingTop: '9px' }}>{a.valor}</div>
                   <div style={{ textAlign: 'right', paddingTop: '9px' }}>
-                    {a.remover ? <button onClick={a.remover} style={css(link + ';color:#EF4444')}>remover</button> : null}
+                    {a.remover ? <button onClick={a.remover} style={css(link + ';color:var(--danger-text-2)')}>remover</button> : null}
                   </div>
-                  {a.problema ? <div style={{ gridColumn: '1 / -1', marginTop: '-4px', fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{a.problema}</div> : null}
+                  {a.problema ? <div style={{ gridColumn: '1 / -1', marginTop: '-4px', fontSize: '11px', color: 'var(--danger-text)', fontWeight: 600 }}>{a.problema}</div> : null}
                 </div>
               ))}
             </div>
@@ -413,7 +413,7 @@ function ApropriacaoObra({ c }: { c: any }) {
                   <div style={{ minWidth: 0 }}>
                     <Sugestoes value={a.obra} onChange={a.onObra} opcoes={c.obrasOpcoes} inputMode="numeric" placeholder="Código da obra" ariaLabel={`Obra da linha ${i + 1}`} />
                     {a.obraErro ? (
-                      <div style={{ ...nota, color: '#DC2626' }} title={a.obraErro}>
+                      <div style={{ ...nota, color: 'var(--danger-text)' }} title={a.obraErro}>
                         {a.recarregarObra ? <button onClick={a.recarregarObra} style={css(link + ';font-size:11px')}>tentar de novo</button> : null}
                       </div>
                     ) : a.usarSugerida ? (
@@ -421,7 +421,7 @@ function ApropriacaoObra({ c }: { c: any }) {
                         <button onClick={a.usarSugerida} style={css(link + ';font-size:11px')}>usar a obra {a.sugerida}</button> (centro de custo)
                       </div>
                     ) : (
-                      <div style={{ ...nota, color: a.obraNome ? '#1F7A5C' : 'var(--text-4)' }} title={a.obraNome}>{a.obraNome || 'Digite ou escolha o código'}</div>
+                      <div style={{ ...nota, color: a.obraNome ? 'var(--tx-1f7a5c)' : 'var(--text-4)' }} title={a.obraNome}>{a.obraNome || 'Digite ou escolha o código'}</div>
                     )}
                   </div>
                   <div style={{ minWidth: 0 }}>
@@ -430,27 +430,27 @@ function ApropriacaoObra({ c }: { c: any }) {
                       <option value="">{a.unidadeDesabilitada ? '—' : 'Escolha a unidade'}</option>
                       {a.unidadesOpcoes.map((u: any) => <option key={u.value} value={u.value}>{u.label}</option>)}
                     </select>
-                    {a.unidadeDica ? <div style={{ ...nota, color: '#92590A' }}>{a.unidadeDica}</div> : null}
+                    {a.unidadeDica ? <div style={{ ...nota, color: 'var(--tx-92590a)' }}>{a.unidadeDica}</div> : null}
                   </div>
                   <div style={{ minWidth: 0 }}>
                     <Sugestoes value={a.item} onChange={a.onItem} opcoes={a.itensOpcoes} porNome padraoCodigo={/^[\d.]*$/} disabled={a.itemDesabilitado}
                       placeholder={a.itemDesabilitado ? 'Escolha a obra e a unidade' : 'Buscar pelo nome ou código'} ariaLabel={`Item do orçamento da linha ${i + 1}`} />
-                    <div style={{ ...nota, color: a.item && a.itemNome && !a.problema ? '#1F7A5C' : 'var(--text-4)' }} title={a.itemNome}>
+                    <div style={{ ...nota, color: a.item && a.itemNome && !a.problema ? 'var(--tx-1f7a5c)' : 'var(--text-4)' }} title={a.itemNome}>
                       {a.recarregarItens ? <button onClick={a.recarregarItens} style={css(link + ';font-size:11px')}>tentar de novo</button> : a.itemNome}
                     </div>
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
                     <span style={{ position: 'relative', display: 'flex', alignItems: 'center', width: '100%' }}>
                       <input value={a.percentual} onChange={a.onPercentual} inputMode="decimal" aria-label={`Percentual da obra na linha ${i + 1}`} aria-invalid={a.problema ? true : undefined}
-                        style={css(input + `;height:34px;text-align:right;padding-right:24px;font-variant-numeric:tabular-nums;border-color:${a.problema ? '#FCA5A5' : 'var(--border)'}`)} />
+                        style={css(input + `;height:34px;text-align:right;padding-right:24px;font-variant-numeric:tabular-nums;border-color:${a.problema ? 'var(--danger-border)' : 'var(--border)'}`)} />
                       <span style={{ position: 'absolute', right: '10px', fontSize: '12px', color: 'var(--text-4)', pointerEvents: 'none' }}>%</span>
                     </span>
                   </div>
                   <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', fontVariantNumeric: 'tabular-nums', paddingTop: '9px' }}>{a.valor}</div>
                   <div style={{ textAlign: 'right', paddingTop: '9px' }}>
-                    <button onClick={a.remover} style={css(link + ';color:#EF4444')}>remover</button>
+                    <button onClick={a.remover} style={css(link + ';color:var(--danger-text-2)')}>remover</button>
                   </div>
-                  {a.problema ? <div style={{ gridColumn: '1 / -1', marginTop: '-4px', fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{a.problema}</div> : null}
+                  {a.problema ? <div style={{ gridColumn: '1 / -1', marginTop: '-4px', fontSize: '11px', color: 'var(--danger-text)', fontWeight: 600 }}>{a.problema}</div> : null}
                 </div>
               ))}
             </div>
@@ -458,7 +458,7 @@ function ApropriacaoObra({ c }: { c: any }) {
         </div>
       ) : null}
       {c.semObra ? (
-        <div style={{ fontSize: '12px', color: '#92590A', lineHeight: 1.5 }}>
+        <div style={{ fontSize: '12px', color: 'var(--tx-92590a)', lineHeight: 1.5 }}>
           Sem apropriação de obra: o título vai para o Sienge só com a apropriação financeira. Se o plano financeiro exige obra, o Sienge vai pedir a apropriação no título.
         </div>
       ) : (
@@ -495,7 +495,7 @@ function Vencimento({ c }: { c: any }) {
           <input type="password" autoFocus autoComplete="off" placeholder="Senha para alterar" aria-label="Senha para alterar o vencimento" value={c.senhaDigitada} onChange={c.onSenha} onKeyDown={c.onSenhaKey} style={css(input + ';height:32px;flex:1 1 120px;width:auto')} />
           <button onClick={c.liberar} disabled={!c.senhaDigitada || c.verificandoSenha} style={css(btnSec + ';height:32px' + (!c.senhaDigitada || c.verificandoSenha ? off : ''))}>{c.verificandoSenha ? '…' : 'Liberar'}</button>
           <button onClick={c.cancelarSenha} style={css(link + ';color:var(--text-3)')}>cancelar</button>
-          {c.senhaErro ? <span style={{ width: '100%', fontSize: '11.5px', color: '#DC2626', fontWeight: 600 }}>{c.senhaErro}</span> : null}
+          {c.senhaErro ? <span style={{ width: '100%', fontSize: '11.5px', color: 'var(--danger-text)', fontWeight: 600 }}>{c.senhaErro}</span> : null}
         </div>
       ) : c.vencimentoLiberado ? (
         <span style={{ fontSize: '11.5px', color: 'var(--text-4)' }}>Alterado manualmente · <button onClick={c.restaurarVencimento} style={css(link + ';font-size:11.5px')}>voltar ao padrão</button></span>
@@ -517,7 +517,7 @@ function Anexos({ c }: { c: any }) {
       acoes={
         <label style={css(btnSec + (c.lendoAnexos ? off : ''))} className={c.lendoAnexos ? undefined : hv(btnSecHover, undefined, undefined)}>
           <input type="file" accept="application/pdf" multiple hidden disabled={c.lendoAnexos} onChange={c.onAnexos} />
-          {c.lendoAnexos ? <><Spinner color="#4161FF" /> Lendo arquivos…</> : (
+          {c.lendoAnexos ? <><Spinner color="var(--accent-text)" /> Lendo arquivos…</> : (
             <>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path></svg>
               Adicionar arquivos
@@ -568,11 +568,11 @@ function Concluido({ nt, r }: { nt: any; r: any }) {
           <div style={colHead}>Anexos adicionais do título</div>
           <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
             {r.envios.map((e: any, i: number) => (
-              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '70px minmax(0,1fr) auto', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
+              <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '70px minmax(0,1fr) auto', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: i ? 'inset 0 1px 0 var(--line-faint)' : 'none' }}>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text)' }}>{e.descricao}</span>
                 <div style={{ minWidth: 0 }}>
                   <div style={{ fontSize: '12.5px', color: 'var(--text-b)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.nome}</div>
-                  {e.erro ? <div style={{ fontSize: '11px', color: '#DC2626' }}>{e.erro}</div> : null}
+                  {e.erro ? <div style={{ fontSize: '11px', color: 'var(--danger-text)' }}>{e.erro}</div> : null}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Chip tom={corStatus[e.status]}>{e.rotulo}</Chip>

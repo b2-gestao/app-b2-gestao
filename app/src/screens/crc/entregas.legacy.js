@@ -2995,7 +2995,7 @@ function buildReportHTML(c, opts, sel){
       });
 
       timelineTable = `
-        <div style="overflow-x:auto;background:var(--surface);border:1px solid #EEEEF1;border-radius:6px;padding:10px 0;margin-bottom:8px">
+        <div style="overflow-x:auto;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px 0;margin-bottom:8px">
           <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto">${grid}${marks}</svg>
         </div>
         <div style="display:flex;gap:16px;font-size:11px;color:#64748B;flex-wrap:wrap;margin-bottom:12px">
@@ -3077,7 +3077,7 @@ function buildReportHTML(c, opts, sel){
           <span style="display:inline-block;width:12px;height:12px;background:#facc15;border-radius:2px;vertical-align:middle;margin-right:4px"></span>com atraso
         </div>
       </div>
-      <svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:auto;display:block;border:1px solid #EEEEF1;border-radius:6px;background:var(--surface)">${grid}${bars}</svg>
+      <svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:auto;display:block;border:1px solid var(--border);border-radius:6px;background:var(--surface)">${grid}${bars}</svg>
     </section>`;
   }
 
@@ -3143,7 +3143,7 @@ function buildReportHTML(c, opts, sel){
 <style>
 @page{size:A4;margin:16mm}
 *{box-sizing:border-box}
-body{font:13px/1.55 'Inter',-apple-system,sans-serif;color:#111827;margin:0;background:#f2f4f7}
+body{font:13px/1.55 'Inter',-apple-system,sans-serif;color:#111827;margin:0;background:var(--bg-f2f4f7)}
 .toolbar{position:sticky;top:0;background:#111827;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10}
 .toolbar b{font-size:14px}
 .toolbar button{background:#43B997;color:#fff;border:0;padding:8px 16px;border-radius:6px;font:600 13px 'Inter',sans-serif;cursor:pointer;margin-left:6px}
@@ -3167,32 +3167,32 @@ body{font:13px/1.55 'Inter',-apple-system,sans-serif;color:#111827;margin:0;back
 .page h2{font-size:20px;margin:0 0 16px;letter-spacing:-.015em;color:#111827;border-bottom:2px solid #43B997;padding-bottom:8px}
 .page h3{font-size:15px;margin:20px 0 8px;color:#344054}
 .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
-.kpi-cell{background:#f9fafb;border:1px solid #EEEEF1;padding:12px;border-radius:6px}
+.kpi-cell{background:var(--bg-f9fafb);border:1px solid var(--border);padding:12px;border-radius:6px}
 .kpi-l{font-size:10px;text-transform:uppercase;color:#64748B;letter-spacing:.05em;font-weight:600}
 .kpi-v{font-size:22px;font-weight:700;margin-top:4px;letter-spacing:-.01em}
 .kpi-v.ok{color:#43B997}.kpi-v.warn{color:#F59E0B}.kpi-v.danger{color:#EF4444}
 .tbl{width:100%;border-collapse:collapse;margin:8px 0 16px;font-size:12px}
-.tbl th{background:#f2f4f7;text-align:left;padding:8px 10px;font-weight:600;color:#344054;border-bottom:2px solid #d0d5dd}
-.tbl td{padding:8px 10px;border-bottom:1px solid #EEEEF1}
-.tbl tr:nth-child(even) td{background:#f9fafb}
+.tbl th{background:var(--bg-f2f4f7);text-align:left;padding:8px 10px;font-weight:600;color:#344054;border-bottom:2px solid #d0d5dd}
+.tbl td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.tbl tr:nth-child(even) td{background:var(--bg-f9fafb)}
 .cell-danger{color:#b42318;font-weight:700}.cell-warn{color:#93370d;font-weight:700}.cell-ok{color:#1F7A5C;font-weight:700}.cell-primary{color:#1D4ED8;font-weight:700}.cell-late{color:#854d0e;font-weight:700;background:#fefce8!important}
 .act-badge.late{background:#fef9c3;color:#854d0e;border:1px solid #fde68a}
 .block-hdr{border-bottom:2px solid #EEEEF1;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .block-title-r{font-size:17px;font-weight:700;color:#111827;letter-spacing:-.01em}
 .block-meta{font-size:12px;color:#64748B}
-.act{padding:12px 14px;border:1px solid #EEEEF1;border-radius:6px;margin-bottom:10px;background:var(--surface);page-break-inside:avoid}
+.act{padding:12px 14px;border:1px solid var(--border);border-radius:6px;margin-bottom:10px;background:var(--surface);page-break-inside:avoid}
 .act-hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed #EEEEF1}
 .act-name{font-weight:600;font-size:13.5px;color:#111827}
 .act-badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
-.act-badge.ok{background:#E9F8F2;color:#1F7A5C;border:1px solid #BCE8D8}
+.act-badge.ok{background:var(--tint-green-2);color:#1F7A5C;border:1px solid #BCE8D8}
 .act-badge.warn{background:#fef7ed;color:#93370d;border:1px solid #fcd6a9}
-.act-badge.danger{background:#fef3f2;color:#b42318;border:1px solid #fecdca}
-.act-badge.neutral{background:#f2f4f7;color:#64748B;border:1px solid #EEEEF1}
+.act-badge.danger{background:#fef3f2;color:#b42318;border:1px solid var(--bd-fecdca)}
+.act-badge.neutral{background:var(--bg-f2f4f7);color:#64748B;border:1px solid var(--border)}
 .act-badge.primary{background:#EFF6FF;color:#1D4ED8;border:1px solid #BFDBFE}
 table.act-meta{width:100%;font-size:12px;margin:6px 0}
 table.act-meta th{text-align:left;background:transparent;padding:3px 8px 3px 0;font-weight:600;color:#64748B;width:140px;vertical-align:top}
 table.act-meta td{padding:3px 0;border:0;background:transparent}
-.hist{margin-top:8px;padding:8px 12px;background:#f9fafb;border-radius:6px;border-left:3px solid #43B997}
+.hist{margin-top:8px;padding:8px 12px;background:var(--bg-f9fafb);border-radius:6px;border-left:3px solid #43B997}
 .hist b{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#64748B}
 .hist ul{margin:6px 0 0;padding-left:18px;font-size:11.5px;color:#64748B}
 .hist-date{font-weight:600;color:#111827}
@@ -4215,7 +4215,7 @@ function generateEvolutionReport(){
     <style>
     @page{size:A4;margin:15mm}
     *{box-sizing:border-box}
-    body{font:13px/1.55 'Inter',sans-serif;color:#111827;margin:0;background:#f2f4f7}
+    body{font:13px/1.55 'Inter',sans-serif;color:#111827;margin:0;background:var(--bg-f2f4f7)}
     .toolbar{position:sticky;top:0;background:#111827;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10}
     .toolbar button{background:#43B997;color:#fff;border:0;padding:8px 16px;border-radius:6px;font:600 13px 'Inter',sans-serif;cursor:pointer;margin-left:6px}
     .toolbar button.sec{background:#64748B}
@@ -4231,9 +4231,9 @@ function generateEvolutionReport(){
     .hdr .k-v{font-size:22px;font-weight:800;margin-top:4px}
     .evo-sec{background:var(--surface);padding:18px 22px;border-radius:8px;margin-bottom:14px;page-break-inside:avoid}
     .evo-sec h3{font-size:15px;margin:0 0 12px;color:#111827;border-bottom:2px solid #43B997;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center}
-    .evo-sec h3 .cnt{background:#E9F8F2;color:#1F7A5C;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700}
+    .evo-sec h3 .cnt{background:var(--tint-green-2);color:#1F7A5C;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700}
     .evo-tbl{width:100%;border-collapse:collapse;font-size:12px}
-    .evo-tbl td{padding:8px 6px;border-bottom:1px solid #EEEEF1;vertical-align:top}
+    .evo-tbl td{padding:8px 6px;border-bottom:1px solid var(--border);vertical-align:top}
     .evo-tbl td:first-child{color:#64748B;white-space:nowrap;font-weight:600;width:120px;font-size:11px}
     .evo-tbl td.name{font-weight:600;color:#111827}
     .evo-tbl td.meta{color:#64748B;font-size:11px}

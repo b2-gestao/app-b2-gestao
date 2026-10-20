@@ -194,15 +194,15 @@ export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inp
           <div role="listbox" style={{ maxHeight: `${Math.max(140, pos.max)}px`, overflowY: 'auto', borderRadius: '11px', background: 'var(--surface)', padding: '5px' }}>
             {filtradas.map((o, i) => (
               <div key={o.value} role="option" aria-selected={i === ativo} data-ativo={i === ativo ? 1 : 0} onClick={() => escolher(o)} onMouseEnter={() => setAtivo(i)}
-                style={css(`display:flex;align-items:baseline;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${i === ativo ? '#F2F5FF' : 'transparent'};transition:background .1s`)}>
+                style={css(`display:flex;align-items:baseline;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${i === ativo ? 'var(--tint-blue-2)' : 'transparent'};transition:background .1s`)}>
                 {porNome && o.label ? (
                   <>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : 'var(--text)', minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? 'var(--tx-3148b8)' : 'var(--text)', minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span>
                     <span style={{ fontSize: '11.5px', color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
                   </>
                 ) : (
                   <>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : 'var(--text)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? 'var(--tx-3148b8)' : 'var(--text)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
                     {o.label ? <span style={{ fontSize: '12px', color: 'var(--text-3)', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span> : null}
                   </>
                 )}
@@ -219,8 +219,8 @@ export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inp
 export function LinhaAnexo({ descricao, onDescricao, sugestoes, max, nome, detalhe, principal, remover }: { descricao: string; onDescricao: any; sugestoes: OpcaoSugestao[]; max: number; nome: string; detalhe: string; principal?: boolean; remover?: () => void }) {
   const vazio = !descricao.trim();
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 80px', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: principal ? 'none' : 'inset 0 1px 0 #F4F4F6' }}>
-      <Sugestoes value={descricao} onChange={onDescricao} opcoes={sugestoes} maxLength={max} placeholder="Descrição *" ariaLabel="Descrição do anexo" invalido={vazio} altura={32} estilo={`font-weight:600;border-color:${vazio ? '#FCA5A5' : 'var(--border)'}`} />
+    <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 80px', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: principal ? 'none' : 'inset 0 1px 0 var(--line-faint)' }}>
+      <Sugestoes value={descricao} onChange={onDescricao} opcoes={sugestoes} maxLength={max} placeholder="Descrição *" ariaLabel="Descrição do anexo" invalido={vazio} altura={32} estilo={`font-weight:600;border-color:${vazio ? 'var(--danger-border)' : 'var(--border)'}`} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
         <DocIcon size={16} color={principal ? '#14B8A6' : 'var(--text-4)'} />
         <div style={{ minWidth: 0 }}>
@@ -229,7 +229,7 @@ export function LinhaAnexo({ descricao, onDescricao, sugestoes, max, nome, detal
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
-        {remover ? <button onClick={remover} style={css(link + ';color:#EF4444')}>remover</button> : null}
+        {remover ? <button onClick={remover} style={css(link + ';color:var(--danger-text-2)')}>remover</button> : null}
       </div>
     </div>
   );
@@ -247,7 +247,7 @@ export function EmpresaModal({ m, sub }: { m: any; sub: string }) {
     <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Informar empresa" onClick={e => e.stopPropagation()}
         style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
-        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
+        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 var(--line-faint)' }}>
           <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Informar empresa</div>
           <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>{sub}</div>
         </div>
@@ -257,7 +257,7 @@ export function EmpresaModal({ m, sub }: { m: any; sub: string }) {
           </Campo>
           {m.erro ? <Alerta tom="erro" titulo={m.erro} /> : null}
         </form>
-        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: 'var(--surface-4)' }}>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 var(--line-faint)', background: 'var(--surface-4)' }}>
           <button onClick={m.fechar} disabled={m.enviando} style={css(btnSec + ';height:38px' + (m.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
           <button onClick={m.confirmar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
             {m.enviando ? <><Spinner /> Buscando…</> : 'Continuar'}
@@ -272,7 +272,7 @@ export function EmpresaModal({ m, sub }: { m: any; sub: string }) {
 export function ChamadoConferencia({ c }: { c: any }) {
   return (
     <>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 14px', borderRadius: '10px', background: '#F7F8FF', boxShadow: 'inset 0 0 0 1px #E4E9FF' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 14px', borderRadius: '10px', background: 'var(--bg-f7f8ff)', boxShadow: 'inset 0 0 0 1px var(--bd-e4e9ff)' }}>
         <div style={{ flex: '1 1 240px', minWidth: 0 }}>
           <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text)' }}>Conferência do título na contabilidade</div>
           <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '2px' }}>
@@ -285,7 +285,7 @@ export function ChamadoConferencia({ c }: { c: any }) {
           ? <Chip tom="ok">Chamado criado</Chip>
           : (
             <button onClick={c.abrir} disabled={c.carregando} style={css(btnSec + ';height:38px' + (c.carregando ? off : ''))} className={hv(btnSecHover, 'transform:scale(.97)', undefined)}>
-              {c.carregando ? <><Spinner color="#4161FF" /> Preparando…</> : 'Criar chamado de conferência'}
+              {c.carregando ? <><Spinner color="var(--accent-text)" /> Preparando…</> : 'Criar chamado de conferência'}
             </button>
           )}
       </div>
@@ -306,14 +306,14 @@ function ChamadoModal({ c }: { c: any }) {
     <div onClick={c.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Criar chamado de conferência" onClick={e => e.stopPropagation()}
         style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
-        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
+        <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 var(--line-faint)' }}>
           <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Criar chamado de conferência</div>
           <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>Confira os dados e abra o chamado no TomTicket, no seu nome.</div>
         </div>
         <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
           {c.carregando ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '24px 0', justifyContent: 'center', fontSize: '13px', color: 'var(--text-3)' }}>
-              <Spinner color="#4161FF" /> Buscando departamento e categorias no TomTicket…
+              <Spinner color="var(--accent-text)" /> Buscando departamento e categorias no TomTicket…
             </div>
           ) : null}
           {c.pronto ? (
@@ -347,7 +347,7 @@ function ChamadoModal({ c }: { c: any }) {
           ) : null}
           {c.erro ? <Alerta tom="erro" titulo={c.erro} /> : null}
         </div>
-        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: 'var(--surface-4)' }}>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 var(--line-faint)', background: 'var(--surface-4)' }}>
           <button onClick={c.fechar} disabled={c.enviando} style={css(btnSec + ';height:38px' + (c.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
           <button onClick={c.criar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
             {c.enviando ? <><Spinner /> Criando…</> : 'Criar chamado'}

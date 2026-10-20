@@ -15,7 +15,7 @@ export default function Header({ v }: { v: any }) {
         </svg>
       </button>
       <div style={{ "minWidth": "0", "flex": "1 1 auto" }}>
-        <div style={{ "fontSize": "10.5px", "letterSpacing": ".08em", "textTransform": "uppercase", "color": "#4161FF", "fontWeight": "600", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+        <div style={{ "fontSize": "10.5px", "letterSpacing": ".08em", "textTransform": "uppercase", "color": "var(--accent-text)", "fontWeight": "600", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
           {v.crumbLabel}
         </div>
         <div style={{ "fontWeight": "700", "fontSize": "19px", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>

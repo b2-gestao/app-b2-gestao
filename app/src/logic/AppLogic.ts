@@ -423,7 +423,7 @@ export class AppLogic extends Component<any, any> {
         selected: o === value,
         // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button.
         onClick: e => { e.stopPropagation(); e.preventDefault(); onChange(o); this.setState({ ddOpen: null, ddQuery: '' }); },
-        style: `display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;font-size:12.5px;font-weight:${o === value ? 600 : 500};color:${o === value ? '#4161FF' : 'var(--text-b)'};background:${o === value ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s;white-space:nowrap`,
+        style: `display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;font-size:12.5px;font-weight:${o === value ? 600 : 500};color:${o === value ? 'var(--accent-text)' : 'var(--text-b)'};background:${o === value ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s;white-space:nowrap`,
         hoverStyle: `background:${o === value ? 'var(--tint-blue)' : 'var(--surface-3)'}`,
       })),
     };
@@ -466,9 +466,9 @@ export class AppLogic extends Component<any, any> {
         return {
           name: c.name,
           onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(c.name); },
-          style: `display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : 'var(--text-b)'};background:${on ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s`,
+          style: `display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? 'var(--tx-1e3ae0)' : 'var(--text-b)'};background:${on ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s`,
           hoverStyle: `background:${on ? 'var(--tint-blue)' : 'var(--surface-3)'}`,
-          boxStyle: `flex:none;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : 'var(--surface)'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
+          boxStyle: `flex:none;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : 'var(--input-border)'};background:${on ? '#4161FF' : 'var(--surface)'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
           checkStyle: `display:${on ? 'block' : 'none'}`,
         };
       }),
@@ -514,10 +514,10 @@ export class AppLogic extends Component<any, any> {
           id: c.id,
           name: c.name,
           onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(val(c)); },
-          style: `display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : 'var(--text-b)'};background:${on ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s`,
+          style: `display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? 'var(--tx-1e3ae0)' : 'var(--text-b)'};background:${on ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s`,
           hoverStyle: `background:${on ? 'var(--tint-blue)' : 'var(--surface-3)'}`,
-          idBadgeStyle: `flex:none;margin-top:1px;min-width:30px;padding:2px 6px;border-radius:5px;background:${on ? '#DCE6FF' : 'var(--surface-3)'};color:${on ? '#2445E8' : 'var(--text-4)'};font-size:10px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums`,
-          checkboxStyle: `flex:none;margin-top:1px;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : 'var(--surface)'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
+          idBadgeStyle: `flex:none;margin-top:1px;min-width:30px;padding:2px 6px;border-radius:5px;background:${on ? 'var(--bg-dce6ff)' : 'var(--surface-3)'};color:${on ? 'var(--tx-2445e8)' : 'var(--text-4)'};font-size:10px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums`,
+          checkboxStyle: `flex:none;margin-top:1px;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : 'var(--input-border)'};background:${on ? '#4161FF' : 'var(--surface)'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
           selected: on,
         };
       }),

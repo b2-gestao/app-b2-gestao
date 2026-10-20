@@ -28,7 +28,7 @@ export default function CategoriaModal({ v }: { v: any }) {
         <div style={{ flex: '1', overflowY: 'auto', padding: '20px 24px 22px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(224px,1fr))', gap: '14px' }}>
             <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={label}>Nome da categoria <span style={{ color: '#EF4444' }}>*</span></span>
+              <span style={label}>Nome da categoria <span style={{ color: 'var(--danger-text-2)' }}>*</span></span>
               <input value={v.cfName} onChange={v.onCfName} onKeyDown={e => { if (e.key === 'Enter') v.saveCat(); }} placeholder="Ex.: Taxa Administração" autoFocus style={css(v.cfNameStyle)} />
             </label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -56,7 +56,7 @@ export default function CategoriaModal({ v }: { v: any }) {
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           {v.catEditing ? (
-            <button onClick={v.removeCat} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '38px', padding: '0 14px', borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--surface)', color: '#DC2626', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,border-color .15s' }} className={hv('background:var(--tint-red);border-color:#FCA5A5', undefined, undefined)}>
+            <button onClick={v.removeCat} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '38px', padding: '0 14px', borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--danger-text)', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,border-color .15s' }} className={hv('background:var(--tint-red);border-color:var(--danger-border)', undefined, undefined)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                 <path d="M5 7h14M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
               </svg>

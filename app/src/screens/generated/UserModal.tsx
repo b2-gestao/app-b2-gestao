@@ -10,7 +10,7 @@ export default function UserModal({ v }: { v: any }) {
     <>
     <div style={css(v.overlayStyle)} onClick={v.closeModal}>
       <div onClick={v.stopProp} style={css(v.modalCardStyle)}>
-        <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "14px", "padding": "20px 24px 16px", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
+        <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "14px", "padding": "20px 24px 16px", "boxShadow": "inset 0 -1px 0 var(--border-soft)" }}>
           <div style={{ "width": "38px", "height": "38px", "flex": "none", "borderRadius": "11px", "background": "var(--tint-blue)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="8" r="3.4" stroke="#4161FF" strokeWidth="1.7"></circle>
@@ -36,7 +36,7 @@ export default function UserModal({ v }: { v: any }) {
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Nome completo{" "}
-                <span style={{ "color": "#EF4444" }}>
+                <span style={{ "color": "var(--danger-text-2)" }}>
                   *
                 </span>
               </span>
@@ -45,7 +45,7 @@ export default function UserModal({ v }: { v: any }) {
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 E-mail corporativo{" "}
-                <span style={{ "color": "#EF4444" }}>
+                <span style={{ "color": "var(--danger-text-2)" }}>
                   *
                 </span>
               </span>
@@ -142,7 +142,7 @@ export default function UserModal({ v }: { v: any }) {
             </div>
           </div>
           <div style={css(v.pickerOverlayStyle)} onClick={v.closePicker}></div>
-          <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
+          <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 var(--border-soft)" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px", "position": "relative" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 {v.fEmpTitle}
@@ -184,7 +184,7 @@ export default function UserModal({ v }: { v: any }) {
                 <div style={css(v.pickEmp.panelStyle)}>
                   <div style={{ "display": "flex", "gap": "8px" }}>
                     <input value={v.pickEmp.query} onChange={v.pickEmp.onQuery} placeholder="Buscar por nome ou ID…" autoFocus={true} style={{ "flex": "1", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)" }} />
-                    <button onClick={v.pickEmp.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
+                    <button onClick={v.pickEmp.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--accent-text)", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
                       {v.pickEmp.allOnLabel}
                     </button>
                   </div>
@@ -231,7 +231,7 @@ export default function UserModal({ v }: { v: any }) {
               ))}
             </div>
           </div>
-          <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
+          <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 var(--border-soft)" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px", "position": "relative" }}>
               <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Centros de custo vinculados
@@ -239,7 +239,7 @@ export default function UserModal({ v }: { v: any }) {
               <span style={{ "fontSize": "11px", "color": "var(--text-4)" }}>
                 {v.fCcCountLabel}
               </span>
-              <button onClick={v.pickCc.toggle} style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "5px", "fontSize": "11px", "fontWeight": "600", "color": "#4161FF", "background": "var(--tint-blue)", "border": "none", "borderRadius": "20px", "padding": "5px 12px 5px 10px", "fontFamily": "inherit", "cursor": "pointer" }}>
+              <button onClick={v.pickCc.toggle} style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "5px", "fontSize": "11px", "fontWeight": "600", "color": "var(--accent-text)", "background": "var(--tint-blue)", "border": "none", "borderRadius": "20px", "padding": "5px 12px 5px 10px", "fontFamily": "inherit", "cursor": "pointer" }}>
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5v14M5 12h14" stroke="#4161FF" strokeWidth="2.2" strokeLinecap="round"></path>
                 </svg>
@@ -251,7 +251,7 @@ export default function UserModal({ v }: { v: any }) {
                 <div style={css(v.pickCc.panelStyle)}>
                   <div style={{ "display": "flex", "gap": "8px" }}>
                     <input value={v.pickCc.query} onChange={v.pickCc.onQuery} placeholder="Buscar por nome ou ID…" autoFocus={true} style={{ "flex": "1", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)" }} />
-                    <button onClick={v.pickCc.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
+                    <button onClick={v.pickCc.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--accent-text)", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
                       {v.pickCc.allOnLabel}
                     </button>
                   </div>
@@ -305,8 +305,8 @@ export default function UserModal({ v }: { v: any }) {
             {v.formErr}
           </div>
         </div>
-        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap", "padding": "14px 24px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
-          <button onClick={v.removeUser} style={css(v.deleteBtnStyle)} className={hv("background:var(--tint-red);border-color:#FCA5A5", undefined, undefined)}>
+        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap", "padding": "14px 24px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 var(--border-soft)" }}>
+          <button onClick={v.removeUser} style={css(v.deleteBtnStyle)} className={hv("background:var(--tint-red);border-color:var(--danger-border)", undefined, undefined)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M5 7h14M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
             </svg>

@@ -11,8 +11,8 @@ aside ::-webkit-scrollbar-thumb:hover{background:#52525B}
 main{overflow-y:scroll!important}
 main>*,aside nav>*{flex-shrink:0}
 @supports not selector(::-webkit-scrollbar){*{scrollbar-color:var(--scroll-thumb) var(--scroll-track)}aside *{scrollbar-color:#3F3F46 transparent}}
-a{color:#4161FF;text-decoration:none}
-a:hover{color:#3153F4}
+a{color:var(--accent-text);text-decoration:none}
+a:hover{color:var(--tx-3153f4)}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
 @keyframes tooltipIn{from{opacity:0;transform:translateX(-50%) translateY(4px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
 @keyframes spin{to{transform:rotate(360deg)}}
