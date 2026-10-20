@@ -4,7 +4,7 @@
 import { useMemo, useState } from 'react';
 import './permutas.css';
 import { calcular, m2, pct, type Permuta } from '../../lib/permutas';
-import { FiltroBusca, useColunas, exportarExcel, IcExcel, type Coluna } from './ui';
+import { FiltroBusca, Paginacao, useColunas, usePaginacao, exportarExcel, IcExcel, type Coluna } from './ui';
 import { useBasePermutas, Kpi, ModalPermutaStore, dataBr, semAcento } from './comum';
 
 const COLUNAS: Coluna[] = [
@@ -18,6 +18,8 @@ const COLUNAS: Coluna[] = [
   { key: 'div', label: 'Emp. diversos', w: 120, num: true },
   { key: 'un', label: 'Unidades', w: 280, min: 120 },
 ];
+
+const POR_PAGINA = [25, 50, 100] as const;
 
 export default function PermutasCadastroPage({ v }: { v: any }) {
   const { ctx, ativo, dados, empresas, nomeOrigem, nomeEmp } = useBasePermutas(v, 'cadastros');
@@ -42,8 +44,9 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
       .sort((a, b) => a.origem.localeCompare(b.origem) || a.p.permutante.localeCompare(b.p.permutante));
   }, [permutas, busca, fOrigem, soPend, empresas, negocios]);
 
+  const pg = usePaginacao(linhas, POR_PAGINA, [busca, fOrigem, soPend]);
   const soma = (f: (x: (typeof linhas)[number]) => number | null) => linhas.reduce((s, x) => s + (f(x) || 0), 0);
-  const tMat = soma(x => x.p.area_matricula), tArea = soma(x => x.c.area), tDiv = soma(x => x.c.div), tAprov = soma(x => x.c.aprov);
+  const tMat = soma(x => x.p.area_matricula), tProprio = soma(x => (x.c.area != null ? x.c.proprio : 0)), tArea = soma(x => x.c.area), tDiv = soma(x => x.c.div), tAprov = soma(x => x.c.aprov);
   const nPend = linhas.filter(x => x.p.pendencia || x.c.area == null || (x.c.div != null && x.c.div < 0)).length;
   const base = linhas.filter(x => x.c.fonte === 'calc' && x.c.area != null);
   const pctMedio = base.reduce((s, x) => s + (x.c.aprov || 0), 0) ? base.reduce((s, x) => s + (x.c.area || 0), 0) / base.reduce((s, x) => s + (x.c.aprov || 0), 0) : null;
@@ -102,8 +105,10 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#4161FF" strokeWidth="1.7" /><path d="M4 12h16M12 4v16" stroke="#4161FF" strokeWidth="1.5" /></svg>} />
         <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="Área de permuta" valor={m2(tArea)} un="m²" sub={`% médio ponderado ${pct(pctMedio)}`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3.5-3.5M17 17H5l3.5 3.5" stroke="#35AD88" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
-        <Kpi cor="#7C3AED" fundo="#F1E9FF" rotulo="Em empreend. diversos" valor={m2(tDiv)} un="m²" sub={tArea ? `${pct(tDiv / tArea)} da área de permuta` : '—'}
-          icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20V9l8-5 8 5v11" stroke="#7C3AED" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 20v-5h6v5" stroke="#7C3AED" strokeWidth="1.7" /></svg>} />
+        <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="No próprio empreendimento" valor={m2(tProprio)} un="m²" sub={tArea ? `${pct(tProprio / tArea)} da área de permuta` : '—'}
+          icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20V9l8-5 8 5v11" stroke="#35AD88" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 20v-5h6v5" stroke="#35AD88" strokeWidth="1.7" /></svg>} />
+        <Kpi cor="#D97706" fundo="#FFF0DD" rotulo="Em empreend. diversos" valor={m2(tDiv)} un="m²" sub={tArea ? `${pct(tDiv / tArea)} da área de permuta` : '—'}
+          icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3.5-3.5M17 17H5l3.5 3.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
         <Kpi cor="#D97706" fundo="#FFF0DD" rotulo="Pendências" valor={String(nPend)} sub="registros para revisar"
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#D97706" strokeWidth="1.6" /><path d="M12 8v5M12 16h.01" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round" /></svg>} />
       </div>
@@ -128,7 +133,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
           {carregado && !linhas.length ? (
             <div className="pm-empty"><b>{permutas.length ? 'Nenhuma permuta para este filtro.' : 'Nenhuma permuta cadastrada ainda.'}</b>{permutas.length ? 'Ajuste os filtros acima.' : podeEditar ? 'Use “Novo permutante” para incluir a primeira.' : ''}</div>
           ) : null}
-          {linhas.map(({ p, c, origem }) => (
+          {pg.visiveis.map(({ p, c, origem }) => (
             <div key={p.id} className="pm-tr row" style={cols.estilo} tabIndex={0} onClick={() => setModal({ p })} onKeyDown={e => { if (e.key === 'Enter') setModal({ p }); }}>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
                 {p.empresa_id != null ? <span className="pm-code">{p.empresa_id}</span> : <span className="pm-tagn">Negócio</span>}
@@ -158,6 +163,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
             </div>
           ) : null}
         </div>
+        <Paginacao pg={pg} rotulo="permutas" />
       </div>
 
       {modal ? (

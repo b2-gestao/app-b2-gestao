@@ -15,6 +15,9 @@ export interface LinhaUnidade {
   direta?: UnidadeDireta; permuta?: Permuta;
 }
 
+/** Chave da área/empreendimento de origem da permuta (empresa do Sienge ou negócio cadastrado). */
+export const chaveOrigem = (p: Pick<Permuta, 'empresa_id' | 'negocio_id'>) => (p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id);
+
 /** Unidades das permutas de área + cadastradas direto; a mesma unidade nas duas origens vira uma linha só. */
 export function montarUnidades(permutas: Permuta[], diretas: UnidadeDireta[], catalogo: UnidadeCatalogo[], nomeOrigem: (p: Permuta) => string): LinhaUnidade[] {
   const company = new Map<number, number | null>();
@@ -67,12 +70,14 @@ export function analisar(permutas: Permuta[], diretas: UnidadeDireta[], catalogo
   });
 
   // ---------- por terreno (origem da permuta) ----------
-  const terrenos = new Map<string, { nome: string; area: number; proprio: number; div: number; n: number; matricula: number }>();
+  const terrenos = new Map<string, { chave: string; nome: string; area: number; proprio: number; div: number; n: number; matricula: number; aloc: number; unidades: number; pend: number }>();
   permutas.forEach(p => {
     const c = calcular(p);
-    const k = p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id;
-    const t = terrenos.get(k) || { nome: nomeOrigem(p), area: 0, proprio: 0, div: 0, n: 0, matricula: 0 };
+    const a = aloc.find(x => x.id === p.id);
+    const k = chaveOrigem(p);
+    const t = terrenos.get(k) || { chave: k, nome: nomeOrigem(p), area: 0, proprio: 0, div: 0, n: 0, matricula: 0, aloc: 0, unidades: 0, pend: 0 };
     t.area += c.area || 0; t.proprio += c.proprio; t.div += Math.max(0, c.div || 0); t.n += 1; t.matricula += p.area_matricula || 0;
+    t.aloc += a ? a.alocProprio + a.alocDiv : 0; t.unidades += p.unidades.length; if (a && a.situacao !== 'ok') t.pend += 1;
     terrenos.set(k, t);
   });
   const porTerreno = [...terrenos.values()].sort((a, b) => b.area - a.area);
@@ -99,7 +104,7 @@ export function analisar(permutas: Permuta[], diretas: UnidadeDireta[], catalogo
   const add = (a: Alerta) => alertas.push(a);
   aloc.forEach(a => {
     const p = permutas.find(x => x.id === a.id)!;
-    if (a.situacao === 'sem-area') add({ tipo: 'Cálculo', nivel: 'critico', label: `${a.permutante}: sem área de permuta`, text: `${a.origem}: faltam matrícula, coeficiente ou % e não há área informada.`, causa: 'Cadastro incompleto vindo da planilha antiga.', passo: 'Completar matrícula, coeficiente e % de permuta, ou informar a área de permuta direto.' });
+    if (a.situacao === 'sem-area') add({ tipo: 'Cálculo', nivel: 'critico', label: `${a.permutante}: área de permuta não definida`, text: `${a.origem}: faltam matrícula, coeficiente ou % de permuta e não há área informada${p.unidades.length ? `. As ${p.unidades.length} unidade(s) vinculadas somam ${m2(a.alocProprio + a.alocDiv)} m², mas isso é o que foi dado em troca, não a área de permuta contratada` : ''}.`, causa: 'Cadastro incompleto vindo da planilha antiga ou critério de m² ainda não definido (ex.: permuta usada para quitar saldo devedor).', passo: 'Completar matrícula, coeficiente e % de permuta, ou informar a área de permuta direto.' });
     if (a.div != null && a.div < 0) add({ tipo: 'Cálculo', nivel: 'critico', label: `${a.permutante}: próprio maior que a permuta`, text: `${m2(a.proprio)} m² no próprio empreendimento contra ${m2(a.area)} m² de permuta.`, causa: 'Área no próprio digitada errada ou % de permuta desatualizado.', passo: 'Conferir o contrato e corrigir o % ou a área no próprio empreendimento.' });
     if (a.situacao === 'excesso') add({ tipo: 'Alocação', nivel: 'critico', label: `${a.permutante}: mais de 100% alocado`, text: `Unidades somam ${m2(a.alocProprio + a.alocDiv)} m² para ${m2(a.area)} m² de permuta (${Math.round((a.pct || 0) * 100)}%).`, causa: 'Unidade a mais vinculada ou área privativa diferente da contratada.', passo: 'Revisar as unidades vinculadas e, se o excedente for intencional, registrar na observação.' });
     if (a.situacao === 'parcial') add({ tipo: 'Alocação', nivel: 'atencao', label: `${a.permutante}: menos do que o contratado`, text: `Unidades somam ${m2(a.alocProprio + a.alocDiv)} de ${m2(a.area)} m² (${Math.round((a.pct || 0) * 100)}%). Faltam ${m2((a.area || 0) - a.alocProprio - a.alocDiv)} m².`, causa: 'Unidades ainda não definidas ou não cadastradas.', passo: 'Definir as unidades restantes com o comercial e vincular no cadastro.' });

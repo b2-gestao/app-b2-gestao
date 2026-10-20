@@ -38,7 +38,7 @@ const JSON_MODE = Deno.env.get("IA_JSON_MODE") !== "false";
 const EFFORT = Deno.env.get("IA_REASONING_EFFORT") || "";
 const CACHE_HORAS = Number(Deno.env.get("IA_CACHE_HORAS") || 4);
 // Mudou o prompt? Suba a versão: as respostas antigas do cache deixam de valer.
-const PROMPT_VERSAO = "v3";
+const PROMPT_VERSAO = "v4";
 const admin = SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } }) : null;
 
 async function sha256(t: string) {
@@ -77,8 +77,9 @@ permutas de terrenos (o dono do terreno recebe unidades prontas em troca da áre
 Analise os dados recebidos e aponte de 3 a 6 pontos de atenção objetivos e acionáveis, em português do Brasil:
 - qualidade dos dados: inconsistências entre área de permuta e soma das unidades, % divergente, unidades duplicadas
   entre permutantes, unidades fora do cadastro do Sienge, cadastros incompletos; leia o texto livre das observações
-  (ex.: "Apto 1701; vagas 04, 05 e 167; escaninho 54") e diga quando ele indica unidades, vagas, escaninhos ou direitos
-  de uso que não estão estruturados;
+  para achar unidades principais (apartamentos, casas, lotes) citadas ali e que não estão vinculadas. Só as unidades
+  principais são vinculadas no cadastro: vagas, garagens, escaninhos, depósitos e direitos de uso NÃO são vinculados de
+  propósito, então não os aponte como falha, pendência ou dado não estruturado;
 - concentração por terreno e por empreendimento e o peso da permuta em empreendimentos diversos (maior risco de controle);
 - permutantes com unidade pendente de definição, com mais de 100% alocado ou com menos do que o contratado, sobretudo
   quando a entrega do empreendimento estiver próxima.
