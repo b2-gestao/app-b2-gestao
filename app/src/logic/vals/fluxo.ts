@@ -59,11 +59,11 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     const saldoCells = seriesFor(e.caixa, e.receitas, e.pagamentos, e.inputs, aportes ? aportes.map(v => -v) : (entra ? aporteNecessario : undefined));
     const caixaRow = [e.caixa].concat(saldoCells.slice(0, N - 1));
     const mk = (op, lbl, vals, color?, weight?, indent?) => ({
-      op, opStyle: `font-size:11px;font-weight:700;color:${op === '(=)' ? '#4161FF' : '#94A3B8'};width:22px;flex:none`,
-      label: lbl, indent: indent || 0, labelColor: color || '#374151', labelWeight: weight || 500,
-      labelStyle: `font-size:12.5px;color:${color || '#374151'};font-weight:${weight || 500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis`,
+      op, opStyle: `font-size:11px;font-weight:700;color:${op === '(=)' ? '#4161FF' : 'var(--text-4)'};width:22px;flex:none`,
+      label: lbl, indent: indent || 0, labelColor: color || 'var(--text-b)', labelWeight: weight || 500,
+      labelStyle: `font-size:12.5px;color:${color || 'var(--text-b)'};font-weight:${weight || 500};white-space:nowrap;overflow:hidden;text-overflow:ellipsis`,
       rowStyle: `display:grid;grid-template-columns:${gridCols};gap:0;padding:7px 18px;box-shadow:inset 0 -1px 0 #F7F7F9`,
-      cells: vals.map(v => ({ val: v == null ? '–' : f2(v), style: `text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:${v < 0 ? '#DC2626' : (color || '#374151')};font-weight:${weight || 400}` })),
+      cells: vals.map(v => ({ val: v == null ? '–' : f2(v), style: `text-align:right;font-size:12px;font-variant-numeric:tabular-nums;color:${v < 0 ? '#DC2626' : (color || 'var(--text-b)')};font-weight:${weight || 400}` })),
       compact: false,
     });
     const lines = [
@@ -102,11 +102,11 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     ...g,
     toggle: () => this.setState({ ['fxOpen_' + g.key]: !g.open }),
     chevStyle: `transition:transform .18s;transform:rotate(${g.open ? 90 : 0}deg)`,
-    headStyle: `display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1;transition:background .15s`,
-    headHover: 'background:#F4F4F6',
-    tagStyle: `font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${g.tag === 'Holding · origem dos aportes' ? '#F1E9FF' : '#EAF1FF'};color:${g.tag === 'Holding · origem dos aportes' ? '#7C3AED' : '#2445E8'};white-space:nowrap`,
-    badgeStyle: `display:${g.badge ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:#FFF0DD;border-radius:20px;padding:3px 9px;white-space:nowrap`,
-    semRecStyle: `display:${semRec[g.cd] != null ? 'inline-flex' : 'none'};font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:#F1F1F3;color:#64748B;white-space:nowrap;cursor:help`,
+    headStyle: `display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1;transition:background .15s`,
+    headHover: 'background:var(--surface-3)',
+    tagStyle: `font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${g.tag === 'Holding · origem dos aportes' ? 'var(--tint-purple)' : 'var(--tint-blue)'};color:${g.tag === 'Holding · origem dos aportes' ? '#7C3AED' : '#2445E8'};white-space:nowrap`,
+    badgeStyle: `display:${g.badge ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:var(--tint-amber);border-radius:20px;padding:3px 9px;white-space:nowrap`,
+    semRecStyle: `display:${semRec[g.cd] != null ? 'inline-flex' : 'none'};font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--surface-3);color:var(--text-3);white-space:nowrap;cursor:help`,
     semRecTitle: semRec[g.cd] != null ? `Parcelas a receber desconsideradas · ${semRec[g.cd]}` : '',
     lines: buildLines(semRec[g.cd] != null, g.data, g.aportes, false, g.aportes ? undefined : (L ? g.aporteNec : needsOf(g.data))),
   }));
@@ -141,10 +141,10 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     tag: 'Consolidado', open: consOpen,
     toggle: () => this.setState({ fxOpen_cons: !consOpen }),
     chevStyle: `transition:transform .18s;transform:rotate(${consOpen ? 90 : 0}deg)`,
-    headStyle: perEmp[0] ? perEmp[0].headStyle : '', headHover: 'background:#F4F4F6',
-    tagStyle: 'font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:#E1F7EF;color:#258B6C;white-space:nowrap',
+    headStyle: perEmp[0] ? perEmp[0].headStyle : '', headHover: 'background:var(--surface-3)',
+    tagStyle: 'font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:var(--tint-green);color:#258B6C;white-space:nowrap',
     badge: consNeg >= 0 ? `Saldo consolidado negativo em ${days[consNeg]}` : '',
-    badgeStyle: `display:${consNeg >= 0 ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:#FFF0DD;border-radius:20px;padding:3px 9px;white-space:nowrap`,
+    badgeStyle: `display:${consNeg >= 0 ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:var(--tint-amber);border-radius:20px;padding:3px 9px;white-space:nowrap`,
     semRecStyle: 'display:none', semRecTitle: '',
     lines: buildLines(false, consData, null, true, aporteDia, aporteEntraCons),
   };
@@ -164,9 +164,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const fxGroups = (view === 'Por SPE' ? perEmp : (perEmp.length ? [consGroup] : [])).map(compactify);
 
   const fxCards = [
-    { label: 'Receitas no período', val: 'R$ ' + f2(sumRec), sub: fxRecSel.length === recAll.length ? 'Todos os tipos' : fxRecSel.join(', '), style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:150ms', valStyle: 'font-size:20px;font-weight:700;color:#258B6C;font-variant-numeric:tabular-nums' },
-    { label: 'Pagamentos + inputs', val: 'R$ ' + f2(-sumPag + sumInputs), sub: 'Títulos Sienge + manuais', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms', valStyle: 'font-size:20px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
-    { label: 'Aportes às SPEs', val: L ? 'R$ ' + f2(L.totalAportes) : 'R$ 3.015.146,57', sub: 'Calculado pelo sistema', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:250ms', valStyle: 'font-size:20px;font-weight:700;color:#7C3AED;font-variant-numeric:tabular-nums' },
+    { label: 'Receitas no período', val: 'R$ ' + f2(sumRec), sub: fxRecSel.length === recAll.length ? 'Todos os tipos' : fxRecSel.join(', '), style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:150ms', valStyle: 'font-size:20px;font-weight:700;color:#258B6C;font-variant-numeric:tabular-nums' },
+    { label: 'Pagamentos + inputs', val: 'R$ ' + f2(-sumPag + sumInputs), sub: 'Títulos Sienge + manuais', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms', valStyle: 'font-size:20px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
+    { label: 'Aportes às SPEs', val: L ? 'R$ ' + f2(L.totalAportes) : 'R$ 3.015.146,57', sub: 'Calculado pelo sistema', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:250ms', valStyle: 'font-size:20px;font-weight:700;color:#7C3AED;font-variant-numeric:tabular-nums' },
   ];
 
   // Same searchable multi-select as Programação diária; selection is stored by company code (fxEmpSel), the dropdown works by name.
@@ -180,9 +180,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const chkItem = (sel, label, on, toggle) => ({
     // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button and close the panel.
     onClick: e => { if (e) { e.stopPropagation?.(); e.preventDefault?.(); } toggle(); },
-    style: 'display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:12.5px;color:#374151;cursor:pointer;transition:background .12s',
-    hoverStyle: 'background:#F4F4F6',
-    boxStyle: `width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;background:${on ? '#4161FF' : '#FFFFFF'};box-shadow:0 0 0 1.5px ${on ? '#4161FF' : '#D8D8E0'};transition:all .15s`,
+    style: 'display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:7px;font-size:12.5px;color:var(--text-b);cursor:pointer;transition:background .12s',
+    hoverStyle: 'background:var(--surface-3)',
+    boxStyle: `width:16px;height:16px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center;background:${on ? '#4161FF' : 'var(--surface)'};box-shadow:0 0 0 1.5px ${on ? '#4161FF' : '#D8D8E0'};transition:all .15s`,
     checkStyle: `opacity:${on ? 1 : 0};transition:opacity .1s`,
     label,
   });
@@ -247,9 +247,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
       if (daysBetween(P.from, v) >= FLUXO_MAX_DAYS) { this.toast(`Período máximo de ${FLUXO_MAX_DAYS} dias.`); return; }
       this.setState({ fxDateTo: v });
     },
-    fxGridStyle: `display:grid;grid-template-columns:${gridCols};gap:0;padding:11px 18px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1`,
+    fxGridStyle: `display:grid;grid-template-columns:${gridCols};gap:0;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`,
     fxTableStyle: `min-width:${256 + 104 * N}px`,
-    fxViewTabs: ['Consolidado', 'Por SPE'].map(l => ({ label: l, style: `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${view === l ? '#111827' : 'transparent'};color:${view === l ? '#FFFFFF' : '#64748B'}`, onClick: () => this.setState({ fxView: l }) })),
+    fxViewTabs: ['Consolidado', 'Por SPE'].map(l => ({ label: l, style: `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${view === l ? '#111827' : 'transparent'};color:${view === l ? '#FFFFFF' : 'var(--text-3)'}`, onClick: () => this.setState({ fxView: l }) })),
     ddFxEmp,
     ddFxGrupo,
     ...aporteToggleVals('fx', soAportes, () => this.setState({ fxSoAportes: !soAportes })),
@@ -263,7 +263,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
       this.toast(`Visão padrão salva \u00b7 ${fxEmpNames.length} de ${emps.length} empresas${fxGrupoSel ? ` \u00b7 ${fxGrupoSel.length} grupo${fxGrupoSel.length === 1 ? '' : 's'}` : ''}.`);
     },
     fxSaveViewLabel: fxIsSavedMatch ? 'Visão padrão salva' : 'Salvar como visão padrão',
-    fxSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${fxIsSavedMatch ? '#C7EEE0' : '#E7E7EA'};background:${fxIsSavedMatch ? '#E1F7EF' : '#FFFFFF'};color:${fxIsSavedMatch ? '#258B6C' : '#374151'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;align-self:flex-end`,
+    fxSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${fxIsSavedMatch ? '#C7EEE0' : 'var(--border)'};background:${fxIsSavedMatch ? 'var(--tint-green)' : 'var(--surface)'};color:${fxIsSavedMatch ? '#258B6C' : 'var(--text-b)'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap;align-self:flex-end`,
     fxEmpItems: emps.map(e => chkItem(fxEmpSel, e.name, fxEmpSel.includes(e.cd), () => this.setState(st => { const cur: any[] = st.fxEmpSel || emps.map(x => x.cd); return { fxEmpSel: cur.includes(e.cd) ? cur.filter(c => c !== e.cd) : cur.concat(e.cd) }; }))),
     ddFxRec,
     fxRecItems: recAll.map(r => chkItem(fxRecSel, r, fxRecSel.includes(r), () => this.setState({ fxRecSel: fxRecSel.includes(r) ? fxRecSel.filter(x => x !== r) : fxRecSel.concat(r) }))),
@@ -271,7 +271,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     fxScopeLabel: `${perEmp.length} de ${emps.length} empresas no filtro`,
     fxCompactToggle: () => this.setState({ fxCompact: !compact }),
     fxCompactLabel: compact ? 'Visão completa' : 'Visão compacta',
-    fxCompactStyle: `align-self:flex-start;display:inline-flex;align-items:center;gap:5px;margin-top:6px;height:22px;padding:0 8px;border-radius:6px;border:1px solid ${compact ? '#DDD6FE' : '#E7E7EA'};background:${compact ? '#F5F0FF' : 'transparent'};color:${compact ? '#7C3AED' : '#64748B'};font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,
+    fxCompactStyle: `align-self:flex-start;display:inline-flex;align-items:center;gap:5px;margin-top:6px;height:22px;padding:0 8px;border-radius:6px;border:1px solid ${compact ? '#DDD6FE' : 'var(--border)'};background:${compact ? '#F5F0FF' : 'transparent'};color:${compact ? '#7C3AED' : 'var(--text-3)'};font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,
     fxDayHeaders: days.map((d, i) => ({ date: d, dow: dows[i], style: `text-align:right;padding-right:2px` })),
     fxGroups,
     fxEmptyStyle: `display:${perEmp.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:48px 20px`,

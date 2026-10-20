@@ -192,16 +192,16 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
           {pg.visiveis.map(l => (
             <div key={l.chave} className={'pm-tr row' + (l.kind === 'via' ? ' via' : '')} style={cols.estilo} tabIndex={0} title={l.kind === 'via' ? 'Abrir a permuta' : 'Editar a unidade'}
               onClick={() => abrirLinha(l)} onKeyDown={e => { if (e.key === 'Enter') abrirLinha(l); }}>
-              <span className="pm-ell" style={{ color: '#64748B' }}>{nomeEmp(l.enterprise_id)}</span>
-              <b className="pm-ell" style={{ fontWeight: 600, color: '#111827' }}>{l.unidade}</b>
+              <span className="pm-ell" style={{ color: 'var(--text-3)' }}>{nomeEmp(l.enterprise_id)}</span>
+              <b className="pm-ell" style={{ fontWeight: 600, color: 'var(--text)' }}>{l.unidade}</b>
               <span className="pm-n">{m2(l.metragem)}</span>
               <span className="pm-ell">{l.permutante || '—'}</span>
               <span>{dataBr(l.data) || '—'}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
                 <span><span className={'pm-chip ' + (l.kind === 'via' && !l.proprio ? 'warn' : l.kind === 'dir' ? 'info' : 'ok')}><i />{origemTxt(l)}</span></span>
-                {l.origem ? <span className="pm-ell" style={{ fontSize: '11.5px', color: '#94A3B8' }}>{l.origem}</span> : null}
+                {l.origem ? <span className="pm-ell" style={{ fontSize: '11.5px', color: 'var(--text-4)' }}>{l.origem}</span> : null}
               </span>
-              <span className="pm-ell" style={{ color: '#64748B' }}>{l.obs || ''}</span>
+              <span className="pm-ell" style={{ color: 'var(--text-3)' }}>{l.obs || ''}</span>
             </div>
           ))}
           {linhas.length ? (

@@ -85,11 +85,11 @@ export function biVals(this: AppLogic, subItemStyle: string) {
     ).then(ok => ok && close());
   };
 
-  const inputStyle = (err: boolean) => `height:38px;width:100%;box-sizing:border-box;padding:0 12px;border-radius:8px;border:1px solid ${err ? '#FCA5A5' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s`;
+  const inputStyle = (err: boolean) => `height:38px;width:100%;box-sizing:border-box;padding:0 12px;border-radius:8px;border:1px solid ${err ? '#FCA5A5' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`;
   const err = s.biCfgErr || '';
   const switchStyle = (on: boolean) => ({
     track: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${on ? '#43B997' : '#D8D8E0'}`,
-    knob: `position:absolute;top:2.5px;left:${on ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    knob: `position:absolute;top:2.5px;left:${on ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
   });
 
   const activeItem = ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997';
@@ -149,7 +149,7 @@ export function biVals(this: AppLogic, subItemStyle: string) {
         url: d.url,
         isNew: !d.id,
         nomeStyle: inputStyle(!!err && !d.nome.trim()) + ';height:34px;font-weight:600',
-        urlStyle: inputStyle(!!err && !biUrl(d.url)) + ';height:32px;font-size:12px;color:#64748B',
+        urlStyle: inputStyle(!!err && !biUrl(d.url)) + ';height:32px;font-size:12px;color:var(--text-3)',
         onNome: e => patchRow(d.key, { nome: e.target.value }),
         onUrl: e => patchRow(d.key, { url: e.target.value }),
         ativo: d.ativo, ocultarRodape: d.ocultar_rodape,

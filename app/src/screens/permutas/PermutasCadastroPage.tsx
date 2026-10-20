@@ -137,7 +137,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
             <div key={p.id} className="pm-tr row" style={cols.estilo} tabIndex={0} onClick={() => setModal({ p })} onKeyDown={e => { if (e.key === 'Enter') setModal({ p }); }}>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
                 {p.empresa_id != null ? <span className="pm-code">{p.empresa_id}</span> : <span className="pm-tagn">Negócio</span>}
-                <b className="pm-ell" style={{ fontWeight: 600, color: '#111827' }}>{origem}</b>
+                <b className="pm-ell" style={{ fontWeight: 600, color: 'var(--text)' }}>{origem}</b>
               </span>
               <span className="pm-ell">{p.permutante}</span>
               <span className="pm-ell">{p.num_matricula || "—"}</span>
@@ -147,7 +147,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
               <span className="pm-n pm-calc">{m2(c.area)}</span>
               <span className="pm-n pm-calc">{m2(c.div)}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <span className="pm-ell" style={{ color: '#64748B' }}>{p.unidades.length ? p.unidades.map(u => `${empNome(u)} ${u.unidade_nome}`).join(', ') : '—'}</span>
+                <span className="pm-ell" style={{ color: 'var(--text-3)' }}>{p.unidades.length ? p.unidades.map(u => `${empNome(u)} ${u.unidade_nome}`).join(', ') : '—'}</span>
                 {p.pendencia || c.area == null || (c.div != null && c.div < 0) ? (
                   <span><span className="pm-chip warn"><i />{p.pendencia || (c.area == null ? 'Sem % ou área de permuta' : 'Próprio > área de permuta')}</span></span>
                 ) : null}
@@ -159,7 +159,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
               <span>Total{busca || fOrigem || soPend ? ' (filtrado)' : ''}</span><span /><span />
               <span className="pm-n">{m2(tMat)}</span><span /><span className="pm-n">{pct(pctMedio)}</span>
               <span className="pm-n">{m2(tArea)}</span><span className="pm-n">{m2(tDiv)}</span>
-              <span style={{ color: '#64748B', fontWeight: 500 }}>Aproveitamento total {m2(tAprov)} m²</span>
+              <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>Aproveitamento total {m2(tAprov)} m²</span>
             </div>
           ) : null}
         </div>

@@ -1,16 +1,16 @@
-body{margin:0;background:#FEFEFE;color:#111827;font-family:"Inter",system-ui,sans-serif}
+body{margin:0;background:var(--bg);color:var(--text);font-family:"Inter",system-ui,sans-serif}
 *{box-sizing:border-box}
 ::-webkit-scrollbar{width:10px;height:10px}
-::-webkit-scrollbar-track{background:#F4F4F6}
-::-webkit-scrollbar-thumb{background:#C2C2CB;border-radius:5px;border:2px solid #F4F4F6}
-::-webkit-scrollbar-thumb:hover{background:#9CA3AF}
+::-webkit-scrollbar-track{background:var(--scroll-track)}
+::-webkit-scrollbar-thumb{background:var(--scroll-thumb);border-radius:5px;border:2px solid var(--scroll-track)}
+::-webkit-scrollbar-thumb:hover{background:var(--scroll-thumb-hover)}
 aside ::-webkit-scrollbar-track{background:transparent}
 aside ::-webkit-scrollbar-thumb{background:#3F3F46;border-color:#080808}
 aside ::-webkit-scrollbar-thumb:hover{background:#52525B}
 /* Conteúdo das telas: barra sempre visível e cartões sem encolher (senão a tabela é cortada e não há o que rolar). */
 main{overflow-y:scroll!important}
 main>*,aside nav>*{flex-shrink:0}
-@supports not selector(::-webkit-scrollbar){*{scrollbar-color:#C2C2CB #F4F4F6}aside *{scrollbar-color:#3F3F46 transparent}}
+@supports not selector(::-webkit-scrollbar){*{scrollbar-color:var(--scroll-thumb) var(--scroll-track)}aside *{scrollbar-color:#3F3F46 transparent}}
 a{color:#4161FF;text-decoration:none}
 a:hover{color:#3153F4}
 @keyframes fadeInUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
@@ -52,7 +52,7 @@ a:hover{color:#3153F4}
 .ia-cta:active{transform:scale(.96)}
 .ia-cta:focus-visible{outline:2px solid #A78BFA;outline-offset:2px}
 @media (prefers-reduced-motion:reduce){.ia-cta,.ia-cta::after,.ia-cta svg{animation:none}}
-input::placeholder{color:#A8B0BD}
+input::placeholder{color:var(--placeholder)}
 input:focus,select:focus,textarea:focus{outline:none;border-color:#4161FF;box-shadow:0 0 0 3px rgba(65,97,255,.14)}
 
 /* telas rolam dentro do <main>: filhos nao encolhem (senao cards overflow:hidden cortam o conteudo) */

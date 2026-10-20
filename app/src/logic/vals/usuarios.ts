@@ -36,10 +36,10 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const palette = ['#4161FF', '#43B997', '#7C3AED', '#F59E0B', '#EC4899', '#0EA5E9'];
   const statusMeta = {
     ativo: { label: 'Ativo', color: '#35AD88', bg: '#E1F7EF' },
-    inativo: { label: 'Inativo', color: '#64748B', bg: '#F1F1F3' },
+    inativo: { label: 'Inativo', color: 'var(--text-3)', bg: '#F1F1F3' },
     pendente: { label: 'Pendente', color: '#D97706', bg: '#FFF0DD' },
   };
-  const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
+  const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid var(--border-soft);background:var(--surface);color:var(--text-4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
 
   const uRows = slice.map((u, i) => {
     const parts = u.name.split(' ');
@@ -56,10 +56,10 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
       toggleTitle: on ? 'Inativar usuário' : 'Ativar usuário',
       rowStyle: `display:grid;grid-template-columns:minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 #F4F4F6;opacity:${u.status === 'inativo' ? .62 : 1};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
       avatarStyle: `width:32px;height:32px;flex:none;border-radius:9px;background:${color}18;color:${color};display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700`,
-      countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:#EAF1FF;color:#2445E8;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
-      ccChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:#F1E9FF;color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
+      countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-blue);color:#2445E8;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
+      ccChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
       trackStyle: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${on ? '#43B997' : '#D8D8E0'}`,
-      knobStyle: `position:absolute;top:2.5px;left:${on ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+      knobStyle: `position:absolute;top:2.5px;left:${on ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
       statusStyle: `font-size:11px;font-weight:600;color:${meta.color};background:${meta.bg};border-radius:20px;padding:2px 8px;white-space:nowrap`,
       actEditStyle: actBtn, actMailStyle: actBtn, actResetStyle: actBtn,
       actPowerStyle: actBtn + (on ? '' : ';color:#43B997;border-color:#C7EEE0'),
@@ -81,19 +81,19 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     };
   });
 
-  const mkPageBtn = (n, active) => `min-width:30px;height:30px;padding:0 8px;border-radius:8px;border:1px solid ${active ? '#4161FF' : '#EEEEF1'};background:${active ? '#4161FF' : '#FFFFFF'};color:${active ? '#FFFFFF' : '#64748B'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s`;
+  const mkPageBtn = (n, active) => `min-width:30px;height:30px;padding:0 8px;border-radius:8px;border:1px solid ${active ? '#4161FF' : 'var(--border-soft)'};background:${active ? '#4161FF' : 'var(--surface)'};color:${active ? '#FFFFFF' : 'var(--text-3)'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s`;
   let from = Math.max(1, page - 2);
   const to = Math.min(totalPages, from + 4);
   from = Math.max(1, to - 4);
   const uPages: any[] = [];
   for (let n = from; n <= to; n++) uPages.push({ n, style: mkPageBtn(n, n === page), go: () => this.setState({ uPage: n }) });
-  const navBtn = dis => `width:30px;height:30px;border-radius:8px;border:1px solid #EEEEF1;background:#FFFFFF;color:${dis ? '#CBD5E1' : '#64748B'};display:flex;align-items:center;justify-content:center;cursor:${dis ? 'default' : 'pointer'};transition:all .15s`;
+  const navBtn = dis => `width:30px;height:30px;border-radius:8px;border:1px solid var(--border-soft);background:var(--surface);color:${dis ? '#CBD5E1' : 'var(--text-3)'};display:flex;align-items:center;justify-content:center;cursor:${dis ? 'default' : 'pointer'};transition:all .15s`;
 
   const form = s.uForm || this.emptyForm();
   const empresas = this.userEmpresas();
   const centros = this.userCentros();
   const empNames = empresas.map(e => e.n);
-  const chipOn = (on, color) => `display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:${on ? 600 : 500};cursor:pointer;white-space:nowrap;flex:none;border:1px solid ${on ? color : '#E7E7EA'};background:${on ? color + '12' : '#FFFFFF'};color:${on ? color : '#64748B'};transition:all .15s;user-select:none`;
+  const chipOn = (on, color) => `display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:${on ? 600 : 500};cursor:pointer;white-space:nowrap;flex:none;border:1px solid ${on ? color : '#E7E7EA'};background:${on ? color + '12' : '#FFFFFF'};color:${on ? color : 'var(--text-3)'};transition:all .15s;user-select:none`;
   const empColorByName: any = {}; empresas.forEach(e => { empColorByName[e.n] = e.c; });
   const empChips = form.empresas.map(n => ({
     name: n,
@@ -127,10 +127,10 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const fPerfilTodas = !!(fPerfil && (fPerfil.sistema || fPerfil.todasEmpresas));
   const fPerfilEmps = empresasDoPerfil(fPerfil);
   const fTodas = !!form.todas && !form.restringir;
-  const fEmpAddBtn = 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer';
+  const fEmpAddBtn = 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer';
 
   const editing = !!s.editingId;
-  const fieldBase = 'height:38px;padding:0 12px;border-radius:8px;background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s;border:1px solid ';
+  const fieldBase = 'height:38px;padding:0 12px;border-radius:8px;background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s;border:1px solid ';
   const errName = s.formErr && !form.name.trim();
   const errEmail = s.formErr && !/.+@.+\..+/.test(form.email.trim());
 
@@ -168,9 +168,9 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     statusTabs: ['Todos', 'Ativos', 'Inativos', 'Pendentes'].map(t => ({
       label: t,
       onClick: () => this.setState({ uStatus: t, uPage: 1 }),
-      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.uStatus === t ? '#111827' : 'transparent'};color:${s.uStatus === t ? '#FFFFFF' : '#64748B'}`,
+      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.uStatus === t ? '#111827' : 'transparent'};color:${s.uStatus === t ? '#FFFFFF' : 'var(--text-3)'}`,
     })),
-    clearFiltersStyle: `display:${(q || s.uRole !== 'Todas as funções' || s.uDept !== 'Todos os departamentos' || s.uEmpF !== 'Todas as empresas' || s.uStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
+    clearFiltersStyle: `display:${(q || s.uRole !== 'Todas as funções' || s.uDept !== 'Todos os departamentos' || s.uEmpF !== 'Todas as empresas' || s.uStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
     clearFilters: () => this.setState({ uSearch: '', uRole: 'Todas as funções', uDept: 'Todos os departamentos', uEmpF: 'Todas as empresas', uStatus: 'Todos', uPage: 1 }),
 
     uRows,
@@ -185,7 +185,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     uNext: () => this.setState({ uPage: Math.min(totalPages, page + 1) }),
 
     overlayStyle: `display:${s.modalOpen ? 'flex' : 'none'};position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both`,
-    modalCardStyle: 'width:100%;max-width:900px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
+    modalCardStyle: 'width:100%;max-width:900px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
     stopProp: e => e.stopPropagation(),
     closeModal: () => this.setState({ modalOpen: false, editingId: null, uForm: null, formErr: '' }),
     openNew: () => this.setState({ modalOpen: true, editingId: null, uForm: this.emptyForm(), formErr: '' }),
@@ -203,9 +203,9 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     onFDept: e => this.patchForm({ dept: e.target.value }),
     roleList: this.uRoles, deptList: this.uDepts,
     fTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : '#D8D8E0'}`,
-    fKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    fKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     fActiveLabel: form.active ? 'Ativo' : 'Inativo',
-    fActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : '#64748B'}`,
+    fActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : 'var(--text-3)'}`,
     toggleFActive: () => this.patchForm({ active: !form.active }),
 
     empChips, ccChips, pickEmp, pickCc,
@@ -214,10 +214,10 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     fEmpTitle: form.restringir ? 'Empresas do usuário' : 'Empresas adicionais',
     fEmpCountLabel: fTodas ? 'Todas as empresas' : `${form.empresas.length} de ${empNames.length} selecionadas`,
     fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${form.restringir ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${fTodas ? '#43B997' : '#D8D8E0'};opacity:${form.restringir ? .5 : 1}`,
-    fTodasKnobStyle: `position:absolute;top:2.5px;left:${fTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    fTodasKnobStyle: `position:absolute;top:2.5px;left:${fTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     toggleFTodas: () => { if (form.restringir) return; this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ todas: !form.todas }); },
     fRestrTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.restringir ? '#F59E0B' : '#D8D8E0'}`,
-    fRestrKnobStyle: `position:absolute;top:2.5px;left:${form.restringir ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    fRestrKnobStyle: `position:absolute;top:2.5px;left:${form.restringir ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     toggleFRestr: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ restringir: !form.restringir, todas: false }); },
     fRestrHint: form.restringir
       ? `Ignora o perfil ${form.role}: o usuário vê só as empresas selecionadas abaixo${form.empresas.length ? '' : ' (nenhuma, por enquanto)'}.`
@@ -233,8 +233,8 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     fCcCountLabel: `${form.centros.length} de ${centros.length} selecionados`,
 
     formErr: s.formErr,
-    formErrStyle: `display:${s.formErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:#FEE9E9;border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
-    deleteBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid #E7E7EA;background:#FFFFFF;color:#DC2626;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s`,
+    formErrStyle: `display:${s.formErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
+    deleteBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:#DC2626;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s`,
     removeUser: () => {
       const id = s.editingId;
       if (this.live) { this.usuarioAcao('excluir', { id }, 'Usuário excluído.').then(ok => ok && this.setState({ modalOpen: false, editingId: null, uForm: null })); return; }

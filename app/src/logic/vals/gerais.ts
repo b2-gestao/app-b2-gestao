@@ -83,7 +83,7 @@ export function geraisVals(this: AppLogic, subItemStyle: string) {
     ).then(ok => ok && this.setState({ gerSaving: false, ...reset }));
   };
 
-  const inputStyle = (err: boolean) => `height:38px;width:100%;box-sizing:border-box;padding:0 12px;border-radius:8px;border:1px solid ${err ? '#FCA5A5' : '#E7E7EA'};background:${podeEditar ? '#FFFFFF' : '#F8F8FA'};font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s`;
+  const inputStyle = (err: boolean) => `height:38px;width:100%;box-sizing:border-box;padding:0 12px;border-radius:8px;border:1px solid ${err ? '#FCA5A5' : 'var(--border)'};background:${podeEditar ? 'var(--surface)' : '#F8F8FA'};font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`;
   const errPick = !!s.gerErr && s.gerPick == null && s.gerErr.startsWith('Selecione');
   const errMotivo = !!s.gerErr && s.gerErr.startsWith('Informe o motivo de');
   const grid = 'grid-template-columns:84px minmax(200px,2fr) minmax(220px,3fr) 52px';

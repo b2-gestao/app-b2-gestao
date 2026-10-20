@@ -1,6 +1,7 @@
 import type { AppLogic } from '../AppLogic';
 import { TITULO_PERMUTAS } from './permutas';
 import { dashSource } from './dashboardData';
+import { alternarTema } from '../../lib/theme';
 
 const PERMUTAS_PAGES = ['permutasCadastro', 'permutasVisao', 'permutasInsights'];
 
@@ -57,7 +58,7 @@ export function renderVals(this: AppLogic) {
       key: pd.key,
       label: pd.label,
       onClick: () => this.setState({ period: pd.key, hoverKey: null }),
-      style: `border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s;background:${active ? '#111827' : 'transparent'};color:${active ? '#FFFFFF' : '#64748B'}`,
+      style: `border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s;background:${active ? '#111827' : 'transparent'};color:${active ? '#FFFFFF' : 'var(--text-3)'}`,
     };
   });
 
@@ -98,7 +99,7 @@ export function renderVals(this: AppLogic) {
       colStyle: `position:absolute;top:0;bottom:0;left:${i * colW}%;width:${colW}%;cursor:crosshair`,
       guideStyle: `position:absolute;top:6px;bottom:0;left:50%;width:1px;background:linear-gradient(#4161FF,rgba(65,97,255,0));opacity:${on ? 1 : 0};transition:opacity .15s`,
       tipStyle: `position:absolute;left:50%;top:2px;transform:translateX(-50%);background:#111827;color:#FFFFFF;border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.6;white-space:nowrap;box-shadow:0 12px 28px rgba(0,0,0,.22);pointer-events:none;z-index:6;opacity:${on ? 1 : 0};transition:opacity .12s,transform .12s`,
-      labelStyle: `flex:1;text-align:center;font-size:11px;color:${on ? '#111827' : '#94A3B8'};font-weight:${on ? 600 : 400};transition:color .15s`,
+      labelStyle: `flex:1;text-align:center;font-size:11px;color:${on ? 'var(--text)' : 'var(--text-4)'};font-weight:${on ? 600 : 400};transition:color .15s`,
     };
   });
 
@@ -147,10 +148,10 @@ export function renderVals(this: AppLogic) {
           : st.selectedGrupos.concat([g.name]),
       })),
       rowStyle: `display:grid;grid-template-columns:158px minmax(0,1fr) 86px;align-items:center;gap:14px;padding:9px 10px;border-radius:9px;cursor:pointer;border:1px solid ${on ? g.color : 'transparent'};background:${on ? g.color + '0F' : 'transparent'};opacity:${dim ? .38 : 1};transition:all .2s ease`,
-      nameStyle: `display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:${on ? 600 : 500};color:#111827;white-space:nowrap;overflow:hidden;text-overflow:ellipsis`,
+      nameStyle: `display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:${on ? 600 : 500};color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis`,
       dotStyle: `width:9px;height:9px;flex:none;border-radius:3px;background:${g.color};box-shadow:${on ? '0 0 0 3px ' + g.color + '33' : 'none'};transition:box-shadow .2s`,
       barStyle: `height:14px;border-radius:4px;background:linear-gradient(90deg,${g.color},${g.color}B0);width:${s.chartMounted ? (g.value / maxGrupo * 100).toFixed(1) : 0}%;transition:width .8s cubic-bezier(.16,1,.3,1);transition-delay:${i * 60}ms;box-shadow:${on ? '0 4px 14px ' + g.color + '55' : 'none'}`,
-      valueStyle: `text-align:right;font-size:12.5px;font-weight:600;color:${on ? g.color : '#374151'};font-variant-numeric:tabular-nums`,
+      valueStyle: `text-align:right;font-size:12.5px;font-weight:600;color:${on ? g.color : 'var(--text-b)'};font-variant-numeric:tabular-nums`,
     };
   });
   const selTotal = anySel
@@ -166,7 +167,7 @@ export function renderVals(this: AppLogic) {
     w,
     style: `display:inline-block;margin-right:.3em;opacity:0;animation:${s.aiVariant % 2 ? 'wordIn2' : 'wordIn'} .45s ease-out both;animation-delay:${120 + i * 18}ms`,
   }));
-  const mkChip = i => `display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:9px;border:1px solid #EEEEF1;background:#FAFAFB;min-width:132px;cursor:default;transition:transform .18s ease,border-color .18s ease;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${340 + i * 70}ms`;
+  const mkChip = i => `display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:9px;border:1px solid var(--border-soft);background:var(--surface-2);min-width:132px;cursor:default;transition:transform .18s ease,border-color .18s ease;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${340 + i * 70}ms`;
   const aiChips = [
     { label: 'Total pago', value: this.fmtK(totPago), color: '#4161FF', style: mkChip(0) },
     { label: 'Juros', value: this.fmtK(totJuros), color: '#D97706', style: mkChip(1) },
@@ -177,10 +178,10 @@ export function renderVals(this: AppLogic) {
   const parcelaCards = (D ? D.parcelas : this.parcelas).map((p, i) => ({
     d: p.d, m: p.m, wd: p.wd, emp: p.emp, desc: p.desc, st: p.st,
     valueFmt: this.fmtBRL(p.v),
-    cardStyle: `position:relative;flex:none;width:212px;padding:14px;border-radius:11px;background:#FFFFFF;border:1px solid ${p.urgent ? '#FCA5A5' : '#EEEEF1'};box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:${260 + i * 55}ms;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease`,
+    cardStyle: `position:relative;flex:none;width:212px;padding:14px;border-radius:11px;background:var(--surface);border:1px solid ${p.urgent ? '#FCA5A5' : 'var(--border-soft)'};box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:${260 + i * 55}ms;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease`,
     cardHover: `transform:translateY(-4px);border-color:${p.tone};box-shadow:0 12px 26px ${p.tone}22`,
     nodeStyle: `position:absolute;top:-14px;left:16px;width:11px;height:11px;border-radius:50%;background:${p.tone};box-shadow:0 0 0 3px #FFFFFF,0 0 0 4px ${p.tone}44;animation:${p.urgent ? 'pulseNode 1.8s ease-in-out infinite' : 'none'}`,
-    dateStyle: `font-size:20px;font-weight:700;color:#111827;line-height:1`,
+    dateStyle: `font-size:20px;font-weight:700;color:var(--text);line-height:1`,
     tagStyle: `display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${p.tone}14;color:${p.tone}`,
   }));
 
@@ -270,6 +271,7 @@ export function renderVals(this: AppLogic) {
     crumbLabel: s.page === 'bi' ? 'BI' : PERMUTAS_PAGES.includes(s.page) ? 'Permutas › Terrenos' : (s.page === 'nfCadastros' || s.page === 'nfTitulos') ? 'Notas Fiscais' : s.page === 'crcEntregas' ? '' : s.page === 'categorias' ? 'Cadastros › Financeiro' : (s.page === 'usuarios' || s.page === 'departamentos' || s.page === 'perfis' || s.page === 'gerais') ? 'Configurações' : (['saldos', 'lancamentos', 'programacao', 'fluxo'].includes(s.page) ? 'Financeiro' : (s.module === 'Painel' ? 'Painel' : s.module)),
     pageTitle: s.page === 'bi' ? pageVals.biTitle : PERMUTAS_PAGES.includes(s.page) ? TITULO_PERMUTAS[s.page] : s.page === 'nfCadastros' ? 'Cadastros' : s.page === 'nfTitulos' ? 'Título a Pagar' : s.page === 'crcEntregas' ? 'CRC' : s.page === 'categorias' ? 'Categorias' : s.page === 'gerais' ? 'Gerais' : s.page === 'usuarios' ? 'Usuários' : (s.page === 'departamentos' ? 'Departamentos' : (s.page === 'perfis' ? 'Perfis' : (s.page === 'saldos' ? 'Saldos bancários' : (s.page === 'lancamentos' ? 'Lançamentos manuais' : (s.page === 'programacao' ? 'Programação diária' : (s.page === 'fluxo' ? 'Fluxo de caixa' : 'Visão Geral')))))),
     goHome: () => this.setState({ view: 'home', page: 'dashboard', userMenuOpen: false }),
+    toggleTheme: () => { alternarTema(); },
     homeShellStyle: `position:relative;height:100vh;width:100%;overflow:hidden;background:${homeBg}`,
     scrimStyle: s.bgMode === 'image'
       ? 'position:absolute;inset:0;background:linear-gradient(100deg,rgba(9,10,16,.74) 0%,rgba(9,10,16,.46) 46%,rgba(9,10,16,.12) 100%)'
@@ -290,7 +292,7 @@ export function renderVals(this: AppLogic) {
     bgIsColor: s.bgMode === 'color',
     toggleBgMode: () => this.saveBg({ bgMode: s.bgMode === 'image' ? 'color' : 'image' }),
     switchTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${s.bgMode === 'image' ? '#4161FF' : 'rgba(245,245,247,.22)'}`,
-    switchKnobStyle: `position:absolute;top:2.5px;left:${s.bgMode === 'image' ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease`,
+    switchKnobStyle: `position:absolute;top:2.5px;left:${s.bgMode === 'image' ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease`,
     swatches: this.bgSwatches.map(sw => ({
       name: sw.name,
       style: `width:18px;height:18px;border-radius:6px;cursor:pointer;background:${sw.v};border:${s.bgColor === sw.v ? '2px solid #4161FF' : '1px solid rgba(245,245,247,.3)'}`,
@@ -326,13 +328,13 @@ export function renderVals(this: AppLogic) {
 
     empRanking,
     empFilterLabel: s.selectedEmpresa ? s.selectedEmpresa : 'Todas as empresas',
-    empClearStyle: `display:${s.selectedEmpresa ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:3px 10px;cursor:pointer`,
+    empClearStyle: `display:${s.selectedEmpresa ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:3px 10px;cursor:pointer`,
     clearEmpresa: () => this.setState({ selectedEmpresa: null }),
 
     grupoRows,
     grupoTotalFmt: this.fmtBRL(selTotal),
     grupoTotalLabel: anySel ? 'Total dos segmentos destacados' : 'Total de todos os segmentos',
-    grupoClearStyle: `display:${anySel ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:#4161FF;background:#EAF1FF;border:none;border-radius:20px;padding:4px 11px;cursor:pointer`,
+    grupoClearStyle: `display:${anySel ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:4px 11px;cursor:pointer`,
     clearGrupos: () => this.setState({ selectedGrupos: [] }),
 
     aiWords, aiChips,

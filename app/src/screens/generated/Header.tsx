@@ -8,39 +8,40 @@ export default function Header({ v }: { v: any }) {
   void Fragment; void css; void hv;
   return (
     <>
-    <header style={{ "height": "64px", "flex": "none", "display": "flex", "alignItems": "center", "gap": "20px", "padding": "0 24px", "background": "linear-gradient(to right,transparent,#E7E7EA 48px,#E7E7EA calc(100% - 48px),transparent) no-repeat bottom/100% 1px" }}>
-      <button onClick={v.goHome} title="Tela inicial" style={{ "width": "34px", "height": "34px", "flex": "none", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "background .15s,transform .15s" }} className={hv("background:#FAFAFA", "transform:scale(0.93)", undefined)}>
+    <header style={{ "height": "64px", "flex": "none", "display": "flex", "alignItems": "center", "gap": "20px", "padding": "0 24px", "background": "linear-gradient(to right,transparent,var(--border) 48px,var(--border) calc(100% - 48px),transparent) no-repeat bottom/100% 1px" }}>
+      <button onClick={v.goHome} title="Tela inicial" style={{ "width": "34px", "height": "34px", "flex": "none", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "background .15s,transform .15s" }} className={hv("background:var(--hover)", "transform:scale(0.93)", undefined)}>
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-          <path d="M3.5 11L12 3.5 20.5 11M6 10v10h12V10" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
+          <path d="M3.5 11L12 3.5 20.5 11M6 10v10h12V10" stroke="var(--text-2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
         </svg>
       </button>
       <div style={{ "minWidth": "0", "flex": "1 1 auto" }}>
-        {v.crumbLabel ? (
         <div style={{ "fontSize": "10.5px", "letterSpacing": ".08em", "textTransform": "uppercase", "color": "#4161FF", "fontWeight": "600", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
           {v.crumbLabel}
         </div>
-        ) : null}
-        <div style={{ "fontWeight": "700", "fontSize": "19px", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+        <div style={{ "fontWeight": "700", "fontSize": "19px", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
           {v.pageTitle}
         </div>
       </div>
       <div style={{ "marginLeft": "auto", "flex": "none", "display": "flex", "alignItems": "center", "gap": "16px" }}>
-        <button style={{ "width": "34px", "height": "34px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "position": "relative", "transition": "background .15s,transform .15s" }} className={hv("background:#FAFAFA", "transform:scale(0.93)", undefined)}>
-          <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
-            <path d="M18 8a6 6 0 10-12 0c0 3.5-1 5-2 6.5h16c-1-1.5-2-3-2-6.5z" stroke="#475569" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
-            <path d="M9.5 18a2.5 2.5 0 005 0" stroke="#475569" strokeWidth="1.5" strokeLinecap="round"></path>
+        <button onClick={v.toggleTheme} title="Alternar tema claro/escuro" aria-label="Alternar tema claro/escuro" style={{ "width": "34px", "height": "34px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "cursor": "pointer", "padding": "0", "transition": "background .15s,transform .15s" }} className={"theme-btn " + hv("background:var(--hover)", "transform:scale(0.93)", undefined)}>
+          <svg className="t-moon" width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <path d="M20 14.5A8 8 0 019.5 4a8 8 0 1010.5 10.5z" stroke="var(--text-2)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
           </svg>
-          <span style={{ "position": "absolute", "top": "6px", "right": "7px", "width": "6px", "height": "6px", "borderRadius": "50%", "background": "#4161FF", "border": "1.5px solid #FFFFFF" }}></span>
+          {" "}
+          <svg className="t-sun" width="17" height="17" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="4" stroke="var(--text-2)" strokeWidth="1.5"></circle>
+            <path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6L7 7M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4" stroke="var(--text-2)" strokeWidth="1.5" strokeLinecap="round"></path>
+          </svg>
         </button>
-        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "paddingLeft": "16px", "background": "linear-gradient(to bottom,transparent,#E7E7EA 8px,#E7E7EA calc(100% - 8px),transparent) no-repeat left/1px 100%" }}>
+        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "paddingLeft": "16px", "background": "linear-gradient(to bottom,transparent,var(--border) 8px,var(--border) calc(100% - 8px),transparent) no-repeat left/1px 100%" }}>
           <div style={{ "width": "32px", "height": "32px", "borderRadius": "8px", "background": "#43B997", "display": "flex", "alignItems": "center", "justifyContent": "center", "fontWeight": "700", "fontSize": "12px", "color": "#FFFFFF" }}>
             {v.userInitials}
           </div>
           <div>
-            <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "lineHeight": "1.2" }}>
+            <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "lineHeight": "1.2" }}>
               {v.userName}
             </div>
-            <div style={{ "fontSize": "11px", "color": "#64748B", "lineHeight": "1.2" }}>
+            <div style={{ "fontSize": "11px", "color": "var(--text-3)", "lineHeight": "1.2" }}>
               {v.userRole}
             </div>
           </div>

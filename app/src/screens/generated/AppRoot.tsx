@@ -39,7 +39,7 @@ export default function AppRoot({ v }: { v: any }) {
       <HomeScreen v={v} />
       <div style={css(v.appShellStyle)}>
         <Sidebar v={v} />
-        <div style={{ "flex": "1", "display": "flex", "flexDirection": "column", "minWidth": "0", "overflow": "hidden", "background": "#FEFEFE" }}>
+        <div style={{ "flex": "1", "display": "flex", "flexDirection": "column", "minWidth": "0", "overflow": "hidden", "background": "var(--bg)" }}>
           <Header v={v} />
           <UsuariosPage v={v} />
           <DepartamentosPage v={v} />

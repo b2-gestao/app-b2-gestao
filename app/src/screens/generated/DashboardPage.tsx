@@ -12,78 +12,78 @@ export default function DashboardPage({ v }: { v: any }) {
       <>
         <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "28px 32px", "display": "flex", "flexDirection": "column", "gap": "24px" }}>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(4,1fr)", "gap": "16px" }}>
-            <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "0ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(65,97,255,.1)", undefined, undefined)}>
-              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "#EAF1FF", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "0ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(65,97,255,.1)", undefined, undefined)}>
+              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-blue)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <path d="M3 17l5-6 4 4 8-10" stroke="#4161FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 Totalizador Diário · Receber
               </div>
-              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "#111827", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "280ms" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "280ms" }}>
                 {v.kpiReceberFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "#EAF1FF", "color": "#2445E8" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-blue)", "color": "#2445E8" }}>
                 {v.kpiReceberDelta}
               </div>
             </div>
-            <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "60ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(124,58,237,.1)", undefined, undefined)}>
-              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "#F1E9FF", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "60ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(124,58,237,.1)", undefined, undefined)}>
+              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-purple)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="6" width="18" height="13" rx="2" stroke="#7C3AED" strokeWidth="1.8"></rect>
                   <path d="M3 10h18" stroke="#7C3AED" strokeWidth="1.8"></path>
                 </svg>
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 Totalizador Diário · Pagar
               </div>
-              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "#111827", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "340ms" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "340ms" }}>
                 {v.kpiPagarFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "#F1E9FF", "color": "#7C3AED" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-purple)", "color": "#7C3AED" }}>
                 {v.kpiPagarDelta}
               </div>
             </div>
-            <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "120ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(67,185,151,.12)", undefined, undefined)}>
-              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "#E1F7EF", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "120ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(67,185,151,.12)", undefined, undefined)}>
+              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="7" width="18" height="12" rx="2" stroke="#43B997" strokeWidth="1.8"></rect>
                   <path d="M15 13h3" stroke="#43B997" strokeWidth="1.8" strokeLinecap="round"></path>
                   <path d="M7 7V5.5A1.5 1.5 0 018.5 4H19a2 2 0 012 2v3" stroke="#43B997" strokeWidth="1.8"></path>
                 </svg>
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 Saldo em Caixa
               </div>
-              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "#111827", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "400ms" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "400ms" }}>
                 {v.kpiSaldoFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "#E1F7EF", "color": "#35AD88" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-green)", "color": "#35AD88" }}>
                 {v.kpiSaldoSub}
               </div>
             </div>
-            <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "180ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(245,158,11,.12)", undefined, undefined)}>
-              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "#FFF0DD", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "180ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(245,158,11,.12)", undefined, undefined)}>
+              <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-amber)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <rect x="5" y="3" width="14" height="18" rx="2" stroke="#F59E0B" strokeWidth="1.8"></rect>
                   <path d="M8.5 8h7M8.5 12h7M8.5 16h4" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round"></path>
                 </svg>
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 Previsão de Gastos · 7 dias
               </div>
-              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "#111827", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "460ms" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "460ms" }}>
                 {v.kpiPrevisaoFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "#FFF0DD", "color": "#D97706" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-amber)", "color": "#D97706" }}>
                 {v.kpiPrevisaoSub}
               </div>
             </div>
           </div>
           <div style={{ "position": "relative", "flex": "none", "borderRadius": "14px", "padding": "1.5px", "overflow": "hidden", "background": "#EFEFF3", "boxShadow": "0 1px 2px rgba(17,24,39,.04),0 10px 30px rgba(65,97,255,.07)", "opacity": "0", "animation": "fadeInUp .55s ease-out both", "animationDelay": "210ms" }}>
             <div style={{ "position": "absolute", "top": "50%", "left": "50%", "width": "170%", "aspectRatio": "1", "background": "conic-gradient(from 0deg,transparent 0deg,rgba(65,97,255,.55) 60deg,rgba(124,58,237,.75) 120deg,rgba(67,185,151,.45) 175deg,transparent 240deg,transparent 360deg)", "transform": "translate(-50%,-50%)", "animation": "spinBorder 7s linear infinite", "pointerEvents": "none" }}></div>
-            <div style={{ "position": "relative", "borderRadius": "12.5px", "background": "#FFFFFF", "overflow": "hidden" }}>
+            <div style={{ "position": "relative", "borderRadius": "12.5px", "background": "var(--surface)", "overflow": "hidden" }}>
               <div style={{ "position": "absolute", "inset": "0", "background": "linear-gradient(115deg,rgba(65,97,255,.055),rgba(255,255,255,0) 42%,rgba(124,58,237,.06))", "pointerEvents": "none" }}></div>
               <div style={{ "position": "absolute", "inset": "0", "backgroundImage": "linear-gradient(rgba(65,97,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(124,58,237,.05) 1px,transparent 1px)", "backgroundSize": "34px 34px", "animation": "gridDrift 26s linear infinite", "pointerEvents": "none" }}></div>
               <div style={{ "position": "relative", "display": "flex", "alignItems": "flex-start", "gap": "16px", "padding": "22px 24px" }}>
@@ -95,20 +95,20 @@ export default function DashboardPage({ v }: { v: any }) {
                 </div>
                 <div style={{ "flex": "1", "minWidth": "0" }}>
                   <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
-                    <div style={{ "fontWeight": "700", "fontSize": "15.5px", "color": "#111827", "letterSpacing": "-.01em" }}>
+                    <div style={{ "fontWeight": "700", "fontSize": "15.5px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                       Copiloto Financeiro
                     </div>
-                    <span style={{ "fontSize": "11px", "color": "#94A3B8", "marginLeft": "auto" }}>
+                    <span style={{ "fontSize": "11px", "color": "var(--text-4)", "marginLeft": "auto" }}>
                       contas a pagar · {v.chartTitle}
                     </span>
                   </div>
                   <div style={css(v.skeletonWrapStyle)}>
-                    <div style={{ "height": "11px", "width": "92%", "borderRadius": "4px", "background": "linear-gradient(90deg,#F1F1F3 25%,#E7E7EA 37%,#F1F1F3 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
-                    <div style={{ "height": "11px", "width": "76%", "borderRadius": "4px", "background": "linear-gradient(90deg,#F1F1F3 25%,#E7E7EA 37%,#F1F1F3 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
-                    <div style={{ "height": "11px", "width": "54%", "borderRadius": "4px", "background": "linear-gradient(90deg,#F1F1F3 25%,#E7E7EA 37%,#F1F1F3 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
+                    <div style={{ "height": "11px", "width": "92%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,#E7E7EA 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
+                    <div style={{ "height": "11px", "width": "76%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,#E7E7EA 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
+                    <div style={{ "height": "11px", "width": "54%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,#E7E7EA 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
                   </div>
                   <div style={css(v.textWrapStyle)}>
-                    <p style={{ "margin": "11px 0 0", "fontSize": "14px", "lineHeight": "1.62", "color": "#374151", "maxWidth": "80ch", "textWrap": "pretty" }}>
+                    <p style={{ "margin": "11px 0 0", "fontSize": "14px", "lineHeight": "1.62", "color": "var(--text-b)", "maxWidth": "80ch", "textWrap": "pretty" }}>
                       {(v.aiWords || []).map((word: any, _i0: number) => (
                         <Fragment key={_i0}>
                           <span style={css(word.style)}>
@@ -121,8 +121,8 @@ export default function DashboardPage({ v }: { v: any }) {
                   <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "10px", "marginTop": "16px" }}>
                     {(v.aiChips || []).map((chip: any, _i0: number) => (
                       <Fragment key={_i0}>
-                        <div style={css(chip.style)} className={hv("border-color:#D8D8E0;transform:translateY(-2px)", undefined, undefined)}>
-                          <span style={{ "fontSize": "10px", "letterSpacing": ".05em", "textTransform": "uppercase", "color": "#94A3B8" }}>
+                        <div style={css(chip.style)} className={hv("border-color:var(--border-strong);transform:translateY(-2px)", undefined, undefined)}>
+                          <span style={{ "fontSize": "10px", "letterSpacing": ".05em", "textTransform": "uppercase", "color": "var(--text-4)" }}>
                             {chip.label}
                           </span>
                           <span style={css(`font-size:15px;font-weight:700;color:${chip.color};font-variant-numeric:tabular-nums`)}>
@@ -133,7 +133,7 @@ export default function DashboardPage({ v }: { v: any }) {
                     ))}
                   </div>
                 </div>
-                <button onClick={v.refreshInsight} title="Gerar nova análise" style={{ "width": "33px", "height": "33px", "flex": "none", "borderRadius": "9px", "border": "1px solid #EEEEF1", "background": "#FAFAFB", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "border-color .15s,background .15s" }} className={hv("border-color:#7C3AED;background:#F1E9FF", undefined, undefined)}>
+                <button onClick={v.refreshInsight} title="Gerar nova análise" style={{ "width": "33px", "height": "33px", "flex": "none", "borderRadius": "9px", "border": "1px solid var(--border-soft)", "background": "var(--surface-2)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "border-color .15s,background .15s" }} className={hv("border-color:#7C3AED;background:var(--tint-purple)", undefined, undefined)}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={css(v.aiRefreshIconStyle)}>
                     <path d="M20 11A8 8 0 105.5 16" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"></path>
                     <path d="M20 5v6h-6" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -143,17 +143,17 @@ export default function DashboardPage({ v }: { v: any }) {
             </div>
           </div>
           <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "16px", "alignItems": "stretch" }}>
-            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "230ms" }}>
+            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "230ms" }}>
               <div style={{ "display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "12px", "marginBottom": "6px" }}>
                 <div>
-                  <div style={{ "fontWeight": "700", "fontSize": "18px", "color": "#111827" }}>
+                  <div style={{ "fontWeight": "700", "fontSize": "18px", "color": "var(--text)" }}>
                     {v.chartTitle}
                   </div>
-                  <div style={{ "fontSize": "11px", "color": "#94A3B8", "marginTop": "3px" }}>
+                  <div style={{ "fontSize": "11px", "color": "var(--text-4)", "marginTop": "3px" }}>
                     {v.chartSub}
                   </div>
                 </div>
-                <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+                <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                   {(v.periodButtons || []).map((pb: any, _i0: number) => (
                     <Fragment key={_i0}>
                       <button onClick={pb.onClick} style={css(pb.style)}>
@@ -167,7 +167,7 @@ export default function DashboardPage({ v }: { v: any }) {
                 <div style={{ "width": "52px", "flex": "none", "position": "relative", "height": "200px" }}>
                   {(v.yTicks || []).map((tick: any, _i0: number) => (
                     <Fragment key={_i0}>
-                      <div style={css(`position:absolute;right:10px;top:${tick.topPct}%;transform:translateY(-50%);font-size:10.5px;color:#94A3B8;white-space:nowrap`)}>
+                      <div style={css(`position:absolute;right:10px;top:${tick.topPct}%;transform:translateY(-50%);font-size:10.5px;color:var(--text-4);white-space:nowrap`)}>
                         {tick.label}
                       </div>
                     </Fragment>
@@ -176,7 +176,7 @@ export default function DashboardPage({ v }: { v: any }) {
                 <div style={{ "flex": "1", "position": "relative", "height": "200px" }}>
                   {(v.yTicks || []).map((tick: any, _i0: number) => (
                     <Fragment key={_i0}>
-                      <div style={css(`position:absolute;left:0;right:0;top:${tick.topPct}%;border-top:1px dashed #EEEEF1`)}></div>
+                      <div style={css(`position:absolute;left:0;right:0;top:${tick.topPct}%;border-top:1px dashed var(--border-soft)`)}></div>
                     </Fragment>
                   ))}
                   <div style={{ "position": "absolute", "left": "0", "right": "0", "top": "0", "bottom": "0", "display": "flex", "alignItems": "flex-end", "gap": "14px", "padding": "0 6px" }}>
@@ -216,39 +216,39 @@ export default function DashboardPage({ v }: { v: any }) {
               <div style={{ "display": "flex", "paddingLeft": "52px", "marginTop": "8px" }}>
                 {(v.bars || []).map((item: any, _i0: number) => (
                   <Fragment key={_i0}>
-                    <div style={{ "flex": "1", "textAlign": "center", "fontSize": "11px", "color": "#94A3B8" }}>
+                    <div style={{ "flex": "1", "textAlign": "center", "fontSize": "11px", "color": "var(--text-4)" }}>
                       {item.x}
                     </div>
                   </Fragment>
                 ))}
               </div>
               <div style={{ "display": "flex", "gap": "18px", "marginTop": "16px" }}>
-                <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "#64748B" }}>
+                <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "var(--text-3)" }}>
                   <span style={{ "width": "10px", "height": "10px", "background": "#4161FF", "borderRadius": "2px", "display": "inline-block" }}></span>
                   Entradas
                 </div>
-                <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "#64748B" }}>
+                <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "var(--text-3)" }}>
                   <span style={{ "width": "10px", "height": "10px", "background": "#43B997", "borderRadius": "2px", "display": "inline-block" }}></span>
                   Saídas
                 </div>
               </div>
             </div>
-            <div style={{ "flex": "1 1 300px", "maxWidth": "340px", "minWidth": "280px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "20px 18px", "display": "flex", "flexDirection": "column", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "270ms" }}>
+            <div style={{ "flex": "1 1 300px", "maxWidth": "340px", "minWidth": "280px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "20px 18px", "display": "flex", "flexDirection": "column", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "270ms" }}>
               <div style={{ "display": "flex", "alignItems": "baseline", "justifyContent": "space-between", "gap": "8px" }}>
-                <div style={{ "fontWeight": "700", "fontSize": "14.5px", "color": "#111827" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "14.5px", "color": "var(--text)" }}>
                   Ranking por empresa
                 </div>
                 <button onClick={v.clearEmpresa} style={css(v.empClearStyle)}>
                   limpar
                 </button>
               </div>
-              <div style={{ "fontSize": "11px", "color": "#94A3B8", "marginTop": "3px" }}>
+              <div style={{ "fontSize": "11px", "color": "var(--text-4)", "marginTop": "3px" }}>
                 Clique para filtrar os segmentos abaixo
               </div>
               <div style={{ "display": "flex", "flexDirection": "column", "gap": "2px", "marginTop": "14px" }}>
                 {(v.empRanking || []).map((emp: any, _i0: number) => (
                   <Fragment key={_i0}>
-                    <div onClick={emp.onClick} style={css(emp.rowStyle)} className={hv("background:#F7F7F9", undefined, undefined)}>
+                    <div onClick={emp.onClick} style={css(emp.rowStyle)} className={hv("background:var(--surface-2)", undefined, undefined)}>
                       <div style={{ "width": "14px", "flex": "none", "fontSize": "11px", "fontWeight": "700", "color": "#CBD5E1", "textAlign": "right" }}>
                         {emp.rank}
                       </div>
@@ -256,14 +256,14 @@ export default function DashboardPage({ v }: { v: any }) {
                         {emp.initials}
                       </div>
                       <div style={{ "flex": "1", "minWidth": "0" }}>
-                        <div style={{ "fontSize": "12.5px", "fontWeight": "500", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <div style={{ "fontSize": "12.5px", "fontWeight": "500", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {emp.n}
                         </div>
-                        <div style={{ "height": "4px", "borderRadius": "2px", "background": "#F1F1F3", "marginTop": "6px" }}>
+                        <div style={{ "height": "4px", "borderRadius": "2px", "background": "var(--surface-3)", "marginTop": "6px" }}>
                           <div style={css(emp.barStyle)}></div>
                         </div>
                       </div>
-                      <div style={{ "fontSize": "12px", "fontWeight": "600", "color": "#374151", "fontVariantNumeric": "tabular-nums" }}>
+                      <div style={{ "fontSize": "12px", "fontWeight": "600", "color": "var(--text-b)", "fontVariantNumeric": "tabular-nums" }}>
                         {emp.valueFmt}
                       </div>
                     </div>
@@ -274,45 +274,45 @@ export default function DashboardPage({ v }: { v: any }) {
           </div>
           <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "16px", "alignItems": "stretch" }}>
             <div style={{ "flex": "1 1 236px", "maxWidth": "280px", "minWidth": "210px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
-              <div style={{ "flex": "1", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "300ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(245,158,11,.14)", undefined, undefined)}>
+              <div style={{ "flex": "1", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "300ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(245,158,11,.14)", undefined, undefined)}>
                 <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                  <div style={{ "width": "32px", "height": "32px", "borderRadius": "9px", "background": "#FFF0DD", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                  <div style={{ "width": "32px", "height": "32px", "borderRadius": "9px", "background": "var(--tint-amber)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                       <path d="M5 19L19 5" stroke="#F59E0B" strokeWidth="1.8" strokeLinecap="round"></path>
                       <circle cx="8" cy="8" r="2.6" stroke="#F59E0B" strokeWidth="1.7"></circle>
                       <circle cx="16" cy="16" r="2.6" stroke="#F59E0B" strokeWidth="1.7"></circle>
                     </svg>
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     Juros pagos
                   </div>
                 </div>
-                <div style={{ "fontWeight": "700", "fontSize": "24px", "color": "#111827", "marginTop": "12px", "whiteSpace": "nowrap", "fontVariantNumeric": "tabular-nums" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "24px", "color": "var(--text)", "marginTop": "12px", "whiteSpace": "nowrap", "fontVariantNumeric": "tabular-nums" }}>
                   {v.finTotJurosFmt}
                 </div>
-                <div style={{ "height": "6px", "borderRadius": "99px", "background": "#F4F4F6", "marginTop": "12px", "overflow": "hidden" }}>
+                <div style={{ "height": "6px", "borderRadius": "99px", "background": "var(--surface-3)", "marginTop": "12px", "overflow": "hidden" }}>
                   <div style={css(v.jurosBarStyle)}></div>
                 </div>
                 <div style={{ "fontSize": "11px", "color": "#D97706", "marginTop": "8px" }}>
                   {v.jurosPctFmt}
                 </div>
               </div>
-              <div style={{ "flex": "1", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "340ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(67,185,151,.14)", undefined, undefined)}>
+              <div style={{ "flex": "1", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "340ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #EEEEF1,0 10px 24px rgba(67,185,151,.14)", undefined, undefined)}>
                 <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                  <div style={{ "width": "32px", "height": "32px", "borderRadius": "9px", "background": "#E1F7EF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                  <div style={{ "width": "32px", "height": "32px", "borderRadius": "9px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                       <path d="M20 12l-8 8H6a2 2 0 01-2-2v-6l8-8h6a2 2 0 012 2v6z" stroke="#43B997" strokeWidth="1.6" strokeLinejoin="round"></path>
                       <circle cx="15" cy="9" r="1.4" fill="#43B997"></circle>
                     </svg>
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     Descontos obtidos
                   </div>
                 </div>
-                <div style={{ "fontWeight": "700", "fontSize": "24px", "color": "#111827", "marginTop": "12px", "whiteSpace": "nowrap", "fontVariantNumeric": "tabular-nums" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "24px", "color": "var(--text)", "marginTop": "12px", "whiteSpace": "nowrap", "fontVariantNumeric": "tabular-nums" }}>
                   {v.finTotDescFmt}
                 </div>
-                <div style={{ "height": "6px", "borderRadius": "99px", "background": "#F4F4F6", "marginTop": "12px", "overflow": "hidden" }}>
+                <div style={{ "height": "6px", "borderRadius": "99px", "background": "var(--surface-3)", "marginTop": "12px", "overflow": "hidden" }}>
                   <div style={css(v.descBarStyle)}></div>
                 </div>
                 <div style={{ "fontSize": "11px", "color": "#35AD88", "marginTop": "8px" }}>
@@ -320,26 +320,26 @@ export default function DashboardPage({ v }: { v: any }) {
                 </div>
               </div>
             </div>
-            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "320ms" }}>
+            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "320ms" }}>
               <div style={{ "display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "gap": "12px", "flexWrap": "wrap" }}>
                 <div>
-                  <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "#111827" }}>
+                  <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "var(--text)" }}>
                     Evolução de pagamentos
                   </div>
-                  <div style={{ "fontSize": "11px", "color": "#94A3B8", "marginTop": "3px" }}>
+                  <div style={{ "fontSize": "11px", "color": "var(--text-4)", "marginTop": "3px" }}>
                     {v.lineSubtitle}
                   </div>
                 </div>
                 <div style={{ "display": "flex", "gap": "16px", "flexWrap": "wrap" }}>
-                  <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "#64748B" }}>
+                  <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "var(--text-3)" }}>
                     <span style={{ "width": "14px", "height": "3px", "borderRadius": "2px", "background": "#4161FF", "display": "inline-block" }}></span>
                     Total pago
                   </div>
-                  <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "#64748B" }}>
+                  <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "var(--text-3)" }}>
                     <span style={{ "width": "14px", "height": "3px", "borderRadius": "2px", "background": "#F59E0B", "display": "inline-block" }}></span>
                     Juros
                   </div>
-                  <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "#64748B" }}>
+                  <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "11.5px", "color": "var(--text-3)" }}>
                     <span style={{ "width": "14px", "height": "3px", "borderRadius": "2px", "background": "#43B997", "display": "inline-block" }}></span>
                     Descontos
                   </div>
@@ -402,15 +402,15 @@ export default function DashboardPage({ v }: { v: any }) {
               </div>
             </div>
           </div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "360ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "360ms" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "12px", "flexWrap": "wrap" }}>
-              <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "#111827" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "var(--text)" }}>
                 Linha do tempo · vencimentos
               </div>
-              <div style={{ "fontSize": "11px", "color": "#94A3B8" }}>
+              <div style={{ "fontSize": "11px", "color": "var(--text-4)" }}>
                 Parcelas a pagar nos próximos 30 dias
               </div>
-              <div style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "11px", "color": "#EF4444", "background": "#FEE9E9", "borderRadius": "20px", "padding": "3px 10px" }}>
+              <div style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "11px", "color": "#EF4444", "background": "var(--tint-red)", "borderRadius": "20px", "padding": "3px 10px" }}>
                 <span style={{ "width": "6px", "height": "6px", "borderRadius": "50%", "background": "#EF4444", "display": "inline-block", "animation": "blink 1.6s ease-in-out infinite" }}></span>
                 {v.parcelasTodayLabel}
               </div>
@@ -426,18 +426,18 @@ export default function DashboardPage({ v }: { v: any }) {
                         <div style={css(p.dateStyle)}>
                           {p.d}
                         </div>
-                        <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                        <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                           {p.m} · {p.wd}
                         </div>
                       </div>
-                      <div style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#111827", "marginTop": "10px", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                      <div style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "var(--text)", "marginTop": "10px", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                         {p.emp}
                       </div>
-                      <div style={{ "fontSize": "11px", "color": "#94A3B8", "marginTop": "2px", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                      <div style={{ "fontSize": "11px", "color": "var(--text-4)", "marginTop": "2px", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                         {p.desc}
                       </div>
                       <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "space-between", "gap": "8px", "marginTop": "12px" }}>
-                        <div style={{ "fontSize": "14px", "fontWeight": "700", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+                        <div style={{ "fontSize": "14px", "fontWeight": "700", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                           {p.valueFmt}
                         </div>
                         <div style={css(p.tagStyle)}>
@@ -450,13 +450,13 @@ export default function DashboardPage({ v }: { v: any }) {
               </div>
             </div>
           </div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "400ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "400ms" }}>
             <div style={{ "display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "gap": "12px", "flexWrap": "wrap" }}>
               <div>
-                <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "#111827" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "var(--text)" }}>
                   Diluição por segmento
                 </div>
-                <div style={{ "fontSize": "11px", "color": "#94A3B8", "marginTop": "3px" }}>
+                <div style={{ "fontSize": "11px", "color": "var(--text-4)", "marginTop": "3px" }}>
                   Filtro atual: {v.empFilterLabel} · clique em uma linha para destacar
                 </div>
               </div>
@@ -467,15 +467,15 @@ export default function DashboardPage({ v }: { v: any }) {
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "3px", "marginTop": "16px" }}>
               {(v.grupoRows || []).map((g: any, _i0: number) => (
                 <Fragment key={_i0}>
-                  <div onClick={g.onClick} style={css(g.rowStyle)} className={hv("background:#F7F7F9", undefined, undefined)}>
+                  <div onClick={g.onClick} style={css(g.rowStyle)} className={hv("background:var(--surface-2)", undefined, undefined)}>
                     <div style={css(g.nameStyle)}>
                       <span style={css(g.dotStyle)}></span>
                       {g.name}
-                      <span style={{ "fontSize": "10.5px", "color": "#94A3B8", "fontWeight": "400" }}>
+                      <span style={{ "fontSize": "10.5px", "color": "var(--text-4)", "fontWeight": "400" }}>
                         {g.pctFmt}
                       </span>
                     </div>
-                    <div style={{ "height": "14px", "borderRadius": "4px", "background": "#F4F4F6", "overflow": "hidden" }}>
+                    <div style={{ "height": "14px", "borderRadius": "4px", "background": "var(--surface-3)", "overflow": "hidden" }}>
                       <div style={css(g.barStyle)}></div>
                     </div>
                     <div style={css(g.valueStyle)}>
@@ -486,10 +486,10 @@ export default function DashboardPage({ v }: { v: any }) {
               ))}
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "space-between", "gap": "12px", "marginTop": "16px", "paddingTop": "14px", "background": "linear-gradient(to right,transparent,#EEEEF1 48px,#EEEEF1 calc(100% - 48px),transparent) no-repeat top/100% 1px" }}>
-              <div style={{ "fontSize": "11.5px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "11.5px", "color": "var(--text-3)" }}>
                 {v.grupoTotalLabel}
               </div>
-              <div style={{ "fontSize": "17px", "fontWeight": "700", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+              <div style={{ "fontSize": "17px", "fontWeight": "700", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                 {v.grupoTotalFmt}
               </div>
             </div>

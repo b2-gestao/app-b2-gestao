@@ -51,7 +51,7 @@ export function progInsights(app: AppLogic) {
     items.push({
       label: 'Títulos sem autorização',
       text: `${semAut.length} ${semAut.length === 1 ? 'título ainda não está autorizado' : 'títulos ainda não estão autorizados'} no Sienge, somando ${brl(semAut.reduce((t: number, i: any) => t + i.val, 0))}.`,
-      color: '#94A3B8',
+      color: 'var(--text-4)',
     });
   }
 
@@ -103,7 +103,7 @@ export function fluxoInsights(app: AppLogic) {
     items.push({
       label: totIn >= totOut ? 'Receitas cobrem as saídas' : 'Receitas abaixo das saídas',
       text: `As receitas previstas somam ${brl(totIn)} e as saídas ${brl(totOut)} nos próximos ${L.days.length} dias (${totOut ? Math.round((totIn / totOut) * 100) : 100}% de cobertura).`,
-      color: totIn >= totOut ? '#43B997' : '#94A3B8',
+      color: totIn >= totOut ? '#43B997' : 'var(--text-4)',
     });
   }
 

@@ -1,0 +1,36 @@
+/* Tokens de tema. Os valores do modo claro são as cores originais do app; o escuro é redefinido por data-theme="dark". */
+:root{
+  --bg:#FEFEFE;--surface:#FFFFFF;--surface-2:#FAFAFB;--hover:#FAFAFA;
+  --surface-3:#F4F4F6;--border:#E7E7EA;--border-soft:#EEEEF1;--border-strong:#D8D8E0;
+  --text:#111827;--text-b:#374151;--text-2:#475569;--text-3:#64748B;--text-4:#94A3B8;
+  --tint-blue:#EAF1FF;--tint-red:#FEE9E9;--tint-green:#E1F7EF;--tint-amber:#FFF0DD;--tint-purple:#F1E9FF;
+  --scroll-track:#F4F4F6;--scroll-thumb:#C2C2CB;--scroll-thumb-hover:#9CA3AF;
+  --placeholder:#A8B0BD;
+  color-scheme:light;
+}
+:root[data-theme="dark"]{
+  --bg:#0F1115;--surface:#171A21;--surface-2:#1B1F27;--hover:#1E222B;
+  --surface-3:#222731;--border:#262A33;--border-soft:#20242C;--border-strong:#323845;
+  --text:#E6E8EC;--text-b:#CBD1DB;--text-2:#B4BBC8;--text-3:#8B94A5;--text-4:#6F788A;
+  --tint-blue:#1D2540;--tint-red:#3A1F24;--tint-green:#16342C;--tint-amber:#3A2E17;--tint-purple:#2B2146;
+  --scroll-track:#14171D;--scroll-thumb:#353A45;--scroll-thumb-hover:#4A505E;
+  --placeholder:#6B7385;
+  color-scheme:dark;
+}
+body,header,button{transition:background-color .2s,border-color .2s,color .2s}
+/* Botão de tema no cabeçalho: lua no claro, sol no escuro. */
+.theme-btn{display:grid;place-items:center}
+.theme-btn svg{grid-area:1/1;transition:transform .35s cubic-bezier(.3,1.4,.6,1),opacity .2s}
+.theme-btn .t-sun{opacity:0;transform:rotate(-90deg) scale(.5)}
+:root[data-theme="dark"] .theme-btn .t-moon{opacity:0;transform:rotate(90deg) scale(.5)}
+:root[data-theme="dark"] .theme-btn .t-sun{opacity:1;transform:none}
+@media (prefers-reduced-motion:reduce){.theme-btn svg,body,header,button{transition:none}}
+/* CRC › Entregas tem tokens próprios (escopo .crc-ent): redefinidos no escuro. */
+:root[data-theme="dark"] .crc-ent{
+  --sb-bg:#171A21;--sb-hover:#222731;--sb-text:#8B94A5;--sb-text-hover:#E6E8EC;--sb-active-bg:#1D2540;
+  --primary-soft:#1D2540;--primary-border:#2C3A78;--primary-text:#8FA3FF;
+  --ok-soft:#16342C;--ok-border:#235C4B;--ok-text:#5FD3B0;
+  --bg:#0F1115;--surface:#171A21;--surface-2:#1B1F27;--surface-3:#222731;--border:#262A33;--border-strong:#323845;
+  --text:#E6E8EC;--text-2:#9AA3B2;--text-3:#6F788A;
+  --danger-soft:#3A1F24;--danger-border:#5C2A31;--warn-soft:#3A2E17;--warn-border:#5C4720;--info-soft:#1B2A45;
+}

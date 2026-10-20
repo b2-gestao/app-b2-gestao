@@ -46,7 +46,7 @@ export function FiltroBusca({ value, onChange, opcoes, todos = 'Todas', placehol
           <div className="pm-dd-list" role="listbox">
             {lista.length > 1 || !termo ? lista.map((o, i) => (
               <div key={o.value || '_todos'} role="option" aria-selected={o.value === value}
-                className={'pm-dd-i' + (o.value === value ? ' sel' : '')} style={i === ativo && o.value !== value ? { background: '#F4F4F6' } : undefined}
+                className={'pm-dd-i' + (o.value === value ? ' sel' : '')} style={i === ativo && o.value !== value ? { background: 'var(--surface-3)' } : undefined}
                 onMouseEnter={() => setAtivo(i)} onClick={() => escolher(o.value)}>
                 <span className="nm">{o.label}{o.sub ? <span className="sub"> – {o.sub}</span> : null}</span>
               </div>

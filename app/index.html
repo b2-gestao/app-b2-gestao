@@ -9,6 +9,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" />
+    <script>
+      // Aplica o tema salvo antes da primeira pintura (evita flash branco no modo escuro).
+      try { if (localStorage.getItem('b2-tema') === 'dark') { document.documentElement.dataset.theme = 'dark'; document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0F1115'); } } catch (e) {}
+    </script>
     <title>B2 Gestão e Operações</title>
   </head>
   <body>
