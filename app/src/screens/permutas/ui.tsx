@@ -115,3 +115,36 @@ export const IcExcel = () => (
     <path d="M9.5 11l4 5M13.5 11l-4 5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
   </svg>
 );
+
+/** Paginação das listas: página fixa (a primeira opção) com troca de tamanho e "Mostrar todos". */
+export function usePaginacao<T>(itens: T[], tamanhos: readonly number[], reiniciar: unknown[]) {
+  const [porPag, setPorPag] = useState<number>(tamanhos[0]); // 0 = mostrar todos
+  const [pag, setPag] = useState(1);
+  useEffect(() => { setPag(1); }, [...reiniciar, porPag]);
+  const total = itens.length;
+  const tam = porPag || Math.max(total, 1);
+  const nPag = Math.max(1, Math.ceil(total / tam));
+  const pagAtual = Math.min(pag, nPag);
+  const visiveis = porPag ? itens.slice((pagAtual - 1) * tam, pagAtual * tam) : itens;
+  return { visiveis, total, tam, nPag, pag: pagAtual, setPag, porPag, setPorPag, tamanhos };
+}
+
+export function Paginacao({ pg, rotulo = 'itens' }: { pg: Omit<ReturnType<typeof usePaginacao>, 'visiveis'>; rotulo?: string }) {
+  if (pg.total <= pg.tamanhos[0] && pg.porPag !== 0) return null;
+  return (
+    <div className="pm-pag">
+      <span>{pg.porPag ? `${(pg.pag - 1) * pg.tam + 1}–${Math.min(pg.pag * pg.tam, pg.total)}` : pg.total} de {pg.total} {rotulo}</span>
+      <div className="ctl">
+        {pg.porPag ? (
+          <>
+            <button type="button" className="pm-btn sm" disabled={pg.pag <= 1} onClick={() => pg.setPag(pg.pag - 1)}>Anterior</button>
+            <em>Página {pg.pag} de {pg.nPag}</em>
+            <button type="button" className="pm-btn sm" disabled={pg.pag >= pg.nPag} onClick={() => pg.setPag(pg.pag + 1)}>Próxima</button>
+          </>
+        ) : null}
+        {pg.tamanhos.map(n => <button key={n} type="button" className={'pm-seg' + (pg.porPag === n ? ' on' : '')} onClick={() => pg.setPorPag(n)}>{n} por página</button>)}
+        <button type="button" className={'pm-seg' + (pg.porPag === 0 ? ' on' : '')} onClick={() => pg.setPorPag(0)}>Mostrar todos</button>
+      </div>
+    </div>
+  );
+}

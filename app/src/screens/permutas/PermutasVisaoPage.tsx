@@ -7,7 +7,7 @@ import './permutas.css';
 import { m2, type Permuta, type UnidadeDireta } from '../../lib/permutas';
 import { analisar, chaveOrigem, montarUnidades, type LinhaUnidade } from './analise';
 import { SeletorBusca } from './busca';
-import { FiltroBusca, useColunas, exportarExcel, IcExcel, type Coluna } from './ui';
+import { FiltroBusca, Paginacao, useColunas, usePaginacao, exportarExcel, IcExcel, type Coluna } from './ui';
 import { useBasePermutas, Kpi, ModalPermutaStore, dataBr, semAcento, type PermutasCtx } from './comum';
 import { permutasStore, usePermutas } from './store';
 
@@ -30,12 +30,9 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
   const [fOrigem, setFOrigem] = useState('');
   const [fPerm, setFPerm] = useState('');
   const [busca, setBusca] = useState('');
-  const [porPag, setPorPag] = useState<number>(POR_PAGINA[0]); // 0 = mostrar todos
-  const [pag, setPag] = useState(1);
   const [grafTodos, setGrafTodos] = useState(false);
   const [modal, setModal] = useState<{ tipo: 'permuta'; p: Permuta } | { tipo: 'unidade'; u: UnidadeDireta | null } | null>(null);
   const cols = useColunas('visao', COLUNAS);
-  useEffect(() => { setPag(1); }, [fEmp, fOrigem, fPerm, busca, porPag]);
 
   const an = useMemo(() => analisar(permutas, diretas, catalogo, nomeOrigem, nomeEmp), [permutas, diretas, catalogo, empresas, dados.negocios]);
   const todas = useMemo(() => montarUnidades(permutas, diretas, catalogo, nomeOrigem), [permutas, diretas, catalogo, empresas, dados.negocios]);
@@ -62,11 +59,7 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
   const semM2 = linhas.filter(l => l.metragem == null).length;
   const nPerm = new Set(linhas.map(l => l.permutante.trim().toUpperCase()).filter(Boolean)).size;
   const nEmp = new Set(linhas.map(l => l.enterprise_id)).size;
-  const total = linhas.length;
-  const tamPag = porPag || Math.max(total, 1);
-  const nPag = Math.max(1, Math.ceil(total / tamPag));
-  const pagAtual = Math.min(pag, nPag);
-  const visiveis = porPag ? linhas.slice((pagAtual - 1) * tamPag, pagAtual * tamPag) : linhas;
+  const pg = usePaginacao(linhas, POR_PAGINA, [fEmp, fOrigem, fPerm, busca]);
 
   const origemTxt = (l: LinhaUnidade) => l.kind === 'dir' ? 'Cadastro de unidades' : l.kind === 'ambos' ? 'Cadastro + permuta de área' : l.proprio ? 'Permuta no próprio emp.' : 'Permuta de área';
   const exportar = () => exportarExcel('permutas-terrenos-visao-geral.xlsx', 'Unidades',
@@ -196,7 +189,7 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
         <div className="pm-tbl-in">
           {cols.cabecalho}
           {carregado && !linhas.length ? <div className="pm-empty"><b>Nenhuma unidade para este filtro.</b></div> : null}
-          {visiveis.map(l => (
+          {pg.visiveis.map(l => (
             <div key={l.chave} className={'pm-tr row' + (l.kind === 'via' ? ' via' : '')} style={cols.estilo} tabIndex={0} title={l.kind === 'via' ? 'Abrir a permuta' : 'Editar a unidade'}
               onClick={() => abrirLinha(l)} onKeyDown={e => { if (e.key === 'Enter') abrirLinha(l); }}>
               <span className="pm-ell" style={{ color: '#64748B' }}>{nomeEmp(l.enterprise_id)}</span>
@@ -217,22 +210,7 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
             </div>
           ) : null}
         </div>
-        {total > POR_PAGINA[0] || porPag === 0 ? (
-          <div className="pm-pag">
-            <span>{porPag ? `${(pagAtual - 1) * tamPag + 1}–${Math.min(pagAtual * tamPag, total)} de ${total}` : `${total} de ${total}`} unidades</span>
-            <div className="ctl">
-              {porPag ? (
-                <>
-                  <button type="button" className="pm-btn sm" disabled={pagAtual <= 1} onClick={() => setPag(pagAtual - 1)}>Anterior</button>
-                  <em>Página {pagAtual} de {nPag}</em>
-                  <button type="button" className="pm-btn sm" disabled={pagAtual >= nPag} onClick={() => setPag(pagAtual + 1)}>Próxima</button>
-                </>
-              ) : null}
-              {POR_PAGINA.map(n => <button key={n} type="button" className={'pm-seg' + (porPag === n ? ' on' : '')} onClick={() => setPorPag(n)}>{n} por página</button>)}
-              <button type="button" className={'pm-seg' + (porPag === 0 ? ' on' : '')} onClick={() => setPorPag(0)}>Mostrar todos</button>
-            </div>
-          </div>
-        ) : null}
+        <Paginacao pg={pg} rotulo="unidades" />
       </div>
 
       {modal?.tipo === 'permuta' ? <ModalPermutaStore permuta={modal.p} ctx={ctx} empresas={empresas} fechar={() => setModal(null)} /> : null}
