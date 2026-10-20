@@ -31,10 +31,10 @@ export default function NotasCadastrosPage({ v }: { v: any }) {
     <main ref={mainRef} style={css('flex:1;min-height:0;overflow-y:auto;padding:24px 32px 32px;display:flex;flex-direction:column;gap:16px')}>
       <div style={css(`display:flex;align-items:flex-end;gap:16px;flex-wrap:wrap;${anim(0)}`)}>
         <div style={{ flex: '1 1 320px', minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: '20px', color: '#111827', letterSpacing: '-.01em' }}>
+          <div style={{ fontWeight: 700, fontSize: '20px', color: 'var(--text)', letterSpacing: '-.01em' }}>
             {lista ? 'Notas cadastradas' : 'Cadastrar nota fiscal de compra'}
           </div>
-          <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px' }}>
+          <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '3px' }}>
             {lista ? `${nf.totalLabel} · gravadas direto no Sienge` : 'Lê o PDF, confere com o pedido de compra no Sienge e grava só depois da sua confirmação.'}
           </div>
         </div>
@@ -83,12 +83,12 @@ function Passos({ passos }: { passos: any[] }) {
         const atual = p.estado === 'atual';
         return (
           <div key={p.label} style={{ display: 'flex', alignItems: 'center', gap: '6px', flex: i < passos.length - 1 ? '1 1 140px' : 'none' }}>
-            <span style={{ width: '24px', height: '24px', flex: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 700, background: feito ? '#43B997' : atual ? '#4161FF' : '#F1F1F4', color: feito || atual ? '#FFFFFF' : '#94A3B8', boxShadow: atual ? '0 0 0 4px rgba(65,97,255,.14)' : 'none', transition: 'all .2s' }}>
+            <span style={{ width: '24px', height: '24px', flex: 'none', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11.5px', fontWeight: 700, background: feito ? '#43B997' : atual ? '#4161FF' : 'var(--surface-3)', color: feito || atual ? '#FFFFFF' : 'var(--text-4)', boxShadow: atual ? '0 0 0 4px rgba(65,97,255,.14)' : 'none', transition: 'all .2s' }}>
               {feito ? (
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round"></path></svg>
               ) : p.numero}
             </span>
-            <span style={{ fontSize: '12.5px', fontWeight: atual ? 700 : 600, color: atual ? '#111827' : feito ? '#374151' : '#94A3B8', whiteSpace: 'nowrap' }}>{p.label}</span>
+            <span style={{ fontSize: '12.5px', fontWeight: atual ? 700 : 600, color: atual ? 'var(--text)' : feito ? 'var(--text-b)' : 'var(--text-4)', whiteSpace: 'nowrap' }}>{p.label}</span>
             {i < passos.length - 1 ? <span style={{ flex: 1, height: '1px', minWidth: '16px', margin: '0 6px', background: feito ? '#43B997' : '#EEEEF1' }}></span> : null}
           </div>
         );
@@ -116,9 +116,9 @@ function Historico({ nf }: { nf: any }) {
         </label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <span style={colHead}>Situação</span>
-          <div style={{ display: 'flex', gap: '2px', background: '#F4F4F6', borderRadius: '8px', padding: '3px' }}>
+          <div style={{ display: 'flex', gap: '2px', background: 'var(--surface-3)', borderRadius: '8px', padding: '3px' }}>
             {nf.situacaoTabs.map((t: any) => (
-              <button key={t.label} onClick={t.onClick} style={css(`border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${t.ativo ? '#111827' : 'transparent'};color:${t.ativo ? '#FFFFFF' : '#64748B'}`)}>{t.label}</button>
+              <button key={t.label} onClick={t.onClick} style={css(`border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${t.ativo ? '#111827' : 'transparent'};color:${t.ativo ? '#FFFFFF' : 'var(--text-3)'}`)}>{t.label}</button>
             ))}
           </div>
         </div>
@@ -128,7 +128,7 @@ function Historico({ nf }: { nf: any }) {
       <div style={css(`${card};overflow:hidden;${anim(110)}`)}>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: '980px' }}>
-            <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+            <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
               <div style={colHead}>Cadastro</div>
               <div style={colHead}>Documento</div>
               <div style={colHead}>Fornecedor · empresa</div>
@@ -138,7 +138,7 @@ function Historico({ nf }: { nf: any }) {
               <div style={colHead}>Situação</div>
             </div>
             {nf.carregando ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '44px', fontSize: '12.5px', color: '#64748B' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', padding: '44px', fontSize: '12.5px', color: 'var(--text-3)' }}>
                 <Spinner color="#4161FF" /> Carregando as notas cadastradas…
               </div>
             ) : null}
@@ -146,32 +146,32 @@ function Historico({ nf }: { nf: any }) {
               const aberto = nf.aberto === r.id;
               return (
                 <div key={r.id} style={{ boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
-                  <div onClick={() => nf.alternar(r.id)} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:12px 18px;cursor:pointer;opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`)} className={hv('background:#FAFAFB', undefined, undefined)}>
+                  <div onClick={() => nf.alternar(r.id)} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:12px 18px;cursor:pointer;opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`)} className={hv('background:var(--surface-2)', undefined, undefined)}>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', color: '#111827', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{r.dia}</div>
-                      <div style={{ fontSize: '11.5px', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.quem}>{r.hora} · {r.quem}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--text)', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{r.dia}</div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.quem}>{r.hora} · {r.quem}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
                       <div style={{ width: '32px', height: '32px', flex: 'none', borderRadius: '9px', background: '#E8F8F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <DocIcon size={15} color="#14B8A6" />
                       </div>
                       <div style={{ minWidth: 0 }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.documento}</div>
-                        <div style={{ fontSize: '11.5px', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.tipo}</div>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.documento}</div>
+                        <div style={{ fontSize: '11.5px', color: 'var(--text-4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{r.tipo}</div>
                       </div>
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', color: '#111827', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.fornecedor}>{r.fornecedor}</div>
-                      <div style={{ fontSize: '11.5px', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.empresa}>{r.empresa}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--text)', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.fornecedor}>{r.fornecedor}</div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.empresa}>{r.empresa}</div>
                     </div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', color: '#111827', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{r.pedido}</div>
-                      <div style={{ fontSize: '11.5px', color: '#94A3B8', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.obra}>{r.obra}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--text)', fontWeight: 500, fontVariantNumeric: 'tabular-nums' }}>{r.pedido}</div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.obra}>{r.obra}</div>
                     </div>
-                    <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>{r.valor}</div>
+                    <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{r.valor}</div>
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', color: '#111827', fontVariantNumeric: 'tabular-nums' }}>Seq. {r.sequencial}</div>
-                      <div style={{ fontSize: '11.5px', color: '#94A3B8', fontVariantNumeric: 'tabular-nums' }}>Título {r.titulo}</div>
+                      <div style={{ fontSize: '12.5px', color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>Seq. {r.sequencial}</div>
+                      <div style={{ fontSize: '11.5px', color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums' }}>Título {r.titulo}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                       <Chip tom={r.tom}>{r.situacao}</Chip>
@@ -182,7 +182,7 @@ function Historico({ nf }: { nf: any }) {
                   </div>
                   {aberto ? (
                     <div style={{ padding: '0 18px 14px 146px', display: 'flex', flexDirection: 'column', gap: '8px', animation: 'rowIn .2s ease-out both' }}>
-                      <div style={{ fontSize: '12px', color: '#64748B' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--text-3)' }}>
                         Vencimento da 1ª parcela {r.vencimento} · {r.anexos} {r.anexos === 1 ? 'anexo' : 'anexos'} no título
                       </div>
                       {r.detalhes.length ? <Alerta tom={r.tom === 'erro' ? 'erro' : 'aviso'} titulo="Pendências para ajuste manual no Sienge" itens={r.detalhes} /> : (
@@ -201,15 +201,15 @@ function Historico({ nf }: { nf: any }) {
                 <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: '#E8F8F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <DocIcon size={22} color="#14B8A6" />
                 </div>
-                <div style={{ fontSize: '13.5px', fontWeight: 600, color: '#111827' }}>{nf.filtrado ? 'Nenhuma nota encontrada' : 'Nenhuma nota cadastrada pelo app ainda'}</div>
-                <div style={{ fontSize: '12px', color: '#94A3B8', maxWidth: '420px' }}>
+                <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text)' }}>{nf.filtrado ? 'Nenhuma nota encontrada' : 'Nenhuma nota cadastrada pelo app ainda'}</div>
+                <div style={{ fontSize: '12px', color: 'var(--text-4)', maxWidth: '420px' }}>
                   {nf.filtrado ? 'Ajuste a busca ou o filtro de situação.' : nf.podeEditar ? 'Clique em "Cadastrar nota" e envie o PDF da NF-e, NFS-e, boleto ou fatura.' : 'As notas cadastradas pela equipe aparecem aqui.'}
                 </div>
               </div>
             ) : null}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
-          <div style={{ fontSize: '12px', color: '#64748B' }}>{nf.rangeLabel}</div>
-          {!nf.podeEditar ? <div style={{ marginLeft: 'auto', fontSize: '12px', color: '#94A3B8' }}>Seu perfil pode consultar, mas não cadastrar notas.</div> : null}
+          <div style={{ fontSize: '12px', color: 'var(--text-3)' }}>{nf.rangeLabel}</div>
+          {!nf.podeEditar ? <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-4)' }}>Seu perfil pode consultar, mas não cadastrar notas.</div> : null}
         </div>
       </div>
     </>
@@ -227,11 +227,11 @@ function Envio({ nf }: { nf: any }) {
           onDragOver={nf.onArrastar}
           onDragLeave={nf.onSair}
           onDrop={nf.onSoltar}
-          style={css(`display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:180px;padding:24px;border-radius:12px;border:1.5px dashed ${nf.arrastando ? '#4161FF' : '#D8D8E0'};background:${nf.arrastando ? '#F2F5FF' : '#FAFAFB'};cursor:${lendo ? 'default' : 'pointer'};text-align:center;transition:border-color .15s,background .15s`)}
+          style={css(`display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:180px;padding:24px;border-radius:12px;border:1.5px dashed ${nf.arrastando ? '#4161FF' : 'var(--border-strong)'};background:${nf.arrastando ? '#F2F5FF' : 'var(--surface-2)'};cursor:${lendo ? 'default' : 'pointer'};text-align:center;transition:border-color .15s,background .15s`)}
           className={lendo ? undefined : hv('border-color:#4161FF;background:#F7F9FF', undefined, undefined)}
         >
           <input type="file" accept="application/pdf" hidden disabled={lendo} onChange={nf.onArquivo} />
-          <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: nf.arquivo ? '#E8F8F6' : '#EAF1FF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 6px ${nf.arquivo ? 'rgba(20,184,166,.07)' : 'rgba(65,97,255,.06)'}` }}>
+          <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: nf.arquivo ? '#E8F8F6' : 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 0 0 6px ${nf.arquivo ? 'rgba(20,184,166,.07)' : 'rgba(65,97,255,.06)'}` }}>
             {nf.arquivo ? <DocIcon size={22} color="#14B8A6" /> : (
               <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
                 <path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 001 1h14a1 1 0 001-1v-3" stroke="#4161FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -240,19 +240,19 @@ function Envio({ nf }: { nf: any }) {
           </div>
           {nf.arquivo ? (
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827', wordBreak: 'break-all' }}>{nf.arquivo.nome}</div>
-              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px' }}>{nf.arquivo.tamanho} · clique ou arraste outro PDF para trocar</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)', wordBreak: 'break-all' }}>{nf.arquivo.nome}</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '3px' }}>{nf.arquivo.tamanho} · clique ou arraste outro PDF para trocar</div>
             </div>
           ) : (
             <div>
-              <div style={{ fontSize: '14px', fontWeight: 700, color: '#111827' }}>Arraste o PDF aqui ou clique para escolher</div>
-              <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px' }}>Um arquivo PDF de até {nf.limiteLabel}</div>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: 'var(--text)' }}>Arraste o PDF aqui ou clique para escolher</div>
+              <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '3px' }}>Um arquivo PDF de até {nf.limiteLabel}</div>
             </div>
           )}
         </label>
         {nf.erro ? <Alerta tom="erro" titulo="Não foi possível analisar o documento">{nf.erro}</Alerta> : null}
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 300px', fontSize: '12px', color: '#64748B', lineHeight: 1.5 }}>
+          <div style={{ flex: '1 1 300px', fontSize: '12px', color: 'var(--text-3)', lineHeight: 1.5 }}>
             O documento é lido, o fornecedor e a empresa são localizados pelo CNPJ, e os pedidos de compra em aberto aparecem em seguida.
             Nada é gravado no Sienge nesta etapa.
           </div>
@@ -317,7 +317,7 @@ function Pedido({ nf }: { nf: any }) {
           <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <div style={{ minWidth: '820px' }}>
-                <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 16px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+                <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 16px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
                   <div style={colHead}>Pedido</div>
                   <div style={colHead}>Data</div>
                   <div style={colHead}>Obra</div>
@@ -326,12 +326,12 @@ function Pedido({ nf }: { nf: any }) {
                   <div></div>
                 </div>
                 {a.pedidos.map((p: any, i: number) => (
-                  <div key={p.id} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 16px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 30, 300)}ms`)} className={hv('background:#FAFAFB', undefined, undefined)}>
-                    <div style={{ fontSize: '13px', fontWeight: 700, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>{p.numero}</div>
-                    <div style={{ fontSize: '12.5px', color: '#374151', fontVariantNumeric: 'tabular-nums' }}>{p.data}</div>
-                    <div style={{ fontSize: '12.5px', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={p.obra}>{p.obra}</div>
+                  <div key={p.id} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 16px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 30, 300)}ms`)} className={hv('background:var(--surface-2)', undefined, undefined)}>
+                    <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{p.numero}</div>
+                    <div style={{ fontSize: '12.5px', color: 'var(--text-b)', fontVariantNumeric: 'tabular-nums' }}>{p.data}</div>
+                    <div style={{ fontSize: '12.5px', color: 'var(--text-b)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={p.obra}>{p.obra}</div>
                     <div><Chip tom={p.parcial ? 'aviso' : 'info'}>{p.status}</Chip></div>
-                    <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: '#111827', fontVariantNumeric: 'tabular-nums' }}>{p.valor}</div>
+                    <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{p.valor}</div>
                     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <button onClick={p.escolher} disabled={travado} style={css(btnPrim + ';height:32px;padding:0 12px;font-size:12px;box-shadow:none' + (travado && !p.carregando ? off : ''))} className={travado ? undefined : hv('background:#3153F4', 'transform:scale(.97)', undefined)}>
                         {p.carregando ? <><Spinner /> Carregando…</> : 'Usar este pedido'}
@@ -389,9 +389,9 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
           </Campo>
           <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={colHead}>Observação interna</span>
-            <div style={{ padding: '9px 12px', borderRadius: '8px', background: '#FAFAFB', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '12.5px', color: '#374151' }}>{c.observacaoAutomatica}</div>
+            <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '12.5px', color: 'var(--text-b)' }}>{c.observacaoAutomatica}</div>
             <textarea value={c.obs} onChange={c.onObs} rows={2} placeholder="Complemento opcional" style={css(input + ';height:auto;padding:9px 12px;resize:vertical;line-height:1.45')} />
-            <span style={{ fontSize: '11.5px', color: '#94A3B8' }}>Observações, observações dos insumos e anexos do pedido também são copiados para a nota.</span>
+            <span style={{ fontSize: '11.5px', color: 'var(--text-4)' }}>Observações, observações dos insumos e anexos do pedido também são copiados para a nota.</span>
           </div>
         </div>
       </Secao>
@@ -409,13 +409,13 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: c.comItens ? '1080px' : '700px' }}>
               {c.comItens ? (
-                <div style={css(`display:grid;${gridIt};gap:10px;padding:8px 14px 0;background:#FAFAFB`)}>
+                <div style={css(`display:grid;${gridIt};gap:10px;padding:8px 14px 0;background:var(--surface-2)`)}>
                   <div style={{ ...colHead, gridColumn: 'span 2', color: '#14B8A6' }}>Item da nota fiscal</div>
                   <div style={{ ...colHead, textAlign: 'center' }}>Similar.</div>
                   <div style={{ ...colHead, gridColumn: 'span 5', color: '#4161FF' }}>Insumo do pedido de compra</div>
                 </div>
               ) : null}
-              <div style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:9px 14px 10px;background:#FAFAFB;box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+              <div style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:9px 14px 10px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
                 {c.comItens ? <><div style={colHead}>Produto</div><div style={{ ...colHead, textAlign: 'right' }}>Qtd · valor</div><div></div></> : null}
                 <div></div>
                 <div style={colHead}>Insumo</div>
@@ -427,7 +427,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
                 const sim = SIM[l.nivel as keyof typeof SIM];
                 // Uma linha por item da nota ligado ao insumo; quantidade e subtotal só na primeira.
                 return (c.comItens ? l.notas : [null]).map((n: any, k: number) => (
-                  <div key={`${l.itemNumber}-${k}`} style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:10px 14px;${k ? 'box-shadow:inset 0 1px 0 #F8F8FA;' : i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}background:${l.selecionado ? '#FBFCFF' : '#FFFFFF'};opacity:${l.semSaldo ? 0.55 : 1};transition:background .15s`)}>
+                  <div key={`${l.itemNumber}-${k}`} style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:10px 14px;${k ? 'box-shadow:inset 0 1px 0 #F8F8FA;' : i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}background:${l.selecionado ? '#FBFCFF' : 'var(--surface)'};opacity:${l.semSaldo ? 0.55 : 1};transition:background .15s`)}>
                     {n ? (
                       <>
                         <div style={{ minWidth: 0 }}>
@@ -435,11 +435,11 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
                             <option value="">— nenhum item da nota —</option>
                             {c.itensNota.map((o: any) => <option key={o.value} value={o.value}>{o.label}</option>)}
                           </select>
-                          {n.notaDetalhe ? <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.notaDetalhe}</div> : null}
+                          {n.notaDetalhe ? <div style={{ fontSize: '11px', color: 'var(--text-4)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{n.notaDetalhe}</div> : null}
                         </div>
-                        <div style={{ textAlign: 'right', fontSize: '12.5px', color: '#374151', fontVariantNumeric: 'tabular-nums' }}>
+                        <div style={{ textAlign: 'right', fontSize: '12.5px', color: 'var(--text-b)', fontVariantNumeric: 'tabular-nums' }}>
                           {n.notaQtd}
-                          {n.notaValor ? <div style={{ fontSize: '11px', color: '#94A3B8' }}>{n.notaValor}</div> : null}
+                          {n.notaValor ? <div style={{ fontSize: '11px', color: 'var(--text-4)' }}>{n.notaValor}</div> : null}
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'center' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', minWidth: '44px', height: '22px', padding: '0 7px', borderRadius: '20px', background: sim.bg, color: sim.fg, fontSize: '11px', fontWeight: 700 }}>{l.similaridade}</span>
@@ -448,21 +448,21 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
                     ) : null}
                     <input type="checkbox" checked={l.selecionado} disabled={l.semSaldo} onChange={l.onSelecionar} aria-label={`Vincular insumo ${l.itemNumber}`} style={{ width: '16px', height: '16px', accentColor: '#4161FF', cursor: l.semSaldo ? 'default' : 'pointer' }} />
                     <div style={{ minWidth: 0 }}>
-                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: k ? '#64748B' : '#111827', lineHeight: 1.35 }}>{l.insumo}</div>
-                      <div style={{ fontSize: '11px', color: '#94A3B8', marginTop: '2px' }}>{k ? '↳ mesmo insumo' : l.insumoDetalhe}</div>
+                      <div style={{ fontSize: '12.5px', fontWeight: 600, color: k ? 'var(--text-3)' : 'var(--text)', lineHeight: 1.35 }}>{l.insumo}</div>
+                      <div style={{ fontSize: '11px', color: 'var(--text-4)', marginTop: '2px' }}>{k ? '↳ mesmo insumo' : l.insumoDetalhe}</div>
                     </div>
                     {k ? <><div></div><div></div><div></div></> : (
                       <>
-                        <div style={{ textAlign: 'right', fontSize: '12.5px', color: '#374151', fontVariantNumeric: 'tabular-nums' }}>{l.pendente}</div>
+                        <div style={{ textAlign: 'right', fontSize: '12.5px', color: 'var(--text-b)', fontVariantNumeric: 'tabular-nums' }}>{l.pendente}</div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '3px' }}>
                           <input
                             type="number" step="any" min={0} max={l.max} value={l.quantidade} disabled={!l.selecionado} onChange={l.onQuantidade}
                             aria-invalid={l.problema ? true : undefined}
-                            style={css(input + `;height:32px;width:100px;text-align:right;font-variant-numeric:tabular-nums;border-color:${l.problema ? '#FCA5A5' : '#E7E7EA'};background:${l.selecionado ? '#FFFFFF' : '#F4F4F6'}`)}
+                            style={css(input + `;height:32px;width:100px;text-align:right;font-variant-numeric:tabular-nums;border-color:${l.problema ? '#FCA5A5' : 'var(--border)'};background:${l.selecionado ? 'var(--surface)' : 'var(--surface-3)'}`)}
                           />
                           {l.problema ? <span style={{ fontSize: '11px', color: '#DC2626', fontWeight: 600 }}>{l.problema}</span> : null}
                         </div>
-                        <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: l.selecionado ? '#111827' : '#CBD5E1', fontVariantNumeric: 'tabular-nums' }}>{l.subtotal}</div>
+                        <div style={{ textAlign: 'right', fontSize: '12.5px', fontWeight: 600, color: l.selecionado ? 'var(--text)' : '#CBD5E1', fontVariantNumeric: 'tabular-nums' }}>{l.subtotal}</div>
                       </>
                     )}
                   </div>
@@ -473,9 +473,9 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
         </div>
 
         {c.semVinculo.length ? (
-          <div style={{ padding: '10px 12px', borderRadius: '9px', background: '#FAFAFB', boxShadow: 'inset 0 0 0 1px #EEEEF1' }}>
-            <div style={{ fontSize: '12px', fontWeight: 700, color: '#374151' }}>Itens da nota sem insumo associado</div>
-            <ul style={{ margin: '5px 0 0', paddingLeft: '18px', fontSize: '12px', color: '#64748B', lineHeight: 1.55 }}>
+          <div style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1' }}>
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-b)' }}>Itens da nota sem insumo associado</div>
+            <ul style={{ margin: '5px 0 0', paddingLeft: '18px', fontSize: '12px', color: 'var(--text-3)', lineHeight: 1.55 }}>
               {c.semVinculo.map((i: any) => <li key={i.indice}>{i.texto}</li>)}
             </ul>
           </div>
@@ -483,7 +483,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '10px' }}>
           {[['Valor do documento', c.totalDocumento, '#111827'], ['Insumos selecionados (preço do pedido)', c.totalSelecionado, '#4161FF'], ['Diferença', c.diferenca, c.diferente ? '#D97706' : '#35AD88']].map(([r, val, cor]) => (
-            <div key={r} style={{ padding: '10px 12px', borderRadius: '9px', background: '#FAFAFB', boxShadow: 'inset 0 0 0 1px #EEEEF1' }}>
+            <div key={r} style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1' }}>
               <div style={colHead}>{r}</div>
               <div style={{ fontSize: '16px', fontWeight: 700, color: cor, marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>{val}</div>
             </div>
@@ -501,7 +501,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
           </div>
         ) : null}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-          <div style={{ flex: '1 1 300px', fontSize: '12px', color: '#64748B' }}>{c.resumo}</div>
+          <div style={{ flex: '1 1 300px', fontSize: '12px', color: 'var(--text-3)' }}>{c.resumo}</div>
           <button onClick={c.voltar} disabled={c.cadastrando} style={css(btnSec + ';height:38px' + (c.cadastrando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Voltar aos pedidos</button>
           <button onClick={c.cadastrar} disabled={bloqueado} style={css(btnPrim + (bloqueado && !c.cadastrando ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
             {c.cadastrando ? <><Spinner /> Cadastrando no Sienge…</> : 'Cadastrar no Sienge'}
@@ -522,7 +522,7 @@ function Vencimento({ c }: { c: any }) {
         <button
           onClick={c.pedirSenha}
           title={c.vencimentoEditavel ? 'Clique para alterar (requer senha)' : 'Alteração manual desligada'}
-          style={css(input + `;display:flex;align-items:center;justify-content:space-between;background:#FAFAFB;cursor:${c.vencimentoEditavel ? 'pointer' : 'default'};text-align:left`)}
+          style={css(input + `;display:flex;align-items:center;justify-content:space-between;background:var(--surface-2);cursor:${c.vencimentoEditavel ? 'pointer' : 'default'};text-align:left`)}
         >
           <span style={{ fontVariantNumeric: 'tabular-nums' }}>{c.vencimento.split('-').reverse().join('/')}</span>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
@@ -535,13 +535,13 @@ function Vencimento({ c }: { c: any }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
           <input type="password" autoFocus autoComplete="off" placeholder="Senha para alterar" aria-label="Senha para alterar o vencimento" value={c.senhaDigitada} onChange={c.onSenha} onKeyDown={c.onSenhaKey} style={css(input + ';height:32px;flex:1 1 120px;width:auto')} />
           <button onClick={c.liberar} disabled={!c.senhaDigitada || c.verificandoSenha} style={css(btnSec + ';height:32px' + (!c.senhaDigitada || c.verificandoSenha ? off : ''))}>{c.verificandoSenha ? '…' : 'Liberar'}</button>
-          <button onClick={c.cancelarSenha} style={css(link + ';color:#64748B')}>cancelar</button>
+          <button onClick={c.cancelarSenha} style={css(link + ';color:var(--text-3)')}>cancelar</button>
           {c.senhaErro ? <span style={{ width: '100%', fontSize: '11.5px', color: '#DC2626', fontWeight: 600 }}>{c.senhaErro}</span> : null}
         </div>
       ) : c.vencimentoLiberado ? (
-        <span style={{ fontSize: '11.5px', color: '#94A3B8' }}>Alterado manualmente · <button onClick={c.restaurarVencimento} style={css(link + ';font-size:11.5px')}>voltar ao padrão</button></span>
+        <span style={{ fontSize: '11.5px', color: 'var(--text-4)' }}>Alterado manualmente · <button onClick={c.restaurarVencimento} style={css(link + ';font-size:11.5px')}>voltar ao padrão</button></span>
       ) : (
-        <span style={{ fontSize: '11.5px', color: '#94A3B8', lineHeight: 1.4 }}>
+        <span style={{ fontSize: '11.5px', color: 'var(--text-4)', lineHeight: 1.4 }}>
           Padrão: 17 dias corridos após o cadastro{c.vencimentoEditavel ? ' · clique para alterar' : ''}
           {c.vencimentoDocumento ? ` · no documento: ${c.vencimentoDocumento}` : ''}
         </span>
@@ -568,7 +568,7 @@ function Anexos({ c }: { c: any }) {
       }
       delay={170}
     >
-      <div style={{ fontSize: '12px', color: '#64748B', lineHeight: 1.55 }}>
+      <div style={{ fontSize: '12px', color: 'var(--text-3)', lineHeight: 1.55 }}>
         Só PDF, até 3 MB cada; pode selecionar vários de uma vez. Eles vão para a aba Anexos do título no Sienge logo depois do cadastro.
         Use a sigla na descrição: <b>NF</b> (nota fiscal), <b>NFS</b> (nota de serviço), <b>BLT</b> (boleto), <b>FAT</b> (fatura).
       </div>
@@ -597,8 +597,8 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#35AD88" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
         </div>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '16px', color: '#111827' }}>{r.mensagem}</div>
-          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '2px' }}>A nota já está no Sienge e ficou registrada no histórico.</div>
+          <div style={{ fontWeight: 700, fontSize: '16px', color: 'var(--text)' }}>{r.mensagem}</div>
+          <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '2px' }}>A nota já está no Sienge e ficou registrada no histórico.</div>
         </div>
       </div>
       <Resumo itens={[['Sequencial da nota', r.sequencial], ['Título (contas a pagar)', r.titulo]]} />
@@ -610,9 +610,9 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
           <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
             {r.envios.map((e: any, i: number) => (
               <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '70px minmax(0,1fr) auto', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
-                <span style={{ fontSize: '12.5px', fontWeight: 700, color: '#111827' }}>{e.descricao}</span>
+                <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text)' }}>{e.descricao}</span>
                 <div style={{ minWidth: 0 }}>
-                  <div style={{ fontSize: '12.5px', color: '#374151', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.nome}</div>
+                  <div style={{ fontSize: '12.5px', color: 'var(--text-b)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{e.nome}</div>
                   {e.erro ? <div style={{ fontSize: '11px', color: '#DC2626' }}>{e.erro}</div> : null}
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -646,10 +646,10 @@ function PedidoModal({ m }: { m: any }) {
   return (
     <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Informar pedido de compra" onClick={e => e.stopPropagation()}
-        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
-          <div style={{ fontWeight: 700, fontSize: '15.5px', color: '#111827' }}>Informar pedido de compra</div>
-          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px' }}>
+          <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Informar pedido de compra</div>
+          <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>
             Digite o número do pedido no Sienge. Se ele for de outra filial do mesmo fornecedor (mesma raiz de CNPJ), a nota é cadastrada no fornecedor do pedido.
           </div>
         </div>

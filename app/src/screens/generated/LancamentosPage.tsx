@@ -14,16 +14,16 @@ export default function LancamentosPage({ v }: { v: any }) {
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div style={{ "flex": "1 1 420px", "minWidth": "0" }}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
-                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                   Lançamentos manuais
                 </div>
               </div>
-              <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
+              <div style={{ "fontSize": "12.5px", "color": "var(--text-3)", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
                 Despesas e entradas que não têm título no Sienge (VMD, fator recompra, juros P.E, RET…). Entram no fluxo de caixa e na programação do dia junto com as parcelas a pagar.
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
-              <button onClick={v.lcExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.lcExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -38,96 +38,96 @@ export default function LancamentosPage({ v }: { v: any }) {
             </div>
           </div>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(220px,1fr))", "gap": "12px" }}>
-            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "50ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #FCCFCF,0 12px 26px rgba(239,68,68,.12)", undefined, undefined)}>
+            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "50ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #FCCFCF,0 12px 26px rgba(239,68,68,.12)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#FEE9E9", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-red)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M12 5v14M6.5 13.5L12 19l5.5-5.5" stroke="#EF4444" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Saídas no período
                 </span>
               </div>
               <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "#DC2626", "letterSpacing": "-.015em", "fontVariantNumeric": "tabular-nums" }}>
                 {v.lcOutFmt}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 {v.lcOutSub}
               </div>
             </div>
-            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "100ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #C7EEE0,0 12px 26px rgba(67,185,151,.14)", undefined, undefined)}>
+            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "100ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #C7EEE0,0 12px 26px rgba(67,185,151,.14)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#E1F7EF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M12 19V5M6.5 10.5L12 5l5.5 5.5" stroke="#35AD88" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Entradas no período
                 </span>
               </div>
               <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "#258B6C", "letterSpacing": "-.015em", "fontVariantNumeric": "tabular-nums" }}>
                 {v.lcInFmt}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 {v.lcInSub}
               </div>
             </div>
-            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "150ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #E4D6FF,0 12px 26px rgba(124,58,237,.12)", undefined, undefined)}>
+            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "150ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #E4D6FF,0 12px 26px rgba(124,58,237,.12)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#F1E9FF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-purple)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M20 11A8 8 0 105.5 16" stroke="#7C3AED" strokeWidth="1.7" strokeLinecap="round"></path>
                     <path d="M20 5v6h-6" stroke="#7C3AED" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Recorrências ativas
                 </span>
               </div>
-              <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+              <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                 {v.lcRecCount}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 Geram as próximas linhas automaticamente
               </div>
             </div>
             <div onClick={v.lcFilterPrev} style={css(v.lcPrevCardStyle)} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #FCD9A8,0 12px 26px rgba(217,119,6,.14)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#FFF0DD", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-amber)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <circle cx="12" cy="12" r="8" stroke="#D97706" strokeWidth="1.6"></circle>
                     <path d="M12 7.5V12l3 2" stroke="#D97706" strokeWidth="1.7" strokeLinecap="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Ainda não lançados no Sienge
                 </span>
               </div>
               <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "#D97706", "fontVariantNumeric": "tabular-nums" }}>
                 {v.lcPrevCount}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 Situação = Previsto
               </div>
             </div>
           </div>
-          <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "200ms" }}>
+          <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "200ms" }}>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Período
               </span>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "6px" }}>
-                <input type="date" value={v.lcFrom} onChange={v.onLcFrom} style={{ "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827" }} />
-                <span style={{ "color": "#94A3B8", "fontSize": "12px" }}>
+                <input type="date" value={v.lcFrom} onChange={v.onLcFrom} style={{ "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)" }} />
+                <span style={{ "color": "var(--text-4)", "fontSize": "12px" }}>
                   até
                 </span>
-                <input type="date" value={v.lcTo} onChange={v.onLcTo} style={{ "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827" }} />
+                <input type="date" value={v.lcTo} onChange={v.onLcTo} style={{ "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)" }} />
               </div>
             </div>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 220px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Empresa
               </span>
               <button onClick={v.ddLcfEmp.toggle} style={css(v.ddLcfEmp.btnStyle)}>
@@ -143,7 +143,7 @@ export default function LancamentosPage({ v }: { v: any }) {
                   <div style={css(v.ddLcfEmp.panelStyle)}>
                     {v.ddLcfEmp.hasSearch ? (
                       <>
-                        <input value={v.ddLcfEmp.query} onChange={v.ddLcfEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddLcfEmp.query} onChange={v.ddLcfEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <div style={css(v.ddLcfEmp.noResultStyle)}>
@@ -170,10 +170,10 @@ export default function LancamentosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Tipo
               </span>
-              <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+              <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                 {(v.lcTipoTabs || []).map((t: any, _i0: number) => (
                   <Fragment key={_i0}>
                     <button onClick={t.onClick} style={css(t.style)}>
@@ -184,10 +184,10 @@ export default function LancamentosPage({ v }: { v: any }) {
               </div>
             </div>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Situação
               </span>
-              <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+              <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                 {(v.lcSitTabs || []).map((t: any, _i0: number) => (
                   <Fragment key={_i0}>
                     <button onClick={t.onClick} style={css(t.style)}>
@@ -198,7 +198,7 @@ export default function LancamentosPage({ v }: { v: any }) {
               </div>
             </div>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "1 1 200px", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Buscar
               </span>
               <span style={{ "position": "relative", "display": "flex", "alignItems": "center" }}>
@@ -206,17 +206,17 @@ export default function LancamentosPage({ v }: { v: any }) {
                   <circle cx="11" cy="11" r="6.5" stroke="#A8B0BD" strokeWidth="1.8"></circle>
                   <path d="M16 16l4.5 4.5" stroke="#A8B0BD" strokeWidth="1.8" strokeLinecap="round"></path>
                 </svg>
-                <input value={v.lcSearch} onChange={v.onLcSearch} placeholder="Descrição ou categoria" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827" }} />
+                <input value={v.lcSearch} onChange={v.onLcSearch} placeholder="Descrição ou categoria" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)" }} />
               </span>
             </label>
             <button onClick={v.lcClearFilters} style={css(v.lcClearStyle)}>
               Limpar filtros
             </button>
           </div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={{ "minWidth": "1140px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "96px 190px minmax(220px,1fr) 170px 140px 118px 104px 92px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "96px 190px minmax(220px,1fr) 170px 140px 118px 104px 92px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   <div>
                     Data
                   </div>
@@ -244,33 +244,33 @@ export default function LancamentosPage({ v }: { v: any }) {
                 </div>
                 {(v.lcRows || []).map((r: any, _i0: number) => (
                   <Fragment key={_i0}>
-                    <div style={css(r.rowStyle)} className={hv("background:#FAFAFB", undefined, undefined)}>
-                      <div style={{ "fontSize": "12.5px", "color": "#374151", "fontVariantNumeric": "tabular-nums" }}>
+                    <div style={css(r.rowStyle)} className={hv("background:var(--surface-2)", undefined, undefined)}>
+                      <div style={{ "fontSize": "12.5px", "color": "var(--text-b)", "fontVariantNumeric": "tabular-nums" }}>
                         {r.dateLabel}
                       </div>
                       <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "minWidth": "0" }}>
-                        <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "#EAF1FF", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
+                        <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "var(--tint-blue)", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
                           {r.cd}
                         </span>
-                        <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {r.emp}
                         </span>
                       </div>
-                      <div style={{ "fontSize": "13px", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                      <div style={{ "fontSize": "13px", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                         {r.desc}
                       </div>
                       <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "minWidth": "0" }}>
                         <span style={css(r.tipoStyle)}>
                           {r.tipo}
                         </span>
-                        <span style={{ "fontSize": "11.5px", "color": "#64748B", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <span style={{ "fontSize": "11.5px", "color": "var(--text-3)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {r.cat}
                         </span>
                       </div>
                       <div style={css(r.valStyle)}>
                         {r.valFmt}
                       </div>
-                      <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "12px", "color": "#64748B", "whiteSpace": "nowrap" }}>
+                      <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "fontSize": "12px", "color": "var(--text-3)", "whiteSpace": "nowrap" }}>
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={css(r.recIconStyle)}>
                           <path d="M20 11A8 8 0 105.5 16" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round"></path>
                           <path d="M20 5v6h-6" stroke="#7C3AED" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -284,13 +284,13 @@ export default function LancamentosPage({ v }: { v: any }) {
                         </button>
                       </div>
                       <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "3px" }}>
-                        <button onClick={r.edit} title="Editar" style={{ "width": "27px", "height": "27px", "borderRadius": "7px", "border": "1px solid #EEEEF1", "background": "#FFFFFF", "color": "#94A3B8", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#4161FF;background:#EAF1FF;color:#4161FF", undefined, undefined)}>
+                        <button onClick={r.edit} title="Editar" style={{ "width": "27px", "height": "27px", "borderRadius": "7px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#4161FF;background:var(--tint-blue);color:#4161FF", undefined, undefined)}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                             <path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
                             <path d="M14.5 5.5l4 4" stroke="currentColor" strokeWidth="1.6"></path>
                           </svg>
                         </button>
-                        <button onClick={r.del} title="Excluir" style={{ "width": "27px", "height": "27px", "borderRadius": "7px", "border": "1px solid #EEEEF1", "background": "#FFFFFF", "color": "#94A3B8", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;background:#FEE9E9;color:#EF4444", undefined, undefined)}>
+                        <button onClick={r.del} title="Excluir" style={{ "width": "27px", "height": "27px", "borderRadius": "7px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;background:var(--tint-red);color:#EF4444", undefined, undefined)}>
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                             <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
                           </svg>
@@ -304,18 +304,18 @@ export default function LancamentosPage({ v }: { v: any }) {
                     <circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" strokeWidth="1.8"></circle>
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
-                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
+                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "var(--text)" }}>
                     Nenhum lançamento encontrado
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     Ajuste os filtros ou crie um novo lançamento.
                   </div>
                 </div>
-                <div style={{ "display": "grid", "gridTemplateColumns": "96px 190px minmax(220px,1fr) 170px 140px 118px 104px 92px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
-                  <div style={{ "fontSize": "12px", "fontWeight": "700", "color": "#111827", "textTransform": "uppercase", "letterSpacing": ".06em" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "96px 190px minmax(220px,1fr) 170px 140px 118px 104px 92px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
+                  <div style={{ "fontSize": "12px", "fontWeight": "700", "color": "var(--text)", "textTransform": "uppercase", "letterSpacing": ".06em" }}>
                     Total
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {v.lcFooterLabel}
                   </div>
                   <div></div>
@@ -331,23 +331,23 @@ export default function LancamentosPage({ v }: { v: any }) {
             </div>
           </div>
           <div style={css(v.lcOverlayStyle)} onClick={v.lcClose}>
-            <div onClick={v.stopProp} style={{ "width": "100%", "maxWidth": "580px", "maxHeight": "92vh", "display": "flex", "flexDirection": "column", "borderRadius": "14px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34)", "animation": "modalIn .24s cubic-bezier(.16,1,.3,1) both" }}>
+            <div onClick={v.stopProp} style={{ "width": "100%", "maxWidth": "580px", "maxHeight": "92vh", "display": "flex", "flexDirection": "column", "borderRadius": "14px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34)", "animation": "modalIn .24s cubic-bezier(.16,1,.3,1) both" }}>
               <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "12px", "padding": "20px 22px 16px", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
-                <span style={{ "width": "36px", "height": "36px", "flex": "none", "borderRadius": "10px", "background": "#EAF1FF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "36px", "height": "36px", "flex": "none", "borderRadius": "10px", "background": "var(--tint-blue)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <rect x="4" y="3.5" width="16" height="17" rx="2" stroke="#4161FF" strokeWidth="1.6"></rect>
                     <path d="M8 8h8M8 12h8M8 16h5" stroke="#4161FF" strokeWidth="1.6" strokeLinecap="round"></path>
                   </svg>
                 </span>
                 <div style={{ "flex": "1", "minWidth": "0" }}>
-                  <div style={{ "fontSize": "16px", "fontWeight": "700", "color": "#111827" }}>
+                  <div style={{ "fontSize": "16px", "fontWeight": "700", "color": "var(--text)" }}>
                     {v.lcModalTitle}
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B", "marginTop": "2px" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)", "marginTop": "2px" }}>
                     Entra no fluxo de caixa e na programação do dia da data informada.
                   </div>
                 </div>
-                <button onClick={v.lcClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid #EEEEF1", "background": "#FFFFFF", "color": "#94A3B8", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:#EF4444;background:#FEE9E9", undefined, undefined)}>
+                <button onClick={v.lcClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:#EF4444;background:var(--tint-red)", undefined, undefined)}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                   </svg>
@@ -355,10 +355,10 @@ export default function LancamentosPage({ v }: { v: any }) {
               </div>
               <div style={{ "display": "flex", "flexDirection": "column", "gap": "14px", "padding": "18px 22px", "overflowY": "auto" }}>
                 <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     Tipo
                   </span>
-                  <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px", "alignSelf": "flex-start" }}>
+                  <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px", "alignSelf": "flex-start" }}>
                     {(v.lcFTipoTabs || []).map((t: any, _i0: number) => (
                       <Fragment key={_i0}>
                         <button onClick={t.onClick} style={css(t.style)}>
@@ -370,13 +370,13 @@ export default function LancamentosPage({ v }: { v: any }) {
                 </div>
                 <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) minmax(0,1.4fr)", "gap": "12px" }}>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Data
                     </span>
-                    <input type="date" value={v.lcF.date} onChange={v.onLcFDate} style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827" }} />
+                    <input type="date" value={v.lcF.date} onChange={v.onLcFDate} style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)" }} />
                   </label>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "position": "relative", "minWidth": "0" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Empresa
                     </span>
                     <button onClick={v.ddLcEmp.toggle} style={css(v.ddLcEmp.btnStyle)}>
@@ -392,7 +392,7 @@ export default function LancamentosPage({ v }: { v: any }) {
                         <div style={css(v.ddLcEmp.panelStyle)}>
                           {v.ddLcEmp.hasSearch ? (
                             <>
-                              <input value={v.ddLcEmp.query} onChange={v.ddLcEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                              <input value={v.ddLcEmp.query} onChange={v.ddLcEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                             </>
                           ) : null}
                           <div style={css(v.ddLcEmp.noResultStyle)}>
@@ -420,14 +420,14 @@ export default function LancamentosPage({ v }: { v: any }) {
                   </label>
                 </div>
                 <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     Descrição
                   </span>
-                  <input value={v.lcF.desc} onChange={v.onLcFDesc} placeholder="Ex.: VMD – unidade 1803" style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827" }} />
+                  <input value={v.lcF.desc} onChange={v.onLcFDesc} placeholder="Ex.: VMD – unidade 1803" style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)" }} />
                 </label>
                 <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1.2fr) minmax(0,1fr)", "gap": "12px" }}>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "position": "relative", "minWidth": "0" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Categoria
                     </span>
                     <button onClick={v.ddLcCat.toggle} style={css(v.ddLcCat.btnStyle)}>
@@ -462,20 +462,20 @@ export default function LancamentosPage({ v }: { v: any }) {
                     ) : null}
                   </label>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Valor
                     </span>
                     <span style={{ "position": "relative", "display": "flex", "alignItems": "center" }}>
-                      <span style={{ "position": "absolute", "left": "12px", "fontSize": "13px", "fontWeight": "600", "color": "#94A3B8", "pointerEvents": "none" }}>
+                      <span style={{ "position": "absolute", "left": "12px", "fontSize": "13px", "fontWeight": "600", "color": "var(--text-4)", "pointerEvents": "none" }}>
                         R$
                       </span>
-                      <input value={v.lcF.value} onChange={v.onLcFValue} placeholder="0,00" inputMode="decimal" style={{ "width": "100%", "height": "38px", "padding": "0 12px 0 36px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "14px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "textAlign": "right", "fontVariantNumeric": "tabular-nums" }} />
+                      <input value={v.lcF.value} onChange={v.onLcFValue} placeholder="0,00" inputMode="decimal" style={{ "width": "100%", "height": "38px", "padding": "0 12px 0 36px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "14px", "fontWeight": "600", "fontFamily": "inherit", "color": "var(--text)", "textAlign": "right", "fontVariantNumeric": "tabular-nums" }} />
                     </span>
                   </label>
                 </div>
                 <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1.2fr) minmax(0,1fr)", "gap": "12px", "alignItems": "end" }}>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "position": "relative", "minWidth": "0" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Recorrência
                     </span>
                     <button onClick={v.ddLcRec.toggle} style={css(v.ddLcRec.btnStyle)}>
@@ -510,17 +510,17 @@ export default function LancamentosPage({ v }: { v: any }) {
                     ) : null}
                   </label>
                   <label style={css(v.lcParcWrapStyle)}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Nº de parcelas
                     </span>
-                    <input type="number" min="2" max="60" value={v.lcF.parc} onChange={v.onLcFParc} style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827" }} />
+                    <input type="number" min="2" max="60" value={v.lcF.parc} onChange={v.onLcFParc} style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)" }} />
                   </label>
                 </div>
                 <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     Situação
                   </span>
-                  <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px", "alignSelf": "flex-start" }}>
+                  <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px", "alignSelf": "flex-start" }}>
                     {(v.lcFSitTabs || []).map((t: any, _i0: number) => (
                       <Fragment key={_i0}>
                         <button onClick={t.onClick} style={css(t.style)}>
@@ -539,8 +539,8 @@ export default function LancamentosPage({ v }: { v: any }) {
                   {v.lcErr}
                 </div>
               </div>
-              <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "8px", "padding": "14px 22px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "#FAFAFB", "borderRadius": "0 0 14px 14px" }}>
-                <button onClick={v.lcClose} style={{ "height": "38px", "padding": "0 16px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer" }} className={hv("border-color:#CBD5E1", undefined, undefined)}>
+              <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "8px", "padding": "14px 22px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "var(--surface-2)", "borderRadius": "0 0 14px 14px" }}>
+                <button onClick={v.lcClose} style={{ "height": "38px", "padding": "0 16px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer" }} className={hv("border-color:#CBD5E1", undefined, undefined)}>
                   Cancelar
                 </button>
                 <button onClick={v.lcSave} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 18px", "border": "none", "borderRadius": "9px", "background": "#4161FF", "color": "#FFFFFF", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "boxShadow": "0 4px 14px rgba(65,97,255,.26)", "transition": "background .15s,transform .15s" }} className={hv("background:#3153F4", "transform:scale(.97)", undefined)}>

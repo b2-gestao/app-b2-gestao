@@ -21,18 +21,18 @@ export function categoriasVals(this: AppLogic) {
   const semPermissao = 'Seu perfil não tem permissão para alterar categorias.';
   const fechar = { catModalOpen: false, editingCatId: null, cForm: null, catFormErr: '' };
 
-  const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
+  const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid var(--border-soft);background:var(--surface);color:var(--text-4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
   const grid = 'grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 116px 96px';
 
   const cRows = filtered.map((c, i) => ({
     name: c.name,
     desc: c.desc || '—',
     rowStyle: `display:grid;${grid};gap:12px;align-items:center;padding:13px 18px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
-    statusStyle: `font-size:12px;font-weight:600;color:${c.active ? '#35AD88' : '#64748B'}`,
+    statusStyle: `font-size:12px;font-weight:600;color:${c.active ? '#35AD88' : 'var(--text-3)'}`,
     statusLabel: c.active ? 'Ativa' : 'Inativa',
     toggleTitle: c.active ? 'Inativar categoria' : 'Reativar categoria',
     trackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${c.active ? '#43B997' : '#D8D8E0'}`,
-    knobStyle: `position:absolute;top:2.5px;left:${c.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    knobStyle: `position:absolute;top:2.5px;left:${c.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     toggle: () => {
       const msg = c.active ? `${c.name} foi inativada.` : `${c.name} foi reativada.`;
       if (this.live) {
@@ -61,9 +61,9 @@ export function categoriasVals(this: AppLogic) {
     cStatusTabs: ['Todos', 'Ativos', 'Inativos'].map(t => ({
       label: t === 'Todos' ? 'Todas' : t === 'Ativos' ? 'Ativas' : 'Inativas',
       onClick: () => this.setState({ cStatus: t }),
-      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.cStatus === t ? '#111827' : 'transparent'};color:${s.cStatus === t ? '#FFFFFF' : '#64748B'}`,
+      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.cStatus === t ? '#111827' : 'transparent'};color:${s.cStatus === t ? '#FFFFFF' : 'var(--text-3)'}`,
     })),
-    clearCatFiltersStyle: `display:${(q || s.cStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
+    clearCatFiltersStyle: `display:${(q || s.cStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
     clearCatFilters: () => this.setState({ cSearch: '', cStatus: 'Todos' }),
     cGridStyle: grid,
 
@@ -82,17 +82,17 @@ export function categoriasVals(this: AppLogic) {
     catEditing: editing,
 
     cfName: form.name, cfDesc: form.desc,
-    cfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s`,
+    cfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`,
     onCfName: e => patch({ name: e.target.value }),
     onCfDesc: e => patch({ desc: e.target.value }),
     cfTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : '#D8D8E0'}`,
-    cfKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    cfKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     cfActiveLabel: form.active ? 'Ativa' : 'Inativa',
-    cfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : '#64748B'}`,
+    cfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : 'var(--text-3)'}`,
     toggleCfActive: () => patch({ active: !form.active }),
 
     catFormErr: s.catFormErr,
-    catFormErrStyle: `display:${s.catFormErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:#FEE9E9;border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
+    catFormErrStyle: `display:${s.catFormErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
     removeCat: () => {
       const id = s.editingCatId;
       const target = all.find(x => x.id === id);

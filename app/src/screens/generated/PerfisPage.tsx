@@ -13,10 +13,10 @@ export default function PerfisPage({ v }: { v: any }) {
         <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "24px 32px 32px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div>
-              <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                 Perfis de acesso
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B", "marginTop": "3px" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)", "marginTop": "3px" }}>
                 {v.pCountLabel}
               </div>
             </div>
@@ -27,9 +27,9 @@ export default function PerfisPage({ v }: { v: any }) {
               Novo perfil
             </button>
           </div>
-          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
+          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "1 1 250px", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Buscar
               </span>
               <span style={{ "position": "relative", "display": "flex", "alignItems": "center" }}>
@@ -37,14 +37,14 @@ export default function PerfisPage({ v }: { v: any }) {
                   <circle cx="11" cy="11" r="6.5" stroke="#A8B0BD" strokeWidth="1.8"></circle>
                   <path d="M16 16l4.5 4.5" stroke="#A8B0BD" strokeWidth="1.8" strokeLinecap="round"></path>
                 </svg>
-                <input value={v.pSearch} onChange={v.onPSearch} placeholder="Nome ou descrição" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "transition": "border-color .15s,box-shadow .15s" }} />
+                <input value={v.pSearch} onChange={v.onPSearch} placeholder="Nome ou descrição" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "transition": "border-color .15s,box-shadow .15s" }} />
               </span>
             </label>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Situação
               </span>
-              <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+              <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                 {(v.pStatusTabs || []).map((t: any, _i0: number) => (
                   <Fragment key={_i0}>
                     <button onClick={t.onClick} style={css(t.style)}>
@@ -58,10 +58,10 @@ export default function PerfisPage({ v }: { v: any }) {
               Limpar filtros
             </button>
           </div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "110ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "110ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={{ "minWidth": "640px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "minmax(180px,2fr) minmax(220px,3fr) 110px 116px 96px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "minmax(180px,2fr) minmax(220px,3fr) 110px 116px 96px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   <div>
                     Perfil
                   </div>
@@ -80,7 +80,7 @@ export default function PerfisPage({ v }: { v: any }) {
                 </div>
                 {(v.pRows || []).map((p: any, _i0: number) => (
                   <Fragment key={_i0}>
-                    <div style={css(p.rowStyle)} className={hv("background:#FAFAFB", undefined, undefined)}>
+                    <div style={css(p.rowStyle)} className={hv("background:var(--surface-2)", undefined, undefined)}>
                       <div style={{ "display": "flex", "alignItems": "center", "gap": "11px", "minWidth": "0" }}>
                         <div style={css(p.iconStyle)}>
                           <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
@@ -88,11 +88,11 @@ export default function PerfisPage({ v }: { v: any }) {
                             <path d="M5 20c0-3.6 3.1-6 7-6s7 2.4 7 6" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round"></path>
                           </svg>
                         </div>
-                        <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {p.name}
                         </div>
                       </div>
-                      <div style={{ "fontSize": "12.5px", "color": "#374151", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                      <div style={{ "fontSize": "12.5px", "color": "var(--text-b)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                         {p.desc}
                       </div>
                       <div style={{ "display": "flex", "justifyContent": "center" }}>
@@ -109,13 +109,13 @@ export default function PerfisPage({ v }: { v: any }) {
                         </span>
                       </div>
                       <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "3px" }}>
-                        <button onClick={p.edit} title="Editar perfil" style={css(p.actEditStyle)} className={hv("border-color:#4161FF;background:#EAF1FF;color:#4161FF", undefined, undefined)}>
+                        <button onClick={p.edit} title="Editar perfil" style={css(p.actEditStyle)} className={hv("border-color:#4161FF;background:var(--tint-blue);color:#4161FF", undefined, undefined)}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
                             <path d="M14.5 5.5l4 4" stroke="currentColor" strokeWidth="1.6"></path>
                           </svg>
                         </button>
-                        <button onClick={p.toggle} title={p.toggleTitle} style={css(p.actPowerStyle)} className={hv("border-color:#EF4444;background:#FEE9E9;color:#EF4444", undefined, undefined)}>
+                        <button onClick={p.toggle} title={p.toggleTitle} style={css(p.actPowerStyle)} className={hv("border-color:#EF4444;background:var(--tint-red);color:#EF4444", undefined, undefined)}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <path d="M12 3.5v7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
                             <path d="M7.4 6.6a6.6 6.6 0 109.2 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
@@ -130,17 +130,17 @@ export default function PerfisPage({ v }: { v: any }) {
                     <circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" strokeWidth="1.8"></circle>
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
-                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
+                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "var(--text)" }}>
                     Nenhum perfil encontrado
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#94A3B8" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-4)" }}>
                     Ajuste a busca ou o filtro de situação.
                   </div>
                 </div>
               </div>
             </div>
-            <div style={{ "display": "flex", "alignItems": "center", "gap": "12px", "flexWrap": "wrap", "padding": "12px 18px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "#FFFFFF" }}>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+            <div style={{ "display": "flex", "alignItems": "center", "gap": "12px", "flexWrap": "wrap", "padding": "12px 18px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "var(--surface)" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 {v.pRangeLabel}
               </div>
             </div>

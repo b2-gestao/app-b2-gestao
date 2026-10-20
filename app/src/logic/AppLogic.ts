@@ -413,18 +413,18 @@ export class AppLogic extends Component<any, any> {
       hasSearch,
       query: s.ddQuery || '',
       onQuery: e => this.setState({ ddQuery: e.target.value }),
-      noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:10px;font-size:12px;color:#94A3B8;text-align:center`,
+      noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:10px;font-size:12px;color:var(--text-4);text-align:center`,
       toggle: e => { e.stopPropagation(); this.setState(st => ({ ddOpen: st.ddOpen === key ? null : key, ddQuery: '' })); },
-      btnStyle: `width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;height:36px;padding:0 10px;border-radius:8px;border:1px solid ${open ? '#4161FF' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;cursor:pointer;box-shadow:${open ? '0 0 0 3px rgba(65,97,255,.14)' : 'none'};transition:border-color .15s,box-shadow .15s`,
+      btnStyle: `width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;height:36px;padding:0 10px;border-radius:8px;border:1px solid ${open ? '#4161FF' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);cursor:pointer;box-shadow:${open ? '0 0 0 3px rgba(65,97,255,.14)' : 'none'};transition:border-color .15s,box-shadow .15s`,
       chevStyle: `transition:transform .15s;transform:rotate(${open ? 180 : 0}deg);flex:none`,
-      panelStyle: 'position:absolute;top:calc(100% + 6px);left:0;min-width:100%;width:max-content;max-width:260px;z-index:80;background:#FFFFFF;border-radius:10px;border:1px solid #EEEEF1;box-shadow:0 14px 34px rgba(9,10,16,.16);padding:6px;display:flex;flex-direction:column;gap:1px;max-height:300px;overflow-y:auto;animation:modalIn .15s ease-out both',
+      panelStyle: 'position:absolute;top:calc(100% + 6px);left:0;min-width:100%;width:max-content;max-width:260px;z-index:80;background:var(--surface);border-radius:10px;border:1px solid var(--border-soft);box-shadow:0 14px 34px rgba(9,10,16,.16);padding:6px;display:flex;flex-direction:column;gap:1px;max-height:300px;overflow-y:auto;animation:modalIn .15s ease-out both',
       items: filtered.map(o => ({
         label: o,
         selected: o === value,
         // preventDefault: the list sits inside a <label>, whose activation would re-click the toggle button.
         onClick: e => { e.stopPropagation(); e.preventDefault(); onChange(o); this.setState({ ddOpen: null, ddQuery: '' }); },
-        style: `display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;font-size:12.5px;font-weight:${o === value ? 600 : 500};color:${o === value ? '#4161FF' : '#374151'};background:${o === value ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s;white-space:nowrap`,
-        hoverStyle: `background:${o === value ? '#EAF1FF' : '#F4F4F6'}`,
+        style: `display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 10px;border-radius:7px;font-size:12.5px;font-weight:${o === value ? 600 : 500};color:${o === value ? '#4161FF' : 'var(--text-b)'};background:${o === value ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s;white-space:nowrap`,
+        hoverStyle: `background:${o === value ? 'var(--tint-blue)' : 'var(--surface-3)'}`,
       })),
     };
   }
@@ -446,11 +446,11 @@ export class AppLogic extends Component<any, any> {
       query: s.ddQuery || '',
       onQuery: e => this.setState({ ddQuery: e.target.value }),
       toggle: e => { e.stopPropagation(); this.setState(st => ({ ddOpen: st.ddOpen === key ? null : key, ddQuery: '' })); },
-      btnStyle: `width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;height:36px;padding:0 10px;border-radius:8px;border:1px solid ${open ? '#4161FF' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;cursor:pointer;box-shadow:${open ? '0 0 0 3px rgba(65,97,255,.14)' : 'none'};transition:border-color .15s,box-shadow .15s`,
+      btnStyle: `width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;height:36px;padding:0 10px;border-radius:8px;border:1px solid ${open ? '#4161FF' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);cursor:pointer;box-shadow:${open ? '0 0 0 3px rgba(65,97,255,.14)' : 'none'};transition:border-color .15s,box-shadow .15s`,
       chevStyle: `transition:transform .15s;transform:rotate(${open ? 180 : 0}deg);flex:none`,
-      panelStyle: 'position:absolute;top:calc(100% + 6px);left:0;min-width:260px;width:max-content;max-width:300px;z-index:80;background:#FFFFFF;border-radius:10px;border:1px solid #EEEEF1;box-shadow:0 14px 34px rgba(9,10,16,.16);padding:8px;display:flex;flex-direction:column;gap:6px;animation:modalIn .15s ease-out both',
+      panelStyle: 'position:absolute;top:calc(100% + 6px);left:0;min-width:260px;width:max-content;max-width:300px;z-index:80;background:var(--surface);border-radius:10px;border:1px solid var(--border-soft);box-shadow:0 14px 34px rgba(9,10,16,.16);padding:8px;display:flex;flex-direction:column;gap:6px;animation:modalIn .15s ease-out both',
       listStyle: 'max-height:260px;overflow-y:auto;display:flex;flex-direction:column;gap:1px',
-      noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:10px;font-size:12px;color:#94A3B8;text-align:center`,
+      noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:10px;font-size:12px;color:var(--text-4);text-align:center`,
       allOnLabel: allOn ? 'Limpar seleção' : `Selecionar tod${sufixo}s`,
       toggleAllVisible: e => {
         e.stopPropagation();
@@ -466,9 +466,9 @@ export class AppLogic extends Component<any, any> {
         return {
           name: c.name,
           onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(c.name); },
-          style: `display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : '#374151'};background:${on ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s`,
-          hoverStyle: `background:${on ? '#EAF1FF' : '#F4F4F6'}`,
-          boxStyle: `flex:none;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : '#FFFFFF'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
+          style: `display:flex;align-items:center;gap:9px;padding:7px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : 'var(--text-b)'};background:${on ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s`,
+          hoverStyle: `background:${on ? 'var(--tint-blue)' : 'var(--surface-3)'}`,
+          boxStyle: `flex:none;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : 'var(--surface)'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
           checkStyle: `display:${on ? 'block' : 'none'}`,
         };
       }),
@@ -493,9 +493,9 @@ export class AppLogic extends Component<any, any> {
       query: s.pickerQuery || '',
       onQuery: e => this.setState({ pickerQuery: e.target.value }),
       toggle: e => { e.stopPropagation(); this.setState(st => ({ pickerOpen: st.pickerOpen === key ? null : key, pickerQuery: '' })); },
-      panelStyle: 'position:relative;z-index:79;width:100%;background:#FAFAFB;border-radius:10px;border:1px solid #EEEEF1;padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
+      panelStyle: 'position:relative;z-index:79;width:100%;background:var(--surface-2);border-radius:10px;border:1px solid var(--border-soft);padding:10px;display:flex;flex-direction:column;gap:8px;animation:modalIn .15s ease-out both',
       listStyle: 'max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:2px',
-      noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:12px 10px;font-size:12px;color:#94A3B8;text-align:center`,
+      noResultStyle: `display:${filtered.length ? 'none' : 'block'};padding:12px 10px;font-size:12px;color:var(--text-4);text-align:center`,
       allOnLabel: !filtered.length ? 'Selecionar todos' : allVisibleOn ? `Desmarcar${alvo}` : `Selecionar${alvo}`,
       toggleAllVisible: e => {
         e.stopPropagation();
@@ -514,10 +514,10 @@ export class AppLogic extends Component<any, any> {
           id: c.id,
           name: c.name,
           onClick: e => { e.stopPropagation(); e.preventDefault(); onToggle(val(c)); },
-          style: `display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : '#374151'};background:${on ? '#EAF1FF' : 'transparent'};cursor:pointer;transition:background .12s`,
-          hoverStyle: `background:${on ? '#EAF1FF' : '#F4F4F6'}`,
-          idBadgeStyle: `flex:none;margin-top:1px;min-width:30px;padding:2px 6px;border-radius:5px;background:${on ? '#DCE6FF' : '#F1F1F4'};color:${on ? '#2445E8' : '#94A3B8'};font-size:10px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums`,
-          checkboxStyle: `flex:none;margin-top:1px;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : '#FFFFFF'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
+          style: `display:flex;align-items:flex-start;gap:9px;padding:8px 9px;border-radius:7px;font-size:12.5px;font-weight:${on ? 600 : 500};color:${on ? '#1E3AE0' : 'var(--text-b)'};background:${on ? 'var(--tint-blue)' : 'transparent'};cursor:pointer;transition:background .12s`,
+          hoverStyle: `background:${on ? 'var(--tint-blue)' : 'var(--surface-3)'}`,
+          idBadgeStyle: `flex:none;margin-top:1px;min-width:30px;padding:2px 6px;border-radius:5px;background:${on ? '#DCE6FF' : 'var(--surface-3)'};color:${on ? '#2445E8' : 'var(--text-4)'};font-size:10px;font-weight:700;text-align:center;font-variant-numeric:tabular-nums`,
+          checkboxStyle: `flex:none;margin-top:1px;width:16px;height:16px;border-radius:4px;border:1.5px solid ${on ? '#4161FF' : '#CBD5E1'};background:${on ? '#4161FF' : 'var(--surface)'};display:flex;align-items:center;justify-content:center;transition:all .12s`,
           selected: on,
         };
       }),
@@ -632,7 +632,7 @@ export class AppLogic extends Component<any, any> {
     // Waits for the data and for the LLM, so the PDF has the same analysis the panel shows.
     const wait = show && ((panel === 'prog' ? progInsights(this) : fluxoInsights(this)).loading || this.iaStatus(panel) === 'loading');
     const off = wait || s.iaPdfBusy;
-    const btn = (disabled: boolean) => `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${disabled ? 'default' : 'pointer'};opacity:${disabled ? 0.5 : 1}`;
+    const btn = (disabled: boolean) => `height:30px;flex:none;display:inline-flex;align-items:center;gap:6px;padding:0 11px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-b);font-size:12px;font-weight:600;font-family:inherit;white-space:nowrap;transition:all .15s;cursor:${disabled ? 'default' : 'pointer'};opacity:${disabled ? 0.5 : 1}`;
     return {
       iaPdfShow: show,
       iaPdf: (e?: any) => { e?.stopPropagation?.(); if (!off && (panel === 'prog' || panel === 'fluxo')) this.baixarPdfIa(panel); },
@@ -698,7 +698,7 @@ export class AppLogic extends Component<any, any> {
           items: remote.items.map(i => ({
             label: i.label, text: i.text, action: '',
             onAction: () => this.setState({ iaPanel: null }),
-            style: 'padding:12px;border-radius:9px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1',
+            style: 'padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px #EEEEF1',
             dotStyle: `width:7px;height:7px;border-radius:50%;background:${cor[i.nivel] || '#94A3B8'};flex:none`,
           })),
         };
@@ -710,7 +710,7 @@ export class AppLogic extends Component<any, any> {
         items: r.items.map(i => ({
           label: i.label, text: i.text, action: i.action || '',
           onAction: i.go || (() => this.setState({ iaPanel: null })),
-          style: 'padding:12px;border-radius:9px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1',
+          style: 'padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px #EEEEF1',
           dotStyle: `width:7px;height:7px;border-radius:50%;background:${i.color};flex:none`,
         })),
       };
@@ -718,7 +718,7 @@ export class AppLogic extends Component<any, any> {
     const item = (label, text, color, action?, onAction?) => ({
       label, text, action,
       onAction: onAction || (() => this.toast('Ação em construção.')),
-      style: `padding:12px;border-radius:9px;background:#FAFAFB;box-shadow:0 0 0 1px #EEEEF1`,
+      style: `padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px #EEEEF1`,
       dotStyle: `width:7px;height:7px;border-radius:50%;background:${color};flex:none`,
     });
     if (panel === 'prog') {

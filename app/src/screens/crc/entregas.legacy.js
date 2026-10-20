@@ -835,7 +835,7 @@ function renderCommittee(){
       <div class="meta-item"><label>Data de entrega</label><input type="date" value="${c.delivery||''}" onchange="updateCommDate(this.value)"></div>
       <div class="meta-item"><label>Início do projeto</label><input type="date" value="${c.start||''}" onchange="updateCommStart(this.value)"></div>
       <div class="meta-item"><label>Unidades</label><input type="number" value="${c.units||''}" onchange="updateCommUnits(this.value)" style="width:80px"></div>
-      <div class="meta-item"><label>Empresa (Sienge)</label><select id="commEmpresa" onchange="updateCommEmpresa(this.value)" style="padding:5px 9px;border:1px solid var(--border-strong);border-radius:var(--r);background:#fff;font-size:12.5px;max-width:320px"></select></div>
+      <div class="meta-item"><label>Empresa (Sienge)</label><select id="commEmpresa" onchange="updateCommEmpresa(this.value)" style="padding:5px 9px;border:1px solid var(--border-strong);border-radius:var(--r);background:var(--surface);font-size:12.5px;max-width:320px"></select></div>
       <div style="margin-left:auto;display:flex;gap:6px">
         <button class="btn secondary sm" onclick="openObraUpdate()">🏗️ Atualizar % obra</button>
         <button class="btn danger sm" onclick="deleteCommittee()">🗑️ Excluir projeto</button>
@@ -2995,7 +2995,7 @@ function buildReportHTML(c, opts, sel){
       });
 
       timelineTable = `
-        <div style="overflow-x:auto;background:#fff;border:1px solid #EEEEF1;border-radius:6px;padding:10px 0;margin-bottom:8px">
+        <div style="overflow-x:auto;background:var(--surface);border:1px solid #EEEEF1;border-radius:6px;padding:10px 0;margin-bottom:8px">
           <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" xmlns="http://www.w3.org/2000/svg" style="display:block;max-width:100%;height:auto">${grid}${marks}</svg>
         </div>
         <div style="display:flex;gap:16px;font-size:11px;color:#64748B;flex-wrap:wrap;margin-bottom:12px">
@@ -3077,7 +3077,7 @@ function buildReportHTML(c, opts, sel){
           <span style="display:inline-block;width:12px;height:12px;background:#facc15;border-radius:2px;vertical-align:middle;margin-right:4px"></span>com atraso
         </div>
       </div>
-      <svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:auto;display:block;border:1px solid #EEEEF1;border-radius:6px;background:#fff">${grid}${bars}</svg>
+      <svg viewBox="0 0 ${chartW} ${chartH}" style="width:100%;height:auto;display:block;border:1px solid #EEEEF1;border-radius:6px;background:var(--surface)">${grid}${bars}</svg>
     </section>`;
   }
 
@@ -3163,7 +3163,7 @@ body{font:13px/1.55 'Inter',-apple-system,sans-serif;color:#111827;margin:0;back
 .ck-v.ok{color:#43B997}.ck-v.warn{color:#F59E0B}.ck-v.danger{color:#EF4444}
 .cover-foot{position:absolute;bottom:40px;left:40px;font-size:12px;color:#c4c9d4}
 
-.page{background:#fff;padding:24px 32px;margin-bottom:16px;border-radius:8px;page-break-inside:avoid}
+.page{background:var(--surface);padding:24px 32px;margin-bottom:16px;border-radius:8px;page-break-inside:avoid}
 .page h2{font-size:20px;margin:0 0 16px;letter-spacing:-.015em;color:#111827;border-bottom:2px solid #43B997;padding-bottom:8px}
 .page h3{font-size:15px;margin:20px 0 8px;color:#344054}
 .kpi-strip{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
@@ -3180,7 +3180,7 @@ body{font:13px/1.55 'Inter',-apple-system,sans-serif;color:#111827;margin:0;back
 .block-hdr{border-bottom:2px solid #EEEEF1;padding-bottom:10px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
 .block-title-r{font-size:17px;font-weight:700;color:#111827;letter-spacing:-.01em}
 .block-meta{font-size:12px;color:#64748B}
-.act{padding:12px 14px;border:1px solid #EEEEF1;border-radius:6px;margin-bottom:10px;background:#fff;page-break-inside:avoid}
+.act{padding:12px 14px;border:1px solid #EEEEF1;border-radius:6px;margin-bottom:10px;background:var(--surface);page-break-inside:avoid}
 .act-hdr{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px;padding-bottom:6px;border-bottom:1px dashed #EEEEF1}
 .act-name{font-weight:600;font-size:13.5px;color:#111827}
 .act-badge{padding:3px 10px;border-radius:12px;font-size:11px;font-weight:700;white-space:nowrap}
@@ -4111,9 +4111,9 @@ function exportDashboard(){
   w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>${title}</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>${styles}
-    body{background:#fff;padding:24px;font-family:'Inter',sans-serif}
+    body{background:var(--surface);padding:24px;font-family:'Inter',sans-serif}
     .app,.sidebar,.header,.dash-toolbar,.chip-filter-bar,button{display:none!important}
-    .main{background:#fff}
+    .main{background:var(--surface)}
     .content{padding:0;max-width:100%}
     .dash-tabs,.dash-period-chips{display:none!important}
     .toolbar-print{position:sticky;top:0;background:#111827;color:#fff;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;z-index:10;margin:-24px -24px 20px}
@@ -4125,7 +4125,7 @@ function exportDashboard(){
       <b>Dashboard executivo · ${new Date().toLocaleDateString('pt-BR')}</b>
       <div><button class="sec" onclick="window.close()">Fechar</button><button onclick="window.print()">🖨️ Imprimir / Salvar PDF</button></div>
     </div>
-    <div class="crc-ent" style="display:block;background:#fff">${el.outerHTML}</div>
+    <div class="crc-ent" style="display:block;background:var(--surface)">${el.outerHTML}</div>
     </body></html>`);
   w.document.close();
 }
@@ -4229,7 +4229,7 @@ function generateEvolutionReport(){
     .hdr .k{background:rgba(255,255,255,.08);padding:12px;border-radius:6px}
     .hdr .k-l{font-size:10px;text-transform:uppercase;letter-spacing:.05em;color:#c4c9d4;font-weight:600}
     .hdr .k-v{font-size:22px;font-weight:800;margin-top:4px}
-    .evo-sec{background:#fff;padding:18px 22px;border-radius:8px;margin-bottom:14px;page-break-inside:avoid}
+    .evo-sec{background:var(--surface);padding:18px 22px;border-radius:8px;margin-bottom:14px;page-break-inside:avoid}
     .evo-sec h3{font-size:15px;margin:0 0 12px;color:#111827;border-bottom:2px solid #43B997;padding-bottom:6px;display:flex;justify-content:space-between;align-items:center}
     .evo-sec h3 .cnt{background:#E9F8F2;color:#1F7A5C;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700}
     .evo-tbl{width:100%;border-collapse:collapse;font-size:12px}

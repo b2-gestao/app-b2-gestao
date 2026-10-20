@@ -11,21 +11,21 @@ export default function PerfilModal({ v }: { v: any }) {
     <div style={css(v.perfilOverlayStyle)} onClick={v.closePerfilModal}>
       <div onClick={v.stopProp} style={css(v.perfilModalCardStyle)}>
         <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "14px", "padding": "20px 24px 16px", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
-          <div style={{ "width": "38px", "height": "38px", "flex": "none", "borderRadius": "11px", "background": "#F1E9FF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+          <div style={{ "width": "38px", "height": "38px", "flex": "none", "borderRadius": "11px", "background": "var(--tint-purple)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="8" r="3.4" stroke="#7C3AED" strokeWidth="1.6"></circle>
               <path d="M5 20c0-3.9 3.2-6.3 7-6.3s7 2.4 7 6.3" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round"></path>
             </svg>
           </div>
           <div style={{ "flex": "1", "minWidth": "0" }}>
-            <div style={{ "fontWeight": "700", "fontSize": "16.5px", "color": "#111827" }}>
+            <div style={{ "fontWeight": "700", "fontSize": "16.5px", "color": "var(--text)" }}>
               {v.perfilModalTitle}
             </div>
-            <div style={{ "fontSize": "12px", "color": "#64748B", "marginTop": "2px" }}>
+            <div style={{ "fontSize": "12px", "color": "var(--text-3)", "marginTop": "2px" }}>
               {v.perfilModalSub}
             </div>
           </div>
-          <button onClick={v.closePerfilModal} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid #EEEEF1", "background": "#FFFFFF", "color": "#64748B", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "background .15s,border-color .15s" }} className={hv("background:#F7F7F9;border-color:#D8D8E0", undefined, undefined)}>
+          <button onClick={v.closePerfilModal} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-3)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "background .15s,border-color .15s" }} className={hv("background:var(--surface-2);border-color:var(--border-strong)", undefined, undefined)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round"></path>
             </svg>
@@ -34,7 +34,7 @@ export default function PerfilModal({ v }: { v: any }) {
         <div style={{ "flex": "1", "overflowY": "auto", "padding": "20px 24px 22px", "display": "flex", "flexDirection": "column", "gap": "18px" }}>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(224px,1fr))", "gap": "14px" }}>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
+              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Nome do perfil{" "}
                 <span style={{ "color": "#EF4444" }}>
                   *
@@ -43,10 +43,10 @@ export default function PerfilModal({ v }: { v: any }) {
               <input value={v.pfName} onChange={v.onPfName} placeholder="Ex.: Analista financeiro" style={css(v.pfNameStyle)} />
             </label>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
+              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Situação
               </span>
-              <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FAFAFB" }}>
+              <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface-2)" }}>
                 <div onClick={v.togglePfActive} style={css(v.pfTrackStyle)}>
                   <span style={css(v.pfKnobStyle)}></span>
                 </div>
@@ -57,18 +57,18 @@ export default function PerfilModal({ v }: { v: any }) {
             </div>
           </div>
           <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-            <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
+            <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
               Descrição
             </span>
-            <textarea value={v.pfDesc} onChange={v.onPfDesc} placeholder="Ex.: Acesso ao módulo financeiro e submenus de caixa..." style={{ "minHeight": "64px", "padding": "10px 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "resize": "vertical", "transition": "border-color .15s,box-shadow .15s" }}></textarea>
+            <textarea value={v.pfDesc} onChange={v.onPfDesc} placeholder="Ex.: Acesso ao módulo financeiro e submenus de caixa..." style={{ "minHeight": "64px", "padding": "10px 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "resize": "vertical", "transition": "border-color .15s,box-shadow .15s" }}></textarea>
           </label>
           <div style={css(v.pickerOverlayStyle)} onClick={v.closePicker}></div>
           <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px", "position": "relative" }}>
-              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
+              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Empresas liberadas
               </span>
-              <span style={{ "fontSize": "11px", "color": "#94A3B8" }}>
+              <span style={{ "fontSize": "11px", "color": "var(--text-4)" }}>
                 {v.pfEmpCountLabel}
               </span>
               <button onClick={v.pPickEmp.toggle} style={css(v.pfEmpAddStyle)}>
@@ -82,10 +82,10 @@ export default function PerfilModal({ v }: { v: any }) {
               <div onClick={v.togglePfTodas} style={css(v.pfTodasTrackStyle)}>
                 <span style={css(v.pfTodasKnobStyle)}></span>
               </div>
-              <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#374151" }}>
+              <span style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Acesso a todas as empresas
               </span>
-              <span style={{ "marginLeft": "auto", "fontSize": "11.5px", "color": "#94A3B8" }}>
+              <span style={{ "marginLeft": "auto", "fontSize": "11.5px", "color": "var(--text-4)" }}>
                 {v.pfEmpHint}
               </span>
             </div>
@@ -93,8 +93,8 @@ export default function PerfilModal({ v }: { v: any }) {
               <>
                 <div style={css(v.pPickEmp.panelStyle)}>
                   <div style={{ "display": "flex", "gap": "8px" }}>
-                    <input value={v.pPickEmp.query} onChange={v.pPickEmp.onQuery} placeholder="Buscar por nome ou ID…" autoFocus={true} style={{ "flex": "1", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827" }} />
-                    <button onClick={v.pPickEmp.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
+                    <input value={v.pPickEmp.query} onChange={v.pPickEmp.onQuery} placeholder="Buscar por nome ou ID…" autoFocus={true} style={{ "flex": "1", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)" }} />
+                    <button onClick={v.pPickEmp.toggleAllVisible} style={{ "flex": "none", "height": "32px", "padding": "0 10px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "whiteSpace": "nowrap" }}>
                       {v.pPickEmp.allOnLabel}
                     </button>
                   </div>
@@ -143,15 +143,15 @@ export default function PerfilModal({ v }: { v: any }) {
           </div>
           <div style={{ "display": "flex", "flexDirection": "column", "gap": "9px", "paddingTop": "16px", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "10px" }}>
-              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#374151" }}>
+              <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-b)" }}>
                 Permissões por módulo
               </span>
-              <span style={{ "fontSize": "11px", "color": "#94A3B8" }}>
+              <span style={{ "fontSize": "11px", "color": "var(--text-4)" }}>
                 {v.permGrantedLabel}
               </span>
             </div>
-            <div style={{ "borderRadius": "9px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1", "overflow": "hidden" }}>
-              <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) 76px 76px", "gap": "8px", "alignItems": "center", "padding": "9px 14px", "background": "#F4F4F6", "fontSize": "10px", "letterSpacing": ".05em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+            <div style={{ "borderRadius": "9px", "background": "var(--surface-2)", "boxShadow": "0 0 0 1px #EEEEF1", "overflow": "hidden" }}>
+              <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) 76px 76px", "gap": "8px", "alignItems": "center", "padding": "9px 14px", "background": "var(--surface-3)", "fontSize": "10px", "letterSpacing": ".05em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 <div>
                   Módulo / submenu
                 </div>
@@ -166,14 +166,14 @@ export default function PerfilModal({ v }: { v: any }) {
                 <Fragment key={_i0}>
                   {row.isHeader ? (
                     <>
-                      <div style={{ "padding": "9px 14px 4px", "fontSize": "11.5px", "fontWeight": "700", "color": "#111827", "background": "#FAFAFB" }}>
+                      <div style={{ "padding": "9px 14px 4px", "fontSize": "11.5px", "fontWeight": "700", "color": "var(--text)", "background": "var(--surface-2)" }}>
                         {row.label}
                       </div>
                     </>
                   ) : null}
                   {row.indented ? (
                     <>
-                      <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) 76px 76px", "gap": "8px", "alignItems": "center", "padding": "6px 14px 6px 26px", "background": "#FFFFFF", "boxShadow": "inset 0 -1px 0 #F4F4F6" }}>
+                      <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) 76px 76px", "gap": "8px", "alignItems": "center", "padding": "6px 14px 6px 26px", "background": "var(--surface)", "boxShadow": "inset 0 -1px 0 #F4F4F6" }}>
                         <div style={css(row.labelStyle)}>
                           {row.label}
                         </div>
@@ -204,7 +204,7 @@ export default function PerfilModal({ v }: { v: any }) {
                   ) : null}
                   {row.isLeaf ? (
                     <>
-                      <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) 76px 76px", "gap": "8px", "alignItems": "center", "padding": "8px 14px", "background": "#FFFFFF", "boxShadow": "inset 0 -1px 0 #F4F4F6" }}>
+                      <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) 76px 76px", "gap": "8px", "alignItems": "center", "padding": "8px 14px", "background": "var(--surface)", "boxShadow": "inset 0 -1px 0 #F4F4F6" }}>
                         <div style={css(row.labelStyle)}>
                           {row.label}
                         </div>
@@ -245,15 +245,15 @@ export default function PerfilModal({ v }: { v: any }) {
             {v.perfilFormErr}
           </div>
         </div>
-        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap", "padding": "14px 24px", "background": "#FAFAFB", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
-          <button onClick={v.removePerfil} style={css(v.deletePerfilBtnStyle)} className={hv("background:#FEE9E9;border-color:#FCA5A5", undefined, undefined)}>
+        <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap", "padding": "14px 24px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
+          <button onClick={v.removePerfil} style={css(v.deletePerfilBtnStyle)} className={hv("background:var(--tint-red);border-color:#FCA5A5", undefined, undefined)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M5 7h14M9 7V4.8h6V7M6.5 7l.9 12.2h9.2L17.5 7" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
             </svg>
             Excluir
           </button>
           <div style={{ "marginLeft": "auto", "display": "flex", "alignItems": "center", "gap": "10px" }}>
-            <button onClick={v.closePerfilModal} style={{ "height": "38px", "padding": "0 16px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "background .15s,border-color .15s" }} className={hv("background:#F4F4F6;border-color:#D8D8E0", undefined, undefined)}>
+            <button onClick={v.closePerfilModal} style={{ "height": "38px", "padding": "0 16px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "background .15s,border-color .15s" }} className={hv("background:var(--surface-3);border-color:var(--border-strong)", undefined, undefined)}>
               Cancelar
             </button>
             <button onClick={v.savePerfil} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 18px", "border": "none", "borderRadius": "9px", "background": "#4161FF", "color": "#FFFFFF", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "boxShadow": "0 4px 14px rgba(65,97,255,.26)", "transition": "background .15s,transform .15s" }} className={hv("background:#3153F4", "transform:scale(.97)", undefined)}>

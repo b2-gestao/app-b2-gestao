@@ -14,10 +14,10 @@ export default function FluxoPage({ v }: { v: any }) {
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div style={{ "flex": "1 1 420px", "minWidth": "0" }}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
-                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                   Fluxo de caixa
                 </div>
-                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "#E1F7EF", "color": "#258B6C", "fontSize": "11.5px", "fontWeight": "600" }}>
+                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "var(--tint-green)", "color": "#258B6C", "fontSize": "11.5px", "fontWeight": "600" }}>
                   <span style={{ "width": "7px", "height": "7px", "borderRadius": "50%", "background": "#43B997", "animation": "blink 1.6s ease-in-out infinite" }}></span>
                   {v.syncLabel}
                 </span>
@@ -26,21 +26,21 @@ export default function FluxoPage({ v }: { v: any }) {
                   {v.fxSaldoLabel}
                 </span>
               </div>
-              <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "780px", "lineHeight": "1.5", "textWrap": "pretty" }}>
+              <div style={{ "fontSize": "12.5px", "color": "var(--text-3)", "marginTop": "4px", "maxWidth": "780px", "lineHeight": "1.5", "textWrap": "pretty" }}>
                 Fluxo diário por empresa:{" "}
-                <strong style={{ "color": "#374151" }}>
+                <strong style={{ "color": "var(--text-b)" }}>
                   Caixa inicial
                 </strong>
                 {" "}(saldos bancários) +{" "}
-                <strong style={{ "color": "#374151" }}>
+                <strong style={{ "color": "var(--text-b)" }}>
                   Receitas
                 </strong>
                 {" "}−{" "}
-                <strong style={{ "color": "#374151" }}>
+                <strong style={{ "color": "var(--text-b)" }}>
                   Pagamentos
                 </strong>
                 {" "}(parcelas a pagar) ±{" "}
-                <strong style={{ "color": "#374151" }}>
+                <strong style={{ "color": "var(--text-b)" }}>
                   Input
                 </strong>
                 {" "}(lançamentos manuais). Quando negativo, o sistema calcula o{" "}
@@ -51,13 +51,13 @@ export default function FluxoPage({ v }: { v: any }) {
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
-              <button onClick={v.openFxCfg} title="Configurações do fluxo · empresas sem recebíveis" aria-label="Configurações do fluxo de caixa" style={{ "width": "38px", "height": "38px", "flex": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.openFxCfg} title="Configurações do fluxo · empresas sem recebíveis" aria-label="Configurações do fluxo de caixa" style={{ "width": "38px", "height": "38px", "flex": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7"></circle>
                   <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </button>
-              <button onClick={v.fxExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.fxExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -94,24 +94,24 @@ export default function FluxoPage({ v }: { v: any }) {
               {v.iaFluxoBtnLabel}
             </button>
           </div>
-          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
+          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Período
               </span>
-              <div title={v.fxPeriodLabel} style={{ "display": "flex", "alignItems": "center", "gap": "6px", "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF" }}>
-                <input type="date" aria-label="Data inicial" value={v.fxDateFrom} onChange={v.onFxDateFrom} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
-                <span style={{ "color": "#94A3B8", "fontSize": "12px" }}>
+              <div title={v.fxPeriodLabel} style={{ "display": "flex", "alignItems": "center", "gap": "6px", "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)" }}>
+                <input type="date" aria-label="Data inicial" value={v.fxDateFrom} onChange={v.onFxDateFrom} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "var(--text)", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
+                <span style={{ "color": "var(--text-4)", "fontSize": "12px" }}>
                   a
                 </span>
-                <input type="date" aria-label="Data final" value={v.fxDateTo} min={v.fxDateFrom} onChange={v.onFxDateTo} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "#111827", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
+                <input type="date" aria-label="Data final" value={v.fxDateTo} min={v.fxDateFrom} onChange={v.onFxDateTo} style={{ "border": "none", "background": "transparent", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "color": "var(--text)", "cursor": "pointer", "fontVariantNumeric": "tabular-nums" }} />
               </div>
             </div>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Visão
               </span>
-              <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+              <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                 {(v.fxViewTabs || []).map((t: any, _i0: number) => (
                   <Fragment key={_i0}>
                     <button onClick={t.onClick} style={css(t.style)}>
@@ -122,7 +122,7 @@ export default function FluxoPage({ v }: { v: any }) {
               </div>
             </div>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 180px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Grupo
               </span>
               <button onClick={v.ddFxGrupo.toggle} style={css(v.ddFxGrupo.btnStyle)}>
@@ -138,7 +138,7 @@ export default function FluxoPage({ v }: { v: any }) {
                   <div style={css(v.ddFxGrupo.panelStyle)}>
                     {v.ddFxGrupo.hasSearch ? (
                       <>
-                        <input value={v.ddFxGrupo.query} onChange={v.ddFxGrupo.onQuery} onClick={v.stopProp} placeholder="Buscar grupo..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddFxGrupo.query} onChange={v.ddFxGrupo.onQuery} onClick={v.stopProp} placeholder="Buscar grupo..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <button onClick={v.ddFxGrupo.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
@@ -168,7 +168,7 @@ export default function FluxoPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 220px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Empresas
               </span>
               <button onClick={v.ddFxEmp.toggle} style={css(v.ddFxEmp.btnStyle)}>
@@ -184,7 +184,7 @@ export default function FluxoPage({ v }: { v: any }) {
                   <div style={css(v.ddFxEmp.panelStyle)}>
                     {v.ddFxEmp.hasSearch ? (
                       <>
-                        <input value={v.ddFxEmp.query} onChange={v.ddFxEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddFxEmp.query} onChange={v.ddFxEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <button onClick={v.ddFxEmp.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
@@ -225,7 +225,7 @@ export default function FluxoPage({ v }: { v: any }) {
                 <span style={css(v.fxAporteKnobStyle)}></span>
               </span>
               Aportes
-              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "#94A3B8", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
+              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "var(--text-4)", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
                 ?
               </span>
             </button>
@@ -235,25 +235,25 @@ export default function FluxoPage({ v }: { v: any }) {
             {(v.fxCards || []).map((c: any, _i0: number) => (
               <Fragment key={_i0}>
                 <div style={css(c.style)}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     {c.label}
                   </span>
                   <div style={css(c.valStyle)}>
                     {c.val}
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {c.sub}
                   </div>
                 </div>
               </Fragment>
             ))}
           </div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={css(v.fxTableStyle)}>
                 <div style={css(v.fxGridStyle)}>
                   <div style={{ "display": "flex", "flexDirection": "column" }}>
-                    <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       {v.fxScopeLabel}
                     </div>
                     <button onClick={v.fxCompactToggle} title="Mostrar só o aporte necessário de cada empresa" style={css(v.fxCompactStyle)} className={hv("border-color:#C4B5FD;color:#7C3AED", undefined, undefined)}>
@@ -266,10 +266,10 @@ export default function FluxoPage({ v }: { v: any }) {
                   {(v.fxDayHeaders || []).map((d: any, _i0: number) => (
                     <Fragment key={_i0}>
                       <div style={css(d.style)}>
-                        <div style={{ "fontSize": "11.5px", "fontWeight": "700", "color": "#111827" }}>
+                        <div style={{ "fontSize": "11.5px", "fontWeight": "700", "color": "var(--text)" }}>
                           {d.date}
                         </div>
-                        <div style={{ "fontSize": "10px", "color": "#94A3B8", "textTransform": "capitalize" }}>
+                        <div style={{ "fontSize": "10px", "color": "var(--text-4)", "textTransform": "capitalize" }}>
                           {d.dow}
                         </div>
                       </div>
@@ -283,10 +283,10 @@ export default function FluxoPage({ v }: { v: any }) {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={css(grp.chevStyle)}>
                           <path d="M9 6l6 6-6 6" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
                         </svg>
-                        <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "#EAF1FF", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
+                        <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "var(--tint-blue)", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
                           {grp.cd}
                         </span>
-                        <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {grp.name}
                         </span>
                         <span style={css(grp.tagStyle)}>
@@ -333,39 +333,39 @@ export default function FluxoPage({ v }: { v: any }) {
                     <circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" strokeWidth="1.8"></circle>
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
-                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
+                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "var(--text)" }}>
                     {v.fxEmptyTitle}
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {v.fxEmptySub}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div style={{ "fontSize": "12px", "color": "#94A3B8", "display": "flex", "alignItems": "center", "gap": "6px" }}>
+          <div style={{ "fontSize": "12px", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "gap": "6px" }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6"></circle>
               <path d="M12 11v5M12 8v.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
             </svg>
             Linha calculada pelo sistema. Aportes entre empresas se anulam no consolidado.
           </div>
-          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1" }}>
-            <div style={{ "fontSize": "11px", "fontWeight": "700", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "marginBottom": "8px" }}>
+          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "var(--surface-2)", "boxShadow": "0 0 0 1px #EEEEF1" }}>
+            <div style={{ "fontSize": "11px", "fontWeight": "700", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "marginBottom": "8px" }}>
               Regras de cálculo
             </div>
-            <ul style={{ "margin": "0", "paddingLeft": "18px", "display": "flex", "flexDirection": "column", "gap": "5px", "fontSize": "12px", "lineHeight": "1.5", "color": "#64748B" }}>
+            <ul style={{ "margin": "0", "paddingLeft": "18px", "display": "flex", "flexDirection": "column", "gap": "5px", "fontSize": "12px", "lineHeight": "1.5", "color": "var(--text-3)" }}>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Caixa inicial:</span> saldo das contas informado em Saldos bancários no dia do saldo (hoje, ou o início do período se for anterior). Período futuro é projetado a partir de hoje.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Caixa inicial:</span> saldo das contas informado em Saldos bancários no dia do saldo (hoje, ou o início do período se for anterior). Período futuro é projetado a partir de hoje.
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Receitas:</span> saldo corrigido das parcelas a receber, entrando no caixa em D+2 do vencimento. Ficam fora Bens, Permuta, Financiamento e as empresas com plano empresário (engrenagem).
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Receitas:</span> saldo corrigido das parcelas a receber, entrando no caixa em D+2 do vencimento. Ficam fora Bens, Permuta, Financiamento e as empresas com plano empresário (engrenagem).
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Dia do saldo:</span> na empresa com saldo informado, as receitas desse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma as receitas do dia.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Dia do saldo:</span> na empresa com saldo informado, as receitas desse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma as receitas do dia.
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Pagamentos e aportes:</span> títulos Sienge em aberto (valor líquido) e lançamentos manuais. Quando o saldo de uma SPE fica negativo, a holding envia o aporte; aportes entre empresas se anulam no consolidado.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Pagamentos e aportes:</span> títulos Sienge em aberto (valor líquido) e lançamentos manuais. Quando o saldo de uma SPE fica negativo, a holding envia o aporte; aportes entre empresas se anulam no consolidado.
               </li>
             </ul>
           </footer>

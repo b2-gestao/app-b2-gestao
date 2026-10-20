@@ -7,8 +7,8 @@ import { css, hv } from '../dc/runtime';
 // the card clips it, when the painel has "ocultar rodapé" on.
 const PBI_FOOTER = 56;
 
-const toolBtn = 'display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#374151;font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,transform .15s';
-const toolHover = 'background:#F4F4F6;border-color:#D8D8E0';
+const toolBtn = 'display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--text-b);font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;transition:background .15s,border-color .15s,transform .15s';
+const toolHover = 'background:var(--surface-3);border-color:var(--border-strong)';
 
 function BarsIcon({ size, color }: { size: number; color: string }) {
   return (
@@ -41,7 +41,7 @@ export default function BiPage({ v }: { v: any }) {
       <div style={css('display:flex;align-items:center;gap:16px;flex-wrap:wrap;opacity:0;animation:fadeInUp .45s ease-out both')}>
         <div style={{ flex: '1 1 320px', minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            <div style={{ fontWeight: 700, fontSize: '20px', color: '#111827', letterSpacing: '-.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            <div style={{ fontWeight: 700, fontSize: '20px', color: 'var(--text)', letterSpacing: '-.01em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {v.biTitle}
             </div>
             {p ? (
@@ -51,7 +51,7 @@ export default function BiPage({ v }: { v: any }) {
               </span>
             ) : null}
           </div>
-          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '4px' }}>{v.biCountLabel}</div>
+          <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '4px' }}>{v.biCountLabel}</div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
           {p ? (
@@ -87,7 +87,7 @@ export default function BiPage({ v }: { v: any }) {
         </div>
       </div>
 
-      <div ref={cardRef} style={css(`position:relative;flex:1 1 auto;min-height:480px;border-radius:${full ? 0 : 12}px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);overflow:hidden;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:.06s`)}>
+      <div ref={cardRef} style={css(`position:relative;flex:1 1 auto;min-height:480px;border-radius:${full ? 0 : 12}px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);overflow:hidden;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:.06s`)}>
         {p ? (
           <>
             <iframe
@@ -97,16 +97,16 @@ export default function BiPage({ v }: { v: any }) {
               onLoad={v.onBiLoad}
               allowFullScreen
               referrerPolicy="no-referrer"
-              style={css(`position:absolute;top:0;left:0;width:100%;height:${p.ocultar_rodape ? `calc(100% + ${PBI_FOOTER}px)` : '100%'};border:none;background:#FFFFFF;opacity:${v.biLoaded ? 1 : 0};transition:opacity .4s ease`)}
+              style={css(`position:absolute;top:0;left:0;width:100%;height:${p.ocultar_rodape ? `calc(100% + ${PBI_FOOTER}px)` : '100%'};border:none;background:var(--surface);opacity:${v.biLoaded ? 1 : 0};transition:opacity .4s ease`)}
             />
             {!v.biLoaded ? (
-              <div style={css('position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#FFFFFF')}>
-                <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: '#EAF1FF', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(65,97,255,.06)' }}>
+              <div style={css('position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--surface)')}>
+                <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(65,97,255,.06)' }}>
                   <BarsIcon size={22} color="#4161FF" />
                 </div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontWeight: 700, fontSize: '14px', color: '#111827' }}>Carregando painel</div>
-                  <div style={{ fontSize: '12px', color: '#64748B', marginTop: '3px' }}>{p.nome}</div>
+                  <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text)' }}>Carregando painel</div>
+                  <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '3px' }}>{p.nome}</div>
                 </div>
                 <div style={{ display: 'flex', gap: '6px' }}>
                   {[0, 1, 2].map(i => (
@@ -118,11 +118,11 @@ export default function BiPage({ v }: { v: any }) {
           </>
         ) : (
           <div style={css('position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:32px;text-align:center')}>
-            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: '#F4F4F6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <BarsIcon size={24} color="#94A3B8" />
+            <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: 'var(--surface-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BarsIcon size={24} color="var(--text-4)" />
             </div>
-            <div style={{ fontWeight: 700, fontSize: '15px', color: '#111827' }}>Nenhum painel disponível</div>
-            <div style={{ fontSize: '12.5px', color: '#64748B', maxWidth: '440px', lineHeight: 1.55 }}>
+            <div style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)' }}>Nenhum painel disponível</div>
+            <div style={{ fontSize: '12.5px', color: 'var(--text-3)', maxWidth: '440px', lineHeight: 1.55 }}>
               {v.canManageBi
                 ? 'Cadastre o link público de um relatório do Power BI (Arquivo › Inserir relatório › Publicar na Web). Cada painel vira um item do menu BI.'
                 : 'Nenhum painel de BI foi liberado para o seu perfil. Fale com o administrador do sistema.'}

@@ -13,10 +13,10 @@ export default function UsuariosPage({ v }: { v: any }) {
         <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "24px 32px 32px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div>
-              <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
+              <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                 Usuários cadastrados
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B", "marginTop": "3px" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)", "marginTop": "3px" }}>
                 {v.uCountLabel}
               </div>
             </div>
@@ -27,9 +27,9 @@ export default function UsuariosPage({ v }: { v: any }) {
               Novo usuário
             </button>
           </div>
-          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
+          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "1 1 250px", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Buscar
               </span>
               <span style={{ "position": "relative", "display": "flex", "alignItems": "center" }}>
@@ -37,11 +37,11 @@ export default function UsuariosPage({ v }: { v: any }) {
                   <circle cx="11" cy="11" r="6.5" stroke="#A8B0BD" strokeWidth="1.8"></circle>
                   <path d="M16 16l4.5 4.5" stroke="#A8B0BD" strokeWidth="1.8" strokeLinecap="round"></path>
                 </svg>
-                <input value={v.uSearch} onChange={v.onSearch} placeholder="Nome, e-mail ou telefone" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "transition": "border-color .15s,box-shadow .15s" }} />
+                <input value={v.uSearch} onChange={v.onSearch} placeholder="Nome, e-mail ou telefone" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "transition": "border-color .15s,box-shadow .15s" }} />
               </span>
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 178px", "position": "relative" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Função
               </span>
               <button onClick={v.ddRole.toggle} style={css(v.ddRole.btnStyle)}>
@@ -76,7 +76,7 @@ export default function UsuariosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 178px", "position": "relative" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Departamento
               </span>
               <button onClick={v.ddDept.toggle} style={css(v.ddDept.btnStyle)}>
@@ -111,7 +111,7 @@ export default function UsuariosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 190px", "position": "relative" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Empresa
               </span>
               <button onClick={v.ddEmp.toggle} style={css(v.ddEmp.btnStyle)}>
@@ -127,7 +127,7 @@ export default function UsuariosPage({ v }: { v: any }) {
                   <div style={css(v.ddEmp.panelStyle)}>
                     {v.ddEmp.hasSearch ? (
                       <>
-                        <input value={v.ddEmp.query} onChange={v.ddEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddEmp.query} onChange={v.ddEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <div style={css(v.ddEmp.noResultStyle)}>
@@ -154,10 +154,10 @@ export default function UsuariosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Situação
               </span>
-              <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+              <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                 {(v.statusTabs || []).map((t: any, _i0: number) => (
                   <Fragment key={_i0}>
                     <button onClick={t.onClick} style={css(t.style)}>
@@ -172,10 +172,10 @@ export default function UsuariosPage({ v }: { v: any }) {
             </button>
           </div>
           <div style={css(v.ddOverlayStyle)} onClick={v.closeDropdowns}></div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "110ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "110ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={{ "minWidth": "1080px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   <div>
                     Usuário
                   </div>
@@ -203,27 +203,27 @@ export default function UsuariosPage({ v }: { v: any }) {
                 </div>
                 {(v.uRows || []).map((u: any, _i0: number) => (
                   <Fragment key={_i0}>
-                    <div style={css(u.rowStyle)} className={hv("background:#FAFAFB", undefined, undefined)}>
+                    <div style={css(u.rowStyle)} className={hv("background:var(--surface-2)", undefined, undefined)}>
                       <div style={{ "display": "flex", "alignItems": "center", "gap": "11px", "minWidth": "0" }}>
                         <div style={css(u.avatarStyle)}>
                           {u.initials}
                         </div>
                         <div style={{ "minWidth": "0" }}>
-                          <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                          <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                             {u.name}
                           </div>
-                          <div style={{ "fontSize": "11.5px", "color": "#64748B", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                          <div style={{ "fontSize": "11.5px", "color": "var(--text-3)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                             {u.email}
                           </div>
                         </div>
                       </div>
-                      <div style={{ "fontSize": "12.5px", "color": "#374151", "fontVariantNumeric": "tabular-nums", "whiteSpace": "nowrap" }}>
+                      <div style={{ "fontSize": "12.5px", "color": "var(--text-b)", "fontVariantNumeric": "tabular-nums", "whiteSpace": "nowrap" }}>
                         {u.phone}
                       </div>
-                      <div style={{ "fontSize": "12.5px", "color": "#374151", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                      <div style={{ "fontSize": "12.5px", "color": "var(--text-b)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                         {u.role}
                       </div>
-                      <div style={{ "fontSize": "12.5px", "color": "#374151", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                      <div style={{ "fontSize": "12.5px", "color": "var(--text-b)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                         {u.dept}
                       </div>
                       <div style={{ "display": "flex", "justifyContent": "center" }}>
@@ -245,25 +245,25 @@ export default function UsuariosPage({ v }: { v: any }) {
                         </span>
                       </div>
                       <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "3px" }}>
-                        <button onClick={u.edit} title="Editar usuário" style={css(u.actEditStyle)} className={hv("border-color:#4161FF;background:#EAF1FF;color:#4161FF", undefined, undefined)}>
+                        <button onClick={u.edit} title="Editar usuário" style={css(u.actEditStyle)} className={hv("border-color:#4161FF;background:var(--tint-blue);color:#4161FF", undefined, undefined)}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
                             <path d="M14.5 5.5l4 4" stroke="currentColor" strokeWidth="1.6"></path>
                           </svg>
                         </button>
-                        <button onClick={u.sendDefine} title="Enviar link de definição de senha" style={css(u.actMailStyle)} className={hv("border-color:#43B997;background:#E1F7EF;color:#35AD88", undefined, undefined)}>
+                        <button onClick={u.sendDefine} title="Enviar link de definição de senha" style={css(u.actMailStyle)} className={hv("border-color:#43B997;background:var(--tint-green);color:#35AD88", undefined, undefined)}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <rect x="3" y="5.5" width="18" height="13" rx="2" stroke="currentColor" strokeWidth="1.6"></rect>
                             <path d="M3.8 7l8.2 5.6L20.2 7" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
                           </svg>
                         </button>
-                        <button onClick={u.sendReset} title="Enviar redefinição de senha" style={css(u.actResetStyle)} className={hv("border-color:#7C3AED;background:#F1E9FF;color:#7C3AED", undefined, undefined)}>
+                        <button onClick={u.sendReset} title="Enviar redefinição de senha" style={css(u.actResetStyle)} className={hv("border-color:#7C3AED;background:var(--tint-purple);color:#7C3AED", undefined, undefined)}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <path d="M20 11A8 8 0 105.5 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"></path>
                             <path d="M20 5v6h-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
                           </svg>
                         </button>
-                        <button onClick={u.toggle} title={u.toggleTitle} style={css(u.actPowerStyle)} className={hv("border-color:#EF4444;background:#FEE9E9;color:#EF4444", undefined, undefined)}>
+                        <button onClick={u.toggle} title={u.toggleTitle} style={css(u.actPowerStyle)} className={hv("border-color:#EF4444;background:var(--tint-red);color:#EF4444", undefined, undefined)}>
                           <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                             <path d="M12 3.5v7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
                             <path d="M7.4 6.6a6.6 6.6 0 109.2 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
@@ -278,17 +278,17 @@ export default function UsuariosPage({ v }: { v: any }) {
                     <circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" strokeWidth="1.8"></circle>
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
-                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
+                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "var(--text)" }}>
                     Nenhum usuário encontrado
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     Ajuste os filtros ou cadastre um novo usuário.
                   </div>
                 </div>
               </div>
             </div>
-            <div style={{ "display": "flex", "alignItems": "center", "gap": "12px", "flexWrap": "wrap", "padding": "12px 18px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "#FFFFFF" }}>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+            <div style={{ "display": "flex", "alignItems": "center", "gap": "12px", "flexWrap": "wrap", "padding": "12px 18px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "var(--surface)" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 {v.uRangeLabel}
               </div>
               <div style={{ "marginLeft": "auto", "display": "flex", "alignItems": "center", "gap": "5px" }}>

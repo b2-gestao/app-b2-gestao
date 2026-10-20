@@ -45,8 +45,8 @@ export function Secao({ titulo, sub, acoes, children, delay = 0 }: { titulo: str
     <section style={css(`${card};padding:18px 20px;display:flex;flex-direction:column;gap:14px;${anim(delay)}`)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
         <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: '14.5px', color: '#111827' }}>{titulo}</div>
-          {sub ? <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>{sub}</div> : null}
+          <div style={{ fontWeight: 700, fontSize: '14.5px', color: 'var(--text)' }}>{titulo}</div>
+          {sub ? <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '2px' }}>{sub}</div> : null}
         </div>
         {acoes ? <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>{acoes}</div> : null}
       </div>
@@ -60,16 +60,16 @@ export function Campo({ rotulo, dica, largura = 1, children }: { rotulo: string;
     <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', gridColumn: `span ${largura}`, minWidth: 0 }}>
       <span style={colHead}>{rotulo}</span>
       {children}
-      {dica ? <span style={{ fontSize: '11.5px', color: '#94A3B8', lineHeight: 1.4 }}>{dica}</span> : null}
+      {dica ? <span style={{ fontSize: '11.5px', color: 'var(--text-4)', lineHeight: 1.4 }}>{dica}</span> : null}
     </label>
   );
 }
 
 export function Leitura({ valor, detalhe }: { valor: string; detalhe?: string }) {
   return (
-    <div style={{ minHeight: '38px', padding: '8px 12px', borderRadius: '8px', background: '#FAFAFB', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '13px', color: '#111827', fontWeight: 500 }}>
+    <div style={{ minHeight: '38px', padding: '8px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>
       <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={valor}>{valor}</div>
-      {detalhe ? <div style={{ fontSize: '11.5px', color: '#94A3B8', marginTop: '1px' }}>{detalhe}</div> : null}
+      {detalhe ? <div style={{ fontSize: '11.5px', color: 'var(--text-4)', marginTop: '1px' }}>{detalhe}</div> : null}
     </div>
   );
 }
@@ -88,10 +88,10 @@ export function Resumo({ itens }: { itens: [string, string, string?][] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: '10px' }}>
       {itens.map(([rot, val, det]) => (
-        <div key={rot} style={{ padding: '10px 12px', borderRadius: '9px', background: '#FAFAFB', boxShadow: 'inset 0 0 0 1px #EEEEF1', minWidth: 0 }}>
+        <div key={rot} style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', minWidth: 0 }}>
           <div style={colHead}>{rot}</div>
-          <div style={{ fontSize: '13px', fontWeight: 600, color: '#111827', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={val}>{val}</div>
-          {det ? <div style={{ fontSize: '11.5px', color: '#94A3B8', marginTop: '1px' }}>{det}</div> : null}
+          <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={val}>{val}</div>
+          {det ? <div style={{ fontSize: '11.5px', color: 'var(--text-4)', marginTop: '1px' }}>{det}</div> : null}
         </div>
       ))}
     </div>
@@ -186,24 +186,24 @@ export function Sugestoes({ value, onChange, opcoes, ariaLabel, placeholder, inp
         onFocus={() => setAberto(true)} onClick={() => setAberto(true)}
         onBlur={() => { setAberto(false); setBusca(null); }} onKeyDown={aoTeclar} inputMode={inputMode} maxLength={maxLength} placeholder={placeholder}
         disabled={disabled} aria-label={ariaLabel} aria-invalid={invalido || undefined} aria-expanded={aberto} role="combobox" aria-autocomplete="list" autoComplete="off"
-        style={css(input + `;height:${altura}px;${disabled ? 'background:#FAFAFB;cursor:not-allowed;' : ''}${estilo}`)} />
+        style={css(input + `;height:${altura}px;${disabled ? 'background:var(--surface-2);cursor:not-allowed;' : ''}${estilo}`)} />
       {aberto && pos && filtradas.length && typeof document !== 'undefined' ? createPortal(
         <div data-sugestoes style={css(`position:fixed;z-index:200;left:${pos.left}px;width:${pos.width}px;${pos.top != null ? `top:${pos.top}px` : `bottom:${pos.bottom}px`};padding:1px;border-radius:12px;background:linear-gradient(135deg,rgba(65,97,255,.55),rgba(67,185,151,.4) 55%,rgba(65,97,255,.12));box-shadow:0 18px 40px -12px rgba(15,23,42,.28),0 4px 12px rgba(15,23,42,.08);animation:sugIn .14s ease-out both`)}
           onMouseDown={e => e.preventDefault()}>
           <style>{'@keyframes sugIn{from{opacity:0;transform:translateY(-4px) scale(.985)}to{opacity:1;transform:none}}'}</style>
-          <div role="listbox" style={{ maxHeight: `${Math.max(140, pos.max)}px`, overflowY: 'auto', borderRadius: '11px', background: '#FFFFFF', padding: '5px' }}>
+          <div role="listbox" style={{ maxHeight: `${Math.max(140, pos.max)}px`, overflowY: 'auto', borderRadius: '11px', background: 'var(--surface)', padding: '5px' }}>
             {filtradas.map((o, i) => (
               <div key={o.value} role="option" aria-selected={i === ativo} data-ativo={i === ativo ? 1 : 0} onClick={() => escolher(o)} onMouseEnter={() => setAtivo(i)}
                 style={css(`display:flex;align-items:baseline;gap:10px;padding:7px 10px;border-radius:7px;cursor:pointer;background:${i === ativo ? '#F2F5FF' : 'transparent'};transition:background .1s`)}>
                 {porNome && o.label ? (
                   <>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : '#111827', minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span>
-                    <span style={{ fontSize: '11.5px', color: '#94A3B8', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : 'var(--text)', minWidth: 0, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span>
+                    <span style={{ fontSize: '11.5px', color: 'var(--text-4)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
                   </>
                 ) : (
                   <>
-                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : '#111827', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
-                    {o.label ? <span style={{ fontSize: '12px', color: '#64748B', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span> : null}
+                    <span style={{ fontSize: '12.5px', fontWeight: 600, color: i === ativo ? '#3148B8' : 'var(--text)', fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{o.value}</span>
+                    {o.label ? <span style={{ fontSize: '12px', color: 'var(--text-3)', minWidth: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={o.label}>{o.label}</span> : null}
                   </>
                 )}
               </div>
@@ -220,12 +220,12 @@ export function LinhaAnexo({ descricao, onDescricao, sugestoes, max, nome, detal
   const vazio = !descricao.trim();
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '120px minmax(0,1fr) 80px', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: principal ? 'none' : 'inset 0 1px 0 #F4F4F6' }}>
-      <Sugestoes value={descricao} onChange={onDescricao} opcoes={sugestoes} maxLength={max} placeholder="Descrição *" ariaLabel="Descrição do anexo" invalido={vazio} altura={32} estilo={`font-weight:600;border-color:${vazio ? '#FCA5A5' : '#E7E7EA'}`} />
+      <Sugestoes value={descricao} onChange={onDescricao} opcoes={sugestoes} maxLength={max} placeholder="Descrição *" ariaLabel="Descrição do anexo" invalido={vazio} altura={32} estilo={`font-weight:600;border-color:${vazio ? '#FCA5A5' : 'var(--border)'}`} />
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-        <DocIcon size={16} color={principal ? '#14B8A6' : '#94A3B8'} />
+        <DocIcon size={16} color={principal ? '#14B8A6' : 'var(--text-4)'} />
         <div style={{ minWidth: 0 }}>
-          <div style={{ fontSize: '12.5px', fontWeight: 600, color: '#111827', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={nome}>{nome}</div>
-          <div style={{ fontSize: '11px', color: '#94A3B8' }}>{detalhe}</div>
+          <div style={{ fontSize: '12.5px', fontWeight: 600, color: 'var(--text)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={nome}>{nome}</div>
+          <div style={{ fontSize: '11px', color: 'var(--text-4)' }}>{detalhe}</div>
         </div>
       </div>
       <div style={{ textAlign: 'right' }}>
@@ -246,10 +246,10 @@ export function EmpresaModal({ m, sub }: { m: any; sub: string }) {
   return (
     <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Informar empresa" onClick={e => e.stopPropagation()}
-        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
-          <div style={{ fontWeight: 700, fontSize: '15.5px', color: '#111827' }}>Informar empresa</div>
-          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px' }}>{sub}</div>
+          <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Informar empresa</div>
+          <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>{sub}</div>
         </div>
         <form onSubmit={e => { e.preventDefault(); if (!bloqueado) m.confirmar(); }} style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           <Campo rotulo="Código da empresa">
@@ -274,8 +274,8 @@ export function ChamadoConferencia({ c }: { c: any }) {
     <>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 14px', borderRadius: '10px', background: '#F7F8FF', boxShadow: 'inset 0 0 0 1px #E4E9FF' }}>
         <div style={{ flex: '1 1 240px', minWidth: 0 }}>
-          <div style={{ fontWeight: 700, fontSize: '13px', color: '#111827' }}>Conferência do título na contabilidade</div>
-          <div style={{ fontSize: '12px', color: '#64748B', marginTop: '2px' }}>
+          <div style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text)' }}>Conferência do título na contabilidade</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-3)', marginTop: '2px' }}>
             {c.criado
               ? `Chamado aberto no TomTicket${c.protocolo ? ` (${c.protocolo})` : ''} no seu nome.`
               : `Abra no TomTicket o chamado de conferência do título ${c.titulo}, já preenchido.`}
@@ -305,14 +305,14 @@ function ChamadoModal({ c }: { c: any }) {
   return (
     <div onClick={c.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Criar chamado de conferência" onClick={e => e.stopPropagation()}
-        style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
-          <div style={{ fontWeight: 700, fontSize: '15.5px', color: '#111827' }}>Criar chamado de conferência</div>
-          <div style={{ fontSize: '12.5px', color: '#64748B', marginTop: '3px' }}>Confira os dados e abra o chamado no TomTicket, no seu nome.</div>
+          <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Criar chamado de conferência</div>
+          <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>Confira os dados e abra o chamado no TomTicket, no seu nome.</div>
         </div>
         <div style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '14px', overflowY: 'auto' }}>
           {c.carregando ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '24px 0', justifyContent: 'center', fontSize: '13px', color: '#64748B' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '24px 0', justifyContent: 'center', fontSize: '13px', color: 'var(--text-3)' }}>
               <Spinner color="#4161FF" /> Buscando departamento e categorias no TomTicket…
             </div>
           ) : null}

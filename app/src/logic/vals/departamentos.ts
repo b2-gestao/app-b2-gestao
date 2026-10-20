@@ -20,7 +20,7 @@ export function deptsVals(this: AppLogic) {
   const write = (fn: () => Promise<unknown>, okMsg: string, onError?: (m: string) => void) =>
     this.cadastroAcao(fn, okMsg, async () => { await this.loadCadastros(); await this.loadUsuarios(); }, onError);
 
-  const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid #EEEEF1;background:#FFFFFF;color:#94A3B8;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
+  const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid var(--border-soft);background:var(--surface);color:var(--text-4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
 
   const dRows = filtered.map((d, i) => {
     const userCount = users.filter(u => u.dept === d.name && u.status !== 'inativo').length;
@@ -29,13 +29,13 @@ export function deptsVals(this: AppLogic) {
       desc: d.desc || '—',
       userCount,
       rowStyle: `display:grid;grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 120px 116px 96px;gap:12px;align-items:center;padding:13px 18px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
-      iconStyle: 'width:34px;height:34px;flex:none;border-radius:9px;background:#E1F7EF;display:flex;align-items:center;justify-content:center',
-      countChipStyle: `display:inline-flex;min-width:24px;height:22px;padding:0 7px;border-radius:20px;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;background:${userCount ? '#EAF1FF' : '#F1F1F3'};color:${userCount ? '#4161FF' : '#94A3B8'}`,
-      statusStyle: `font-size:12px;font-weight:600;color:${d.active ? '#35AD88' : '#64748B'}`,
+      iconStyle: 'width:34px;height:34px;flex:none;border-radius:9px;background:var(--tint-green);display:flex;align-items:center;justify-content:center',
+      countChipStyle: `display:inline-flex;min-width:24px;height:22px;padding:0 7px;border-radius:20px;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;background:${userCount ? 'var(--tint-blue)' : 'var(--surface-3)'};color:${userCount ? '#4161FF' : 'var(--text-4)'}`,
+      statusStyle: `font-size:12px;font-weight:600;color:${d.active ? '#35AD88' : 'var(--text-3)'}`,
       statusLabel: d.active ? 'Ativo' : 'Inativo',
       toggleTitle: d.active ? 'Inativar departamento' : 'Reativar departamento',
       trackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${d.active ? '#43B997' : '#D8D8E0'}`,
-      knobStyle: `position:absolute;top:2.5px;left:${d.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+      knobStyle: `position:absolute;top:2.5px;left:${d.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
       toggle: () => {
         if (this.live) {
           if (this.podeEditar(perm)) write(() => cadastrosApi.salvarDepartamento(d.id, { nome: d.name, descricao: d.desc || null, ativo: !d.active }), d.active ? `${d.name} foi inativado.` : `${d.name} foi reativado.`);
@@ -61,9 +61,9 @@ export function deptsVals(this: AppLogic) {
     dStatusTabs: ['Todos', 'Ativos', 'Inativos'].map(t => ({
       label: t,
       onClick: () => this.setState({ dStatus: t }),
-      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.dStatus === t ? '#111827' : 'transparent'};color:${s.dStatus === t ? '#FFFFFF' : '#64748B'}`,
+      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.dStatus === t ? '#111827' : 'transparent'};color:${s.dStatus === t ? '#FFFFFF' : 'var(--text-3)'}`,
     })),
-    clearDeptFiltersStyle: `display:${(q || s.dStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid #E7E7EA;background:#FFFFFF;color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
+    clearDeptFiltersStyle: `display:${(q || s.dStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
     clearDeptFilters: () => this.setState({ dSearch: '', dStatus: 'Todos' }),
 
     dRows,
@@ -73,7 +73,7 @@ export function deptsVals(this: AppLogic) {
       : 'Nenhum registro para exibir',
 
     deptOverlayStyle: `display:${s.deptModalOpen ? 'flex' : 'none'};position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both`,
-    deptModalCardStyle: 'width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:#FFFFFF;box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
+    deptModalCardStyle: 'width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
     closeDeptModal: () => this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null, deptFormErr: '' }),
     openNewDept: () => this.setState({ deptModalOpen: true, editingDeptId: null, dForm: this.emptyDeptForm(), deptFormErr: '' }),
     deptModalTitle: editing ? 'Editar departamento' : 'Novo departamento',
@@ -81,18 +81,18 @@ export function deptsVals(this: AppLogic) {
     saveDeptLabel: s.dSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar departamento',
 
     dfName: form.name, dfDesc: form.desc,
-    dfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : '#E7E7EA'};background:#FFFFFF;font-size:13px;font-family:inherit;color:#111827;transition:border-color .15s,box-shadow .15s`,
+    dfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`,
     onDfName: e => this.patchDeptForm({ name: e.target.value }),
     onDfDesc: e => this.patchDeptForm({ desc: e.target.value }),
     dfTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : '#D8D8E0'}`,
-    dfKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:#FFFFFF;transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
+    dfKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     dfActiveLabel: form.active ? 'Ativo' : 'Inativo',
-    dfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : '#64748B'}`,
+    dfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : 'var(--text-3)'}`,
     toggleDfActive: () => this.patchDeptForm({ active: !form.active }),
 
     deptFormErr: s.deptFormErr,
-    deptFormErrStyle: `display:${s.deptFormErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:#FEE9E9;border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
-    deleteDeptBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid #E7E7EA;background:#FFFFFF;color:#DC2626;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s`,
+    deptFormErrStyle: `display:${s.deptFormErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
+    deleteDeptBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:#DC2626;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s`,
     removeDept: () => {
       const id = s.editingDeptId;
       const target = all.find(x => x.id === id);

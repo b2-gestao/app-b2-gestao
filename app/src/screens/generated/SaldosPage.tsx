@@ -14,26 +14,26 @@ export default function SaldosPage({ v }: { v: any }) {
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div style={{ "flex": "1 1 420px", "minWidth": "0" }}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
-                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                   Saldo inicial do dia
                 </div>
-                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "#E1F7EF", "color": "#258B6C", "fontSize": "11.5px", "fontWeight": "600" }}>
+                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "var(--tint-green)", "color": "#258B6C", "fontSize": "11.5px", "fontWeight": "600" }}>
                   <span style={{ "width": "7px", "height": "7px", "borderRadius": "50%", "background": "#43B997", "animation": "blink 1.6s ease-in-out infinite" }}></span>
                   {v.sbSyncLabel}
                 </span>
               </div>
-              <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
+              <div style={{ "fontSize": "12.5px", "color": "var(--text-3)", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
                 Saldo inicial do dia por empresa e conta corrente. Vem da API de conta corrente quando a conta está integrada; as demais são informadas à mão ou por planilha-modelo.
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
-              <button onClick={v.sbDownload} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.sbDownload} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
                 Baixar modelo
               </button>
-              <label style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <label style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M12 16V5M7.5 9.5L12 5l4.5 4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -49,100 +49,100 @@ export default function SaldosPage({ v }: { v: any }) {
             </div>
           </div>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(auto-fit,minmax(220px,1fr))", "gap": "12px" }}>
-            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "50ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #DCE6FF,0 12px 26px rgba(65,97,255,.12)", undefined, undefined)}>
+            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "50ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #DCE6FF,0 12px 26px rgba(65,97,255,.12)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#EAF1FF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-blue)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M3 9.5L12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3.5 20h17" stroke="#4161FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Saldo total disponível
                 </span>
               </div>
-              <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "#111827", "letterSpacing": "-.015em", "fontVariantNumeric": "tabular-nums" }}>
+              <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "var(--text)", "letterSpacing": "-.015em", "fontVariantNumeric": "tabular-nums" }}>
                 {v.sbTotalFmt}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                 {v.sbTotalSub}
               </div>
             </div>
-            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "100ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #C7EEE0,0 12px 26px rgba(67,185,151,.14)", undefined, undefined)}>
+            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "100ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #C7EEE0,0 12px 26px rgba(67,185,151,.14)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#E1F7EF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <rect x="3" y="5" width="18" height="14" rx="2" stroke="#35AD88" strokeWidth="1.6"></rect>
                     <path d="M3 10h18M7 15h4" stroke="#35AD88" strokeWidth="1.6" strokeLinecap="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Total de contas
                 </span>
               </div>
               <div style={{ "display": "flex", "alignItems": "baseline", "gap": "8px" }}>
-                <span style={{ "fontSize": "23px", "fontWeight": "700", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+                <span style={{ "fontSize": "23px", "fontWeight": "700", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                   {v.sbAcctCount}
                 </span>
-                <span style={{ "fontSize": "12px", "color": "#64748B" }}>
+                <span style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                   {v.sbEmpCountLabel}
                 </span>
               </div>
               <div style={{ "display": "flex", "flexDirection": "column", "gap": "5px" }}>
-                <div style={{ "height": "5px", "borderRadius": "4px", "background": "#F1F1F4", "overflow": "hidden" }}>
+                <div style={{ "height": "5px", "borderRadius": "4px", "background": "var(--surface-3)", "overflow": "hidden" }}>
                   <div style={css(v.sbCoverageBar)}></div>
                 </div>
-                <div style={{ "fontSize": "11.5px", "color": "#64748B" }}>
+                <div style={{ "fontSize": "11.5px", "color": "var(--text-3)" }}>
                   {v.sbCoverageLabel}
                 </div>
               </div>
             </div>
-            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "150ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #E4D6FF,0 12px 26px rgba(124,58,237,.12)", undefined, undefined)}>
+            <div style={{ "display": "flex", "flexDirection": "column", "gap": "8px", "padding": "16px 18px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "150ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #E4D6FF,0 12px 26px rgba(124,58,237,.12)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#F1E9FF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-purple)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M4 19V11M10 19V6M16 19v-5M21 19H3" stroke="#7C3AED" strokeWidth="1.6" strokeLinecap="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Empresa com maior saldo
                 </span>
               </div>
-              <div style={{ "fontSize": "16px", "fontWeight": "700", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "lineHeight": "28px" }}>
+              <div style={{ "fontSize": "16px", "fontWeight": "700", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "lineHeight": "28px" }}>
                 {v.sbTopEmp}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B", "fontVariantNumeric": "tabular-nums" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)", "fontVariantNumeric": "tabular-nums" }}>
                 {v.sbTopEmpSub}
               </div>
             </div>
             <div style={css(v.sbMissingCardStyle)} onClick={v.sbFilterMissing} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px #FCD9A8,0 12px 26px rgba(217,119,6,.14)", undefined, undefined)}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
-                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "#FFF0DD", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "28px", "height": "28px", "borderRadius": "8px", "background": "var(--tint-amber)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                     <path d="M12 4l9 16H3z" stroke="#D97706" strokeWidth="1.6" strokeLinejoin="round"></path>
                     <path d="M12 10v4.5M12 17.2v.1" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
                 </span>
-                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   Sem saldo do dia
                 </span>
               </div>
               <div style={{ "fontSize": "23px", "fontWeight": "700", "color": "#D97706", "fontVariantNumeric": "tabular-nums" }}>
                 {v.sbMissingCount}
               </div>
-              <div style={{ "fontSize": "12px", "color": "#64748B", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+              <div style={{ "fontSize": "12px", "color": "var(--text-3)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                 {v.sbMissingSub}
               </div>
             </div>
           </div>
-          <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "200ms" }}>
+          <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "200ms" }}>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 0 158px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Data do saldo
               </span>
-              <input type="date" value={v.sbDate} onChange={v.onSbDate} style={{ "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "transition": "border-color .15s,box-shadow .15s" }} />
+              <input type="date" value={v.sbDate} onChange={v.onSbDate} style={{ "height": "36px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "transition": "border-color .15s,box-shadow .15s" }} />
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 230px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Empresa
               </span>
               <button onClick={v.ddSbEmp.toggle} style={css(v.ddSbEmp.btnStyle)}>
@@ -158,7 +158,7 @@ export default function SaldosPage({ v }: { v: any }) {
                   <div style={css(v.ddSbEmp.panelStyle)}>
                     {v.ddSbEmp.hasSearch ? (
                       <>
-                        <input value={v.ddSbEmp.query} onChange={v.ddSbEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddSbEmp.query} onChange={v.ddSbEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <div style={css(v.ddSbEmp.noResultStyle)}>
@@ -185,7 +185,7 @@ export default function SaldosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 170px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Banco
               </span>
               <button onClick={v.ddSbBank.toggle} style={css(v.ddSbBank.btnStyle)}>
@@ -220,7 +220,7 @@ export default function SaldosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 190px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Status
               </span>
               <button onClick={v.ddSbStatus.toggle} style={css(v.ddSbStatus.btnStyle)}>
@@ -255,7 +255,7 @@ export default function SaldosPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "1 1 220px", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Buscar
               </span>
               <span style={{ "position": "relative", "display": "flex", "alignItems": "center" }}>
@@ -263,14 +263,14 @@ export default function SaldosPage({ v }: { v: any }) {
                   <circle cx="11" cy="11" r="6.5" stroke="#A8B0BD" strokeWidth="1.8"></circle>
                   <path d="M16 16l4.5 4.5" stroke="#A8B0BD" strokeWidth="1.8" strokeLinecap="round"></path>
                 </svg>
-                <input value={v.sbSearch} onChange={v.onSbSearch} placeholder="Conta, CD ou empresa" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "transition": "border-color .15s,box-shadow .15s" }} />
+                <input value={v.sbSearch} onChange={v.onSbSearch} placeholder="Conta, CD ou empresa" style={{ "width": "100%", "height": "36px", "padding": "0 12px 0 33px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "transition": "border-color .15s,box-shadow .15s" }} />
               </span>
             </label>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Agrupar
               </span>
-              <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px" }}>
+              <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px" }}>
                 {(v.sbGroupTabs || []).map((t: any, _i0: number) => (
                   <Fragment key={_i0}>
                     <button onClick={t.onClick} style={css(t.style)}>
@@ -285,10 +285,10 @@ export default function SaldosPage({ v }: { v: any }) {
             </button>
           </div>
           <div style={css(v.finPageOverlayStyle)} onClick={v.closeDropdowns}></div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={{ "minWidth": "1020px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "60px minmax(250px,1fr) 118px 160px 104px 176px 68px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "60px minmax(250px,1fr) 118px 160px 104px 176px 68px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   <div>
                     CD
                   </div>
@@ -320,15 +320,15 @@ export default function SaldosPage({ v }: { v: any }) {
                             {r.cd}
                           </div>
                           <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "minWidth": "0" }}>
-                            <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                            <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                               {r.emp}
                             </span>
-                            <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#64748B", "background": "#FFFFFF", "border": "1px solid #EEEEF1", "borderRadius": "20px", "padding": "1px 8px", "whiteSpace": "nowrap" }}>
+                            <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "var(--text-3)", "background": "var(--surface)", "border": "1px solid var(--border-soft)", "borderRadius": "20px", "padding": "1px 8px", "whiteSpace": "nowrap" }}>
                               {r.countLabel}
                             </span>
                           </div>
                           <div></div>
-                          <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+                          <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                             {r.subtotal}
                           </div>
                           <div></div>
@@ -344,7 +344,7 @@ export default function SaldosPage({ v }: { v: any }) {
                     {r.isAcct ? (
                       <>
                         <div style={css(r.rowStyle)} className={hv(r.hoverStyle, undefined, undefined)}>
-                          <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+                          <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                             {r.cdLabel}
                           </div>
                           <div style={{ "display": "flex", "alignItems": "center", "gap": "11px", "minWidth": "0" }}>
@@ -352,10 +352,10 @@ export default function SaldosPage({ v }: { v: any }) {
                               {r.bankShort}
                             </div>
                             <div style={{ "minWidth": "0" }}>
-                              <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                              <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                                 {r.emp}
                               </div>
-                              <div style={{ "fontSize": "11.5px", "color": "#64748B", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "fontVariantNumeric": "tabular-nums" }}>
+                              <div style={{ "fontSize": "11.5px", "color": "var(--text-3)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis", "fontVariantNumeric": "tabular-nums" }}>
                                 {r.sub}
                               </div>
                             </div>
@@ -382,7 +382,7 @@ export default function SaldosPage({ v }: { v: any }) {
                             ) : null}
                             {r.missing ? (
                               <>
-                                <button onClick={r.inform} style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "space-between", "gap": "8px", "width": "146px", "height": "32px", "padding": "0 10px", "borderRadius": "8px", "border": "1px dashed #F0B465", "background": "#FFF7EB", "color": "#B45309", "fontSize": "12px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "background .15s,border-color .15s,transform .15s" }} className={hv("background:#FFF0DD;border-color:#D97706;border-style:solid", "transform:scale(.97)", undefined)}>
+                                <button onClick={r.inform} style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "space-between", "gap": "8px", "width": "146px", "height": "32px", "padding": "0 10px", "borderRadius": "8px", "border": "1px dashed #F0B465", "background": "#FFF7EB", "color": "#B45309", "fontSize": "12px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "background .15s,border-color .15s,transform .15s" }} className={hv("background:var(--tint-amber);border-color:#D97706;border-style:solid", "transform:scale(.97)", undefined)}>
                                   Informar saldo
                                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                                     <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2.1" strokeLinecap="round"></path>
@@ -391,7 +391,7 @@ export default function SaldosPage({ v }: { v: any }) {
                               </>
                             ) : null}
                           </div>
-                          <div style={{ "fontSize": "12px", "color": "#64748B", "fontVariantNumeric": "tabular-nums", "whiteSpace": "nowrap" }}>
+                          <div style={{ "fontSize": "12px", "color": "var(--text-3)", "fontVariantNumeric": "tabular-nums", "whiteSpace": "nowrap" }}>
                             {r.upd}
                           </div>
                           <div>
@@ -401,18 +401,18 @@ export default function SaldosPage({ v }: { v: any }) {
                             </span>
                           </div>
                           <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "3px" }}>
-                            <button onClick={r.edit} title="Informar / editar saldo" style={css(r.actStyle)} className={hv("border-color:#4161FF;background:#EAF1FF;color:#4161FF", undefined, undefined)}>
+                            <button onClick={r.edit} title="Informar / editar saldo" style={css(r.actStyle)} className={hv("border-color:#4161FF;background:var(--tint-blue);color:#4161FF", undefined, undefined)}>
                               <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                                 <path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
                                 <path d="M14.5 5.5l4 4" stroke="currentColor" strokeWidth="1.6"></path>
                               </svg>
                             </button>
-                            <button onClick={r.remove} title="Remover da listagem" style={css(r.removeStyle)} className={hv("border-color:#EF4444;background:#FEE9E9;color:#EF4444", undefined, undefined)}>
+                            <button onClick={r.remove} title="Remover da listagem" style={css(r.removeStyle)} className={hv("border-color:#EF4444;background:var(--tint-red);color:#EF4444", undefined, undefined)}>
                               <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                                 <path d="M5 7h14M10 7V5h4v2M7 7l1 12h8l1-12M10.5 11v5M13.5 11v5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
                               </svg>
                             </button>
-                            <button onClick={r.sync} title="Sincronizar com o Sienge" style={css(r.syncBtnStyle)} className={hv("border-color:#43B997;background:#E1F7EF;color:#35AD88", undefined, undefined)}>
+                            <button onClick={r.sync} title="Sincronizar com o Sienge" style={css(r.syncBtnStyle)} className={hv("border-color:#43B997;background:var(--tint-green);color:#35AD88", undefined, undefined)}>
                               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={css(r.syncIconStyle)}>
                                 <path d="M20 11A8 8 0 105.5 16" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"></path>
                                 <path d="M20 5v6h-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -429,22 +429,22 @@ export default function SaldosPage({ v }: { v: any }) {
                     <circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" strokeWidth="1.8"></circle>
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
-                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
+                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "var(--text)" }}>
                     Nenhuma conta encontrada
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {v.sbEmptyHint}
                   </div>
                 </div>
-                <div style={{ "display": "grid", "gridTemplateColumns": "60px minmax(250px,1fr) 118px 160px 104px 176px 68px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
-                  <div style={{ "fontSize": "12px", "fontWeight": "700", "color": "#111827", "textTransform": "uppercase", "letterSpacing": ".06em" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "60px minmax(250px,1fr) 118px 160px 104px 176px 68px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 #EEEEF1" }}>
+                  <div style={{ "fontSize": "12px", "fontWeight": "700", "color": "var(--text)", "textTransform": "uppercase", "letterSpacing": ".06em" }}>
                     Total
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {v.sbFooterLabel}
                   </div>
                   <div></div>
-                  <div style={{ "textAlign": "right", "fontSize": "14px", "fontWeight": "700", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+                  <div style={{ "textAlign": "right", "fontSize": "14px", "fontWeight": "700", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                     {v.sbFilteredTotal}
                   </div>
                   <div></div>
@@ -455,22 +455,22 @@ export default function SaldosPage({ v }: { v: any }) {
             </div>
           </div>
           <div style={css(v.sbOverlayStyle)} onClick={v.sbClose}>
-            <div onClick={v.stopProp} style={{ "width": "100%", "maxWidth": "540px", "maxHeight": "92vh", "display": "flex", "flexDirection": "column", "borderRadius": "14px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34)", "overflow": "visible", "animation": "modalIn .24s cubic-bezier(.16,1,.3,1) both" }}>
+            <div onClick={v.stopProp} style={{ "width": "100%", "maxWidth": "540px", "maxHeight": "92vh", "display": "flex", "flexDirection": "column", "borderRadius": "14px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34)", "overflow": "visible", "animation": "modalIn .24s cubic-bezier(.16,1,.3,1) both" }}>
               <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "12px", "padding": "20px 22px 16px", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
-                <span style={{ "width": "36px", "height": "36px", "flex": "none", "borderRadius": "10px", "background": "#EAF1FF", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+                <span style={{ "width": "36px", "height": "36px", "flex": "none", "borderRadius": "10px", "background": "var(--tint-blue)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M3 9.5L12 4l9 5.5M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3.5 20h17" stroke="#4161FF" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                 </span>
                 <div style={{ "flex": "1", "minWidth": "0" }}>
-                  <div style={{ "fontSize": "16px", "fontWeight": "700", "color": "#111827" }}>
+                  <div style={{ "fontSize": "16px", "fontWeight": "700", "color": "var(--text)" }}>
                     {v.sbModalTitle}
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B", "marginTop": "2px" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)", "marginTop": "2px" }}>
                     Saldo inicial usado como ponto de partida do fluxo de caixa do dia.
                   </div>
                 </div>
-                <button onClick={v.sbClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid #EEEEF1", "background": "#FFFFFF", "color": "#94A3B8", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:#EF4444;background:#FEE9E9", undefined, undefined)}>
+                <button onClick={v.sbClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:#EF4444;background:var(--tint-red)", undefined, undefined)}>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
                     <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                   </svg>
@@ -478,7 +478,7 @@ export default function SaldosPage({ v }: { v: any }) {
               </div>
               <div style={{ "display": "flex", "flexDirection": "column", "gap": "14px", "padding": "18px 22px" }}>
                 <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "position": "relative" }}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     Conta corrente
                   </span>
                   <button onClick={v.ddSbConta.toggle} style={css(v.ddSbConta.btnStyle)}>
@@ -494,7 +494,7 @@ export default function SaldosPage({ v }: { v: any }) {
                       <div style={css(v.ddSbConta.panelStyle)}>
                         {v.ddSbConta.hasSearch ? (
                           <>
-                            <input value={v.ddSbConta.query} onChange={v.ddSbConta.onQuery} onClick={v.stopProp} placeholder="Buscar conta, CD ou empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                            <input value={v.ddSbConta.query} onChange={v.ddSbConta.onQuery} onClick={v.stopProp} placeholder="Buscar conta, CD ou empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "marginBottom": "5px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                           </>
                         ) : null}
                         <div style={css(v.ddSbConta.noResultStyle)}>
@@ -523,17 +523,17 @@ export default function SaldosPage({ v }: { v: any }) {
                 <div style={css(v.ddOverlayStyle)} onClick={v.closeDropdowns}></div>
                 <div style={{ "display": "grid", "gridTemplateColumns": "minmax(0,1fr) minmax(0,1.2fr)", "gap": "12px" }}>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Data do saldo
                     </span>
-                    <input type="date" value={v.sbFDate} onChange={v.onSbFDate} style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "transition": "border-color .15s,box-shadow .15s" }} />
+                    <input type="date" value={v.sbFDate} onChange={v.onSbFDate} style={{ "height": "38px", "padding": "0 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "transition": "border-color .15s,box-shadow .15s" }} />
                   </label>
                   <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                    <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       Saldo inicial
                     </span>
                     <span style={{ "position": "relative", "display": "flex", "alignItems": "center" }}>
-                      <span style={{ "position": "absolute", "left": "12px", "fontSize": "13px", "fontWeight": "600", "color": "#94A3B8", "pointerEvents": "none" }}>
+                      <span style={{ "position": "absolute", "left": "12px", "fontSize": "13px", "fontWeight": "600", "color": "var(--text-4)", "pointerEvents": "none" }}>
                         R$
                       </span>
                       <input value={v.sbFValue} onChange={v.onSbFValue} placeholder="0,00" inputMode="decimal" style={css(v.sbFValueStyle)} />
@@ -541,10 +541,10 @@ export default function SaldosPage({ v }: { v: any }) {
                   </label>
                 </div>
                 <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     Origem
                   </span>
-                  <div style={{ "display": "flex", "gap": "2px", "background": "#F4F4F6", "borderRadius": "8px", "padding": "3px", "alignSelf": "flex-start" }}>
+                  <div style={{ "display": "flex", "gap": "2px", "background": "var(--surface-3)", "borderRadius": "8px", "padding": "3px", "alignSelf": "flex-start" }}>
                     {(v.sbOrigemTabs || []).map((t: any, _i0: number) => (
                       <Fragment key={_i0}>
                         <button onClick={t.onClick} style={css(t.style)}>
@@ -555,10 +555,10 @@ export default function SaldosPage({ v }: { v: any }) {
                   </div>
                 </div>
                 <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     Observação
                   </span>
-                  <textarea value={v.sbFObs} onChange={v.onSbFObs} rows={2} placeholder="Opcional" style={{ "padding": "9px 12px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "fontSize": "13px", "fontFamily": "inherit", "color": "#111827", "resize": "vertical", "transition": "border-color .15s,box-shadow .15s" }}></textarea>
+                  <textarea value={v.sbFObs} onChange={v.onSbFObs} rows={2} placeholder="Opcional" style={{ "padding": "9px 12px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)", "fontSize": "13px", "fontFamily": "inherit", "color": "var(--text)", "resize": "vertical", "transition": "border-color .15s,box-shadow .15s" }}></textarea>
                 </label>
                 <div style={css(v.sbErrStyle)}>
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ "flex": "none" }}>
@@ -568,8 +568,8 @@ export default function SaldosPage({ v }: { v: any }) {
                   {v.sbErr}
                 </div>
               </div>
-              <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "8px", "padding": "14px 22px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "#FAFAFB", "borderRadius": "0 0 14px 14px" }}>
-                <button onClick={v.sbClose} style={{ "height": "38px", "padding": "0 16px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s" }} className={hv("border-color:#CBD5E1", undefined, undefined)}>
+              <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "flex-end", "gap": "8px", "padding": "14px 22px", "boxShadow": "inset 0 1px 0 #EEEEF1", "background": "var(--surface-2)", "borderRadius": "0 0 14px 14px" }}>
+                <button onClick={v.sbClose} style={{ "height": "38px", "padding": "0 16px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s" }} className={hv("border-color:#CBD5E1", undefined, undefined)}>
                   Cancelar
                 </button>
                 <button onClick={v.sbSave} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 18px", "border": "none", "borderRadius": "9px", "background": "#4161FF", "color": "#FFFFFF", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "boxShadow": "0 4px 14px rgba(65,97,255,.26)", "transition": "background .15s,transform .15s" }} className={hv("background:#3153F4", "transform:scale(.97)", undefined)}>

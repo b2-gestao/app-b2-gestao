@@ -104,7 +104,7 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
               {regrasComoIa.length ? regrasComoIa.map((it, i) => (
                 <div key={i} className="pm-ia-it" style={{ animationDelay: `${i * 70}ms` }}>
                   <span className="dot" style={{ background: COR[it.nivel].dot }} />
-                  <div><b>{it.label}</b><p>{it.text} <span style={{ color: '#64748B' }}>Próximo passo: {it.passo}</span></p></div>
+                  <div><b>{it.label}</b><p>{it.text} <span style={{ color: 'var(--text-3)' }}>Próximo passo: {it.passo}</span></p></div>
                 </div>
               )) : <div className="pm-hint">Nenhum ponto de atenção encontrado pelas regras.</div>}
             </div>
@@ -164,8 +164,8 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
             const p = Math.min(1.2, x.pct || 0);
             return (
               <div key={x.id} className="pm-tr pm-aloc">
-                <b className="pm-ell" style={{ fontWeight: 600, color: '#111827' }}>{x.permutante}</b>
-                <span className="pm-ell" style={{ color: '#64748B' }}>{x.origem}</span>
+                <b className="pm-ell" style={{ fontWeight: 600, color: 'var(--text)' }}>{x.permutante}</b>
+                <span className="pm-ell" style={{ color: 'var(--text-3)' }}>{x.origem}</span>
                 <span className="pm-n">{m2(x.area)}</span>
                 <span className="pm-n">{m2(x.alocProprio + x.alocDiv)}</span>
                 <span className="pm-prog"><span><i className={x.situacao === 'excesso' ? 'err' : x.situacao === 'ok' ? 'ok' : ''} style={{ width: Math.min(100, p * 100) + '%' }} /></span><em>{pctTxt(x.pct)}</em></span>
@@ -179,7 +179,7 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
       <section className="pm-panel">
         <div className="pm-panel-h">
           <div><b>Qualidade e pendências</b><span>Cada alerta com a causa provável e o próximo passo</span></div>
-          <div className="rt" style={{ display: 'flex', gap: '2px', background: '#F4F4F6', borderRadius: '8px', padding: '3px', flexWrap: 'wrap' }}>
+          <div className="rt" style={{ display: 'flex', gap: '2px', background: 'var(--surface-3)', borderRadius: '8px', padding: '3px', flexWrap: 'wrap' }}>
             {['', ...tipos].map(t => (
               <button key={t || 'todos'} type="button" className={'pm-seg' + (fTipo === t ? ' on' : '')} onClick={() => setFTipo(t)}>
                 {t || 'Todos'} <span>{t ? a.alertas.filter(x => x.tipo === t).length : a.alertas.length}</span>
@@ -206,7 +206,7 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
           <div className="pm-alertas">
             {a.entregas.sort((x, y) => x.dias - y.dias).map(e => (
               <div key={e.emp} className="pm-al" style={{ gridTemplateColumns: '90px minmax(0,1fr) minmax(0,1.4fr)' }}>
-                <span className="pm-al-n" style={{ background: e.dias <= 120 ? '#FEE9E9' : '#F2F5FF', color: e.dias <= 120 ? '#B91C1C' : '#3148B8' }}>{e.dias < 0 ? 'Entregue' : `${e.dias} dias`}</span>
+                <span className="pm-al-n" style={{ background: e.dias <= 120 ? 'var(--tint-red)' : '#F2F5FF', color: e.dias <= 120 ? '#B91C1C' : '#3148B8' }}>{e.dias < 0 ? 'Entregue' : `${e.dias} dias`}</span>
                 <div className="pm-al-t"><b>{e.emp}</b><p>Entrega {dataBr(e.data)}</p></div>
                 <div className="pm-al-c"><span className="pm-cap">Sem unidade definida</span><p>{e.permutantes.length ? e.permutantes.join(', ') : 'Todos com unidade definida.'}</p></div>
               </div>

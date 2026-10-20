@@ -14,7 +14,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
           <div style={{ "display": "flex", "alignItems": "flex-end", "gap": "16px", "flexWrap": "wrap", "opacity": "0", "animation": "fadeInUp .45s ease-out both" }}>
             <div style={{ "flex": "1 1 420px", "minWidth": "0" }}>
               <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "flexWrap": "wrap" }}>
-                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "#111827", "letterSpacing": "-.01em" }}>
+                <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                   Programação diária
                 </div>
                 <span style={css(v.pgStatusPill)}>
@@ -22,12 +22,12 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                   {v.pgStatusLabel}
                 </span>
               </div>
-              <div style={{ "fontSize": "12.5px", "color": "#64748B", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
+              <div style={{ "fontSize": "12.5px", "color": "var(--text-3)", "marginTop": "4px", "maxWidth": "720px", "lineHeight": "1.5", "textWrap": "pretty" }}>
                 O que realmente sai hoje: parcelas a pagar do Sienge + lançamentos manuais, confrontados com o saldo inicial de cada empresa.
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
-              <button onClick={v.pgExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#374151", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.pgExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <rect x="4" y="3.5" width="16" height="17" rx="2" stroke="currentColor" strokeWidth="1.7"></rect>
                   <path d="M4 9h16M4 14.5h16M10 9v11.5" stroke="currentColor" strokeWidth="1.7"></path>
@@ -59,9 +59,9 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               {v.iaProgBtnLabel}
             </button>
           </div>
-          <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "12px", "flexWrap": "wrap", "padding": "12px 16px", "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "40ms" }}>
+          <div style={{ "position": "relative", "zIndex": "80", "display": "flex", "alignItems": "flex-end", "gap": "12px", "flexWrap": "wrap", "padding": "12px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "40ms" }}>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 180px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Grupo
               </span>
               <button onClick={v.ddPgGrupo.toggle} style={css(v.ddPgGrupo.btnStyle)}>
@@ -77,7 +77,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                   <div style={css(v.ddPgGrupo.panelStyle)}>
                     {v.ddPgGrupo.hasSearch ? (
                       <>
-                        <input value={v.ddPgGrupo.query} onChange={v.ddPgGrupo.onQuery} onClick={v.stopProp} placeholder="Buscar grupo..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddPgGrupo.query} onChange={v.ddPgGrupo.onQuery} onClick={v.stopProp} placeholder="Buscar grupo..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <button onClick={v.ddPgGrupo.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
@@ -107,7 +107,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               ) : null}
             </label>
             <label style={{ "display": "flex", "flexDirection": "column", "gap": "6px", "flex": "0 1 230px", "position": "relative", "minWidth": "0" }}>
-              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+              <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Empresas
               </span>
               <button onClick={v.ddPgEmp.toggle} style={css(v.ddPgEmp.btnStyle)}>
@@ -123,7 +123,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                   <div style={css(v.ddPgEmp.panelStyle)}>
                     {v.ddPgEmp.hasSearch ? (
                       <>
-                        <input value={v.ddPgEmp.query} onChange={v.ddPgEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FAFAFB", "fontSize": "12.5px", "fontFamily": "inherit", "color": "#111827", "flex": "none" }} />
+                        <input value={v.ddPgEmp.query} onChange={v.ddPgEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
                     <button onClick={v.ddPgEmp.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
@@ -164,7 +164,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                 <span style={css(v.pgAporteKnobStyle)}></span>
               </span>
               Aportes
-              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "#94A3B8", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
+              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "var(--text-4)", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
                 ?
               </span>
             </button>
@@ -178,12 +178,12 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                   </Fragment>
                 ))}
               </div>
-              <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "height": "30px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid #E7E7EA", "background": "#FFFFFF" }}>
-                <input type="date" value={v.pgDateFrom} onChange={v.onDateFromChange} style={{ "border": "none", "background": "transparent", "fontSize": "12px", "fontFamily": "inherit", "color": "#374151", "width": "100px", "cursor": "pointer" }} />
-                <span style={{ "color": "#94A3B8", "fontSize": "12px" }}>
+              <div style={{ "display": "flex", "alignItems": "center", "gap": "6px", "height": "30px", "padding": "0 10px", "borderRadius": "8px", "border": "1px solid var(--border)", "background": "var(--surface)" }}>
+                <input type="date" value={v.pgDateFrom} onChange={v.onDateFromChange} style={{ "border": "none", "background": "transparent", "fontSize": "12px", "fontFamily": "inherit", "color": "var(--text-b)", "width": "100px", "cursor": "pointer" }} />
+                <span style={{ "color": "var(--text-4)", "fontSize": "12px" }}>
                   a
                 </span>
-                <input type="date" value={v.pgDateTo} onChange={v.onDateToChange} style={{ "border": "none", "background": "transparent", "fontSize": "12px", "fontFamily": "inherit", "color": "#374151", "width": "100px", "cursor": "pointer" }} />
+                <input type="date" value={v.pgDateTo} onChange={v.onDateToChange} style={{ "border": "none", "background": "transparent", "fontSize": "12px", "fontFamily": "inherit", "color": "var(--text-b)", "width": "100px", "cursor": "pointer" }} />
               </div>
             </div>
             <div style={{ "flex": "1" }}></div>
@@ -193,13 +193,13 @@ export default function ProgramacaoPage({ v }: { v: any }) {
             {(v.pgCards || []).map((c: any, _i0: number) => (
               <Fragment key={_i0}>
                 <div style={css(c.style)} className={hv(c.hover, undefined, undefined)}>
-                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                  <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                     {c.label}
                   </span>
                   <div style={css(c.valStyle)}>
                     {c.val}
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {c.sub}
                   </div>
                   <div title={c.noteTip || undefined} style={css(c.noteStyle)}>
@@ -209,10 +209,10 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               </Fragment>
             ))}
           </div>
-          <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={{ "minWidth": "1120px" }}>
-                <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px 74px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "fontWeight": "600" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px 74px", "gap": "12px", "alignItems": "center", "padding": "11px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 -1px 0 #EEEEF1", "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                   <div></div>
                   <div>
                     Empresa
@@ -239,12 +239,12 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                     Itens
                   </div>
                   <div style={{ "display": "flex", "gap": "6px", "justifyContent": "flex-end" }}>
-                    <button onClick={v.pgExpandAll} title="Expandir todas" style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "26px", "height": "26px", "borderRadius": "6px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#64748B", "cursor": "pointer", "transition": "all .15s", "fontSize": "0" }} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
+                    <button onClick={v.pgExpandAll} title="Expandir todas" style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "26px", "height": "26px", "borderRadius": "6px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-3)", "cursor": "pointer", "transition": "all .15s", "fontSize": "0" }} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                         <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                       </svg>
                     </button>
-                    <button onClick={v.pgCollapseAll} title="Recolher todas" style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "26px", "height": "26px", "borderRadius": "6px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#64748B", "cursor": "pointer", "transition": "all .15s", "fontSize": "0" }} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
+                    <button onClick={v.pgCollapseAll} title="Recolher todas" style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "26px", "height": "26px", "borderRadius": "6px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-3)", "cursor": "pointer", "transition": "all .15s", "fontSize": "0" }} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
                       <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                         <path d="M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                       </svg>
@@ -259,14 +259,14 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                           <path d="M9 6l6 6-6 6" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
                         </svg>
                         <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "minWidth": "0" }}>
-                          <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "#EAF1FF", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
+                          <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "var(--tint-blue)", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
                             {g.cd}
                           </span>
-                          <span style={{ "fontSize": "13px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                          <span style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                             {g.emp}
                           </span>
                         </div>
-                        <div title={g.saldoTip} style={{ "textAlign": "right", "fontSize": "13px", "color": "#374151", "fontVariantNumeric": "tabular-nums" }}>
+                        <div title={g.saldoTip} style={{ "textAlign": "right", "fontSize": "13px", "color": "var(--text-b)", "fontVariantNumeric": "tabular-nums" }}>
                           {g.saldo}
                         </div>
                         <div style={{ "textAlign": "right", "fontSize": "13px", "color": "#DC2626", "fontVariantNumeric": "tabular-nums" }}>
@@ -275,7 +275,7 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                         <div style={css(g.manStyle)}>
                           {g.man}
                         </div>
-                        <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "600", "color": "#111827", "fontVariantNumeric": "tabular-nums" }}>
+                        <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "600", "color": "var(--text)", "fontVariantNumeric": "tabular-nums" }}>
                           {g.total}
                         </div>
                         <div style={css(g.afterStyle)}>
@@ -286,27 +286,27 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                             {g.aporte}
                           </span>
                         </div>
-                        <div style={{ "textAlign": "right", "fontSize": "12px", "color": "#64748B", "fontVariantNumeric": "tabular-nums" }}>
+                        <div style={{ "textAlign": "right", "fontSize": "12px", "color": "var(--text-3)", "fontVariantNumeric": "tabular-nums" }}>
                           {g.count}
                         </div>
                         <div></div>
                       </div>
                       {g.open ? (
                         <>
-                          <div style={{ "background": "#FAFAFB", "boxShadow": "inset 0 -1px 0 #EEEEF1", "padding": "6px 0 8px", "animation": "popIn .2s ease-out both" }}>
+                          <div style={{ "background": "var(--surface-2)", "boxShadow": "inset 0 -1px 0 #EEEEF1", "padding": "6px 0 8px", "animation": "popIn .2s ease-out both" }}>
                             {(g.items || []).map((it: any, _i1: number) => (
                               <Fragment key={_i1}>
-                                <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(0,1fr) 130px 140px", "gap": "12px", "alignItems": "center", "padding": "7px 18px 7px 58px", "transition": "background .15s" }} className={hv("background:#F4F4F6", undefined, undefined)}>
+                                <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(0,1fr) 130px 140px", "gap": "12px", "alignItems": "center", "padding": "7px 18px 7px 58px", "transition": "background .15s" }} className={hv("background:var(--surface-3)", undefined, undefined)}>
                                   <button onClick={it.toggle} style={css(it.boxStyle)}>
                                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
                                       <path d="M5 12.5l4.5 4.5L19 7" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"></path>
                                     </svg>
                                   </button>
                                   <div style={{ "minWidth": "0" }}>
-                                    <div style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                                    <div style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                                       {it.title}
                                     </div>
-                                    <div style={{ "fontSize": "11.5px", "color": "#64748B", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                                    <div style={{ "fontSize": "11.5px", "color": "var(--text-3)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                                       {it.sub}
                                     </div>
                                   </div>
@@ -332,19 +332,19 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                     <circle cx="11" cy="11" r="6.5" stroke="#CBD5E1" strokeWidth="1.8"></circle>
                     <path d="M16 16l4.5 4.5" stroke="#CBD5E1" strokeWidth="1.8" strokeLinecap="round"></path>
                   </svg>
-                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "#111827" }}>
+                  <div style={{ "fontSize": "13.5px", "fontWeight": "600", "color": "var(--text)" }}>
                     {v.pgEmptyTitle}
                   </div>
-                  <div style={{ "fontSize": "12px", "color": "#64748B" }}>
+                  <div style={{ "fontSize": "12px", "color": "var(--text-3)" }}>
                     {v.pgEmptySub}
                   </div>
                 </div>
-                <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "#FAFAFB", "boxShadow": "inset 0 1px 0 #EEEEF1", "fontVariantNumeric": "tabular-nums" }}>
+                <div style={{ "display": "grid", "gridTemplateColumns": "28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px", "gap": "12px", "alignItems": "center", "padding": "13px 18px", "background": "var(--surface-2)", "boxShadow": "inset 0 1px 0 #EEEEF1", "fontVariantNumeric": "tabular-nums" }}>
                   <div></div>
-                  <div style={{ "fontSize": "12px", "fontWeight": "700", "color": "#111827", "textTransform": "uppercase", "letterSpacing": ".06em" }}>
+                  <div style={{ "fontSize": "12px", "fontWeight": "700", "color": "var(--text)", "textTransform": "uppercase", "letterSpacing": ".06em" }}>
                     Total do dia
                   </div>
-                  <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "#111827" }}>
+                  <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "var(--text)" }}>
                     {v.pgTot.saldo}
                   </div>
                   <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "#DC2626" }}>
@@ -353,21 +353,21 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                   <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "#DC2626" }}>
                     {v.pgTot.man}
                   </div>
-                  <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "#111827" }}>
+                  <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "var(--text)" }}>
                     {v.pgTot.total}
                   </div>
                   <div></div>
                   <div style={{ "textAlign": "right", "fontSize": "13px", "fontWeight": "700", "color": "#D97706" }}>
                     {v.pgTot.aporte}
                   </div>
-                  <div style={{ "textAlign": "right", "fontSize": "12px", "fontWeight": "600", "color": "#64748B" }}>
+                  <div style={{ "textAlign": "right", "fontSize": "12px", "fontWeight": "600", "color": "var(--text-3)" }}>
                     {v.pgTot.count}
                   </div>
                 </div>
               </div>
             </div>
           </div>
-          <div style={{ "fontSize": "12px", "color": "#94A3B8", "display": "flex", "alignItems": "center", "gap": "6px" }}>
+          <div style={{ "fontSize": "12px", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "gap": "6px" }}>
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="8.5" stroke="currentColor" strokeWidth="1.6"></circle>
               <path d="M12 11v5M12 8v.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
@@ -376,12 +376,12 @@ export default function ProgramacaoPage({ v }: { v: any }) {
           </div>
           {v.pgHasOff ? (
             <>
-              <div style={{ "borderRadius": "10px", "background": "#FFFFFF", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "overflow": "hidden", "animation": "popIn .22s ease-out both" }}>
+              <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "overflow": "hidden", "animation": "popIn .22s ease-out both" }}>
                 <div style={{ "display": "flex", "alignItems": "center", "gap": "10px", "padding": "12px 18px", "background": "#FFF7EB", "boxShadow": "inset 0 -1px 0 #FCE7C8" }}>
-                  <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "#111827" }}>
+                  <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "var(--text)" }}>
                     Fora da programação
                   </span>
-                  <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#B45309", "background": "#FFF0DD", "borderRadius": "20px", "padding": "2px 8px" }}>
+                  <span style={{ "fontSize": "11px", "fontWeight": "600", "color": "#B45309", "background": "var(--tint-amber)", "borderRadius": "20px", "padding": "2px 8px" }}>
                     {v.pgOffCount}
                   </span>
                   <span style={{ "flex": "1" }}></span>
@@ -396,10 +396,10 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                         {o.cd}
                       </span>
                       <div style={{ "minWidth": "0" }}>
-                        <div style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "#111827", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <div style={{ "fontSize": "12.5px", "fontWeight": "600", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {o.title}
                         </div>
-                        <div style={{ "fontSize": "11.5px", "color": "#64748B", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
+                        <div style={{ "fontSize": "11.5px", "color": "var(--text-3)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
                           {o.emp}
                         </div>
                       </div>
@@ -408,11 +408,11 @@ export default function ProgramacaoPage({ v }: { v: any }) {
                           {o.tag}
                         </span>
                       </div>
-                      <div style={{ "textAlign": "right", "fontSize": "12.5px", "fontWeight": "600", "color": "#64748B", "fontVariantNumeric": "tabular-nums" }}>
+                      <div style={{ "textAlign": "right", "fontSize": "12.5px", "fontWeight": "600", "color": "var(--text-3)", "fontVariantNumeric": "tabular-nums" }}>
                         {o.val}
                       </div>
                       <div style={{ "display": "flex", "justifyContent": "flex-end" }}>
-                        <button onClick={o.restore} style={{ "height": "28px", "padding": "0 11px", "borderRadius": "7px", "border": "1px solid #E7E7EA", "background": "#FFFFFF", "color": "#4161FF", "fontSize": "12px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#4161FF;background:#EAF1FF", undefined, undefined)}>
+                        <button onClick={o.restore} style={{ "height": "28px", "padding": "0 11px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "#4161FF", "fontSize": "12px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#4161FF;background:var(--tint-blue)", undefined, undefined)}>
                           Incluir
                         </button>
                       </div>
@@ -422,25 +422,25 @@ export default function ProgramacaoPage({ v }: { v: any }) {
               </div>
             </>
           ) : null}
-          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "#FAFAFB", "boxShadow": "0 0 0 1px #EEEEF1" }}>
-            <div style={{ "fontSize": "11px", "fontWeight": "700", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "#94A3B8", "marginBottom": "8px" }}>
+          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "var(--surface-2)", "boxShadow": "0 0 0 1px #EEEEF1" }}>
+            <div style={{ "fontSize": "11px", "fontWeight": "700", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "marginBottom": "8px" }}>
               Regras de cálculo
             </div>
-            <ul style={{ "margin": "0", "paddingLeft": "18px", "display": "flex", "flexDirection": "column", "gap": "5px", "fontSize": "12px", "lineHeight": "1.5", "color": "#64748B" }}>
+            <ul style={{ "margin": "0", "paddingLeft": "18px", "display": "flex", "flexDirection": "column", "gap": "5px", "fontSize": "12px", "lineHeight": "1.5", "color": "var(--text-3)" }}>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Saldo inicial do dia:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Saldo inicial do dia:</span> saldo das contas informado em Saldos bancários para o primeiro dia do período.
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Parcelas a receber:</span> parcelas a receber em aberto com vencimento no período.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Parcelas a receber:</span> parcelas a receber em aberto com vencimento no período.
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Recebíveis fora:</span> parcelas de Bens, Permuta e Financiamento e todas as parcelas das empresas com plano empresário (engrenagem do Fluxo de caixa).
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Recebíveis fora:</span> parcelas de Bens, Permuta e Financiamento e todas as parcelas das empresas com plano empresário (engrenagem do Fluxo de caixa).
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Dia do saldo:</span> na empresa com saldo informado no primeiro dia, os recebíveis que vencem nesse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma todos os recebíveis do período.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Dia do saldo:</span> na empresa com saldo informado no primeiro dia, os recebíveis que vencem nesse dia não entram — já estão no saldo bancário. Empresa sem saldo informado soma todos os recebíveis do período.
               </li>
               <li>
-                <span style={{ "color": "#374151", "fontWeight": "600" }}>Saldo após pagamentos:</span> saldo inicial + parcelas a receber − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.
+                <span style={{ "color": "var(--text-b)", "fontWeight": "600" }}>Saldo após pagamentos:</span> saldo inicial + parcelas a receber − títulos Sienge em aberto (valor líquido) − lançamentos manuais de saída marcados. Se ficar negativo, a diferença é o aporte necessário.
               </li>
             </ul>
           </footer>

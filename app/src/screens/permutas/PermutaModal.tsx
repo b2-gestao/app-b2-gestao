@@ -292,7 +292,7 @@ export default function PermutaModal(p: PermutaModalProps) {
             {csU ? (
               <div className="pm-cs-b">
                 {soProprio ? (
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: '#64748B', flexWrap: 'wrap' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', fontSize: '12px', color: 'var(--text-3)', flexWrap: 'wrap' }}>
                     <span className="pm-chip warn"><i />Emp. diversos = 0</span>Só dá para vincular unidades do próprio empreendimento.
                   </div>
                 ) : null}
@@ -535,7 +535,7 @@ function SeletorOrigem(p: {
       <button type="button" className={'pm-dd-btn' + (aberto ? ' open' : '')} disabled={p.disabled} aria-haspopup="listbox" aria-expanded={aberto}
         onClick={() => { setAberto(!aberto); setCriando(false); setEditando(null); setQ(''); }}>
         <span className={'v' + (emp || neg ? '' : ' vazio')}>
-          {emp ? <>{emp.nome}{emp.emp ? <span style={{ color: '#94A3B8' }}> – {emp.emp}</span> : null}</>
+          {emp ? <>{emp.nome}{emp.emp ? <span style={{ color: 'var(--text-4)' }}> – {emp.emp}</span> : null}</>
             : neg ? <>{neg.nome} <span className="pm-tagn" style={{ marginLeft: '6px' }}>Negócio</span></>
               : 'Selecione a empresa ou o negócio'}
         </span>
