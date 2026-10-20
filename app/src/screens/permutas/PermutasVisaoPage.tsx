@@ -20,7 +20,7 @@ const COLUNAS: Coluna[] = [
   { key: 'orig', label: 'Origem', w: 260, min: 120 },
   { key: 'obs', label: 'Observação', w: 240, min: 100 },
 ];
-const POR_PAGINA = [30, 100] as const;
+const POR_PAGINA = [30, 60, 100] as const;
 const GRAFICO_INICIAL = 12;
 
 export default function PermutasVisaoPage({ v }: { v: any }) {
