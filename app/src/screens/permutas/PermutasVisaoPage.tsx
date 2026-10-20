@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import './permutas.css';
 import { m2, type EmpreendimentoFicha, type Permuta, type UnidadeDireta } from '../../lib/permutas';
 import { montarUnidades, type LinhaUnidade } from './analise';
+import { SeletorBusca } from './busca';
 import { FiltroBusca, useColunas, exportarExcel, IcExcel, type Coluna } from './ui';
 import { useBasePermutas, Kpi, ModalPermutaStore, dataBr, semAcento, IcPlus, type PermutasCtx } from './comum';
 import { permutasStore, usePermutas } from './store';
@@ -246,20 +247,19 @@ function UnidadeModal({ u, ctx, nomeEmp, fechar }: { u: UnidadeDireta | null; ct
         </div>
       </>}>
       <div className="pm-g2">
-        <label className="pm-f">
+        <div className="pm-f">
           <span className="pm-cap">Empreendimento <span className="pm-req">*</span></span>
-          <select className="pm-in" value={emp} disabled={ro} onChange={e => { setEmp(e.target.value ? +e.target.value : ''); setUid(''); }}>
-            <option value="">Selecione…</option>
-            {emps.map(id => <option key={id} value={id}>{nomeEmp(id)} · {id}</option>)}
-          </select>
-        </label>
-        <label className="pm-f">
+          <SeletorBusca ariaLabel="Empreendimento" value={emp} disabled={ro} altura={38} placeholder="Buscar empreendimento…"
+            onChange={id => { setEmp(id); setUid(''); }}
+            opcoes={emps.map(id => ({ value: id, label: nomeEmp(id), sub: String(id) }))} />
+        </div>
+        <div className="pm-f">
           <span className="pm-cap">Unidade <span className="pm-req">*</span></span>
-          <select className="pm-in" value={uid} disabled={ro || !emp} onChange={e => setUid(e.target.value ? +e.target.value : '')}>
-            <option value="">{emp ? 'Selecione…' : '—'}</option>
-            {unidades.map(c => <option key={c.unidade_id} value={c.unidade_id}>{c.unidade}</option>)}
-          </select>
-        </label>
+          <SeletorBusca ariaLabel="Unidade" value={uid} disabled={ro || !emp} altura={38} buscaNoDetalhe={false} placeholder={emp ? 'Buscar unidade…' : '—'} vazio="Nenhuma unidade com esse nome."
+            onChange={setUid}
+            opcoes={[...unidades].sort((x, y) => x.unidade.localeCompare(y.unidade, 'pt-BR', { numeric: true }))
+              .map(c => ({ value: c.unidade_id, label: c.unidade, sub: c.area_privativa != null ? m2(c.area_privativa) + ' m²' : undefined }))} />
+        </div>
         <div className="pm-f">
           <span className="pm-cap">Área privativa</span>
           <div className={'pm-ro' + (cat?.area_privativa == null ? ' vazio' : '')} style={{ justifyContent: 'flex-start', height: '38px' }}>{cat?.area_privativa == null ? '— m²' : m2(cat.area_privativa) + ' m²'}</div>

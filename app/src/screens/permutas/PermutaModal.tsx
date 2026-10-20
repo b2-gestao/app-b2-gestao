@@ -2,6 +2,7 @@
 // Resumo fixo no topo (quem é, área total e como ela se divide), cálculo em forma de equação
 // (o que se digita × o que é calculado) e unidades e documentos em seções recolhíveis.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { SeletorBusca } from './busca';
 import {
   calcular, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, TIPOS_ANEXO,
   type AnexoNovo, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
@@ -310,19 +311,16 @@ export default function PermutaModal(p: PermutaModalProps) {
                       const set = (patch: Partial<Linha>) => setLinhas(ls => ls.map((x, j) => (j === i ? { ...x, ...patch } : x)));
                       return (
                         <div key={i} className={'pm-u-r' + (fora ? ' fora' : '')}>
-                          <select className="pm-in" aria-label="Empreendimento" value={l.enterprise_id} disabled={ro}
-                            onChange={e => set({ enterprise_id: e.target.value ? +e.target.value : '', unidade_id: '' })}>
-                            {l.enterprise_id ? null : <option value="">Selecione…</option>}
-                            {opts.map(([id, e]) => <option key={id} value={id}>{e.nome} · {id}{proprios.includes(id) ? ' (próprio)' : ''}</option>)}
-                          </select>
-                          <select className="pm-in" aria-label="Unidade" value={l.unidade_id} disabled={ro || !l.enterprise_id}
-                            onChange={e => set({ unidade_id: e.target.value ? +e.target.value : '' })}>
-                            <option value="">{l.enterprise_id ? 'Selecione…' : '—'}</option>
-                            {(emp?.unidades || []).map(u => {
+                          <SeletorBusca ariaLabel="Empreendimento" value={l.enterprise_id} disabled={ro} placeholder="Buscar empreendimento…"
+                            onChange={id => set({ enterprise_id: id, unidade_id: '' })}
+                            opcoes={opts.map(([id, e]) => ({ value: id, label: e.nome, sub: String(id), nota: proprios.includes(id) ? 'próprio' : undefined }))} />
+                          <SeletorBusca ariaLabel="Unidade" value={l.unidade_id} disabled={ro || !l.enterprise_id} buscaNoDetalhe={false}
+                            placeholder={l.enterprise_id ? 'Buscar unidade…' : '—'} vazio="Nenhuma unidade com esse nome."
+                            onChange={id => set({ unidade_id: id })}
+                            opcoes={[...(emp?.unidades || [])].sort((x, y) => x.unidade.localeCompare(y.unidade, 'pt-BR', { numeric: true })).map(u => {
                               const tomada = usadas.has(u.unidade_id) && u.unidade_id !== l.unidade_id;
-                              return <option key={u.unidade_id} value={u.unidade_id} disabled={tomada}>{u.unidade}{tomada ? ' (já incluída)' : ''}</option>;
-                            })}
-                          </select>
+                              return { value: u.unidade_id, label: u.unidade, sub: u.area_privativa != null ? m2(u.area_privativa) + ' m²' : undefined, nota: tomada ? 'já incluída' : undefined, disabled: tomada };
+                            })} />
                           <div className={'pm-ro' + (a == null ? ' vazio' : '')} title="Área privativa da base de unidades">{a == null ? '— m²' : m2(a) + ' m²'}</div>
                           <div className="pm-money" title="Fonte do valor ainda a definir"><span>R$</span><input className="pm-in" disabled placeholder="a definir" aria-label="Valor da unidade" /></div>
                           {ro ? <span /> : <button type="button" className="pm-rm" aria-label="Remover unidade" onClick={() => setLinhas(ls => ls.filter((_, j) => j !== i))}><IcX s={13} /></button>}
