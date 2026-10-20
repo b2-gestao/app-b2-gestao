@@ -3,7 +3,7 @@ import { TITULO_PERMUTAS } from './permutas';
 import { dashSource } from './dashboardData';
 import { alternarTema } from '../../lib/theme';
 
-const PERMUTAS_PAGES = ['permutasCadastro', 'permutasVisao', 'permutasInsights'];
+const PERMUTAS_PAGES = ['permutasCadastro', 'permutasVisao', 'permutasInsights', 'permutasBens'];
 
 export function renderVals(this: AppLogic) {
   const s: any = this.state;
@@ -195,7 +195,6 @@ export function renderVals(this: AppLogic) {
     tileStyle: tileStyle + `;animation-delay:${60 + i * 34}ms`,
     chipStyle: `width:34px;height:34px;border-radius:9px;display:flex;align-items:center;justify-content:center;background:${it.c}22;border:1px solid ${it.c}55`,
     open: () => {
-      // Permutas segue Beta (Acompanhamento em desenvolvimento), mas o Cadastro já abre.
       if (it.name === 'Permutas') return !this.pode('permutas.cadastro') && this.pode('permutas.visao') ? pageVals.goPermutasVisao() : pageVals.goPermutasCadastro();
       if (it.beta) return this.abrirBeta(it.perm);
       if (it.name === 'BI') return pageVals.openFirstBi();
@@ -254,7 +253,6 @@ export function renderVals(this: AppLogic) {
     beta: {
       rhColaboradores: beta('rh.colaboradores'), rhFolha: beta('rh.folha'),
       veiculos: beta('veiculos'),
-      permutasAcompanhamento: beta('permutas.acompanhamento'),
       vendasPropostas: beta('vendas.propostas'), vendasContratos: beta('vendas.contratos'),
       cobranca: beta('cobranca'), juridico: beta('juridico'),
       auditoria: beta('configuracoes.auditoria'),

@@ -8,7 +8,7 @@ const PAGINAS: Record<string, { pagina: PaginaPermutas; perm: string }> = {
   permutasInsights: { pagina: 'insights', perm: 'permutas.visao' },
 };
 const PAGE_DE: Record<PaginaPermutas, string> = { cadastros: 'permutasCadastro', visao: 'permutasVisao', insights: 'permutasInsights' };
-export const TITULO_PERMUTAS: Record<string, string> = { permutasCadastro: 'Cadastros', permutasVisao: 'Visão Geral', permutasInsights: 'Insights' };
+export const TITULO_PERMUTAS: Record<string, string> = { permutasCadastro: 'Cadastros', permutasVisao: 'Visão Geral', permutasInsights: 'Insights', permutasBens: 'Bens' };
 
 /** Permutas › Terrenos (Cadastros, Visão Geral, Insights): menu, navegação e o contexto das telas (screens/permutas). */
 export function permutasVals(this: AppLogic, subItemStyle: string) {
@@ -31,6 +31,12 @@ export function permutasVals(this: AppLogic, subItemStyle: string) {
     })),
     ir: (p: PaginaPermutas) => ir(p),
   };
+  // Bens abre a plataforma externa de gestão de permutas; a tela só mostra o aviso de transferência.
+  const irBens = (e?: any) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (this.semAcesso(this.pode('permutas.cadastro') || this.pode('permutas.visao'))) return;
+    this.setState({ view: 'app', page: 'permutasBens', module: 'Permutas', permutasOpen: true, userMenuOpen: false });
+  };
   const item = (page: string) => subItemStyle + ';padding-left:22px' + (s.page === page || (page === 'permutasVisao' && s.page === 'permutasInsights') ? activeItem : '');
   // Terrenos é um submenu dentro de Permutas: abre ao clicar e já vem aberto quando uma das telas está ativa.
   const terrenosAberto = !!s.permutasTerrenosOpen || (!!atual && s.permutasTerrenosOpen !== false);
@@ -44,6 +50,9 @@ export function permutasVals(this: AppLogic, subItemStyle: string) {
     },
     permutasCadastroItemStyle: item('permutasCadastro'),
     permutasVisaoItemStyle: item('permutasVisao'),
+    permutasBensStyle: subItemStyle + (s.view === 'app' && s.page === 'permutasBens' ? activeItem : ''),
+    goPermutasBens: irBens,
+    isPermutasBens: s.view === 'app' && s.page === 'permutasBens',
     goPermutasCadastro: (e?: any) => ir('cadastros', e),
     goPermutasVisao: (e?: any) => ir('visao', e),
     isPermutas: !!atual,
