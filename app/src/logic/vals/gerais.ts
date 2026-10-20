@@ -119,7 +119,7 @@ export function geraisVals(this: AppLogic, subItemStyle: string) {
       name: nameOf(d.cd),
       motivo: d.motivo,
       novo: !savedByCd.has(d.cd),
-      rowStyle: `display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
+      rowStyle: `display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
       motivoStyle: inputStyle(!!s.gerErr && !d.motivo.trim()) + ';height:34px',
       onMotivo: e => setDraft(draft.map(x => (x.cd === d.cd ? { ...x, motivo: e.target.value } : x))),
       remove: () => setDraft(draft.filter(x => x.cd !== d.cd)),

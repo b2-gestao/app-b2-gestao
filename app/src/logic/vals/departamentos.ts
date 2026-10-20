@@ -28,7 +28,7 @@ export function deptsVals(this: AppLogic) {
       name: d.name,
       desc: d.desc || '—',
       userCount,
-      rowStyle: `display:grid;grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 120px 116px 96px;gap:12px;align-items:center;padding:13px 18px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
+      rowStyle: `display:grid;grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 120px 116px 96px;gap:12px;align-items:center;padding:13px 18px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
       iconStyle: 'width:34px;height:34px;flex:none;border-radius:9px;background:var(--tint-green);display:flex;align-items:center;justify-content:center',
       countChipStyle: `display:inline-flex;min-width:24px;height:22px;padding:0 7px;border-radius:20px;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;background:${userCount ? 'var(--tint-blue)' : 'var(--surface-3)'};color:${userCount ? '#4161FF' : 'var(--text-4)'}`,
       statusStyle: `font-size:12px;font-weight:600;color:${d.active ? '#35AD88' : 'var(--text-3)'}`,
@@ -73,7 +73,7 @@ export function deptsVals(this: AppLogic) {
       : 'Nenhum registro para exibir',
 
     deptOverlayStyle: `display:${s.deptModalOpen ? 'flex' : 'none'};position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both`,
-    deptModalCardStyle: 'width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
+    deptModalCardStyle: 'width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
     closeDeptModal: () => this.setState({ deptModalOpen: false, editingDeptId: null, dForm: null, deptFormErr: '' }),
     openNewDept: () => this.setState({ deptModalOpen: true, editingDeptId: null, dForm: this.emptyDeptForm(), deptFormErr: '' }),
     deptModalTitle: editing ? 'Editar departamento' : 'Novo departamento',

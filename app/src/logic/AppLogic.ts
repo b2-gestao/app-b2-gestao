@@ -698,7 +698,7 @@ export class AppLogic extends Component<any, any> {
           items: remote.items.map(i => ({
             label: i.label, text: i.text, action: '',
             onAction: () => this.setState({ iaPanel: null }),
-            style: 'padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px #EEEEF1',
+            style: 'padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px var(--border-soft)',
             dotStyle: `width:7px;height:7px;border-radius:50%;background:${cor[i.nivel] || '#94A3B8'};flex:none`,
           })),
         };
@@ -710,7 +710,7 @@ export class AppLogic extends Component<any, any> {
         items: r.items.map(i => ({
           label: i.label, text: i.text, action: i.action || '',
           onAction: i.go || (() => this.setState({ iaPanel: null })),
-          style: 'padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px #EEEEF1',
+          style: 'padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px var(--border-soft)',
           dotStyle: `width:7px;height:7px;border-radius:50%;background:${i.color};flex:none`,
         })),
       };
@@ -718,7 +718,7 @@ export class AppLogic extends Component<any, any> {
     const item = (label, text, color, action?, onAction?) => ({
       label, text, action,
       onAction: onAction || (() => this.toast('Ação em construção.')),
-      style: `padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px #EEEEF1`,
+      style: `padding:12px;border-radius:9px;background:var(--surface-2);box-shadow:0 0 0 1px var(--border-soft)`,
       dotStyle: `width:7px;height:7px;border-radius:50%;background:${color};flex:none`,
     });
     if (panel === 'prog') {

@@ -3,7 +3,7 @@
 import { css, hv } from '../dc/runtime';
 
 const colHead = { fontSize: '10.5px', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-4)', fontWeight: 600 } as const;
-const card = { borderRadius: '10px', background: 'var(--surface)', boxShadow: '0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)' } as const;
+const card = { borderRadius: '10px', background: 'var(--surface)', boxShadow: '0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)' } as const;
 const codeTag = { flex: 'none', minWidth: '34px', padding: '2px 6px', borderRadius: '5px', background: 'var(--surface-3)', color: 'var(--text-b)', fontSize: '10.5px', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' } as const;
 
 export default function GeraisPage({ v }: { v: any }) {
@@ -28,7 +28,7 @@ export default function GeraisPage({ v }: { v: any }) {
           </div>
         </div>
 
-        <div style={{ margin: '0 18px 14px', display: 'flex', alignItems: 'flex-start', gap: '9px', padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px #EEEEF1', fontSize: '12px', color: '#4B5563', lineHeight: 1.5 }}>
+        <div style={{ margin: '0 18px 14px', display: 'flex', alignItems: 'flex-start', gap: '9px', padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px var(--border-soft)', fontSize: '12px', color: '#4B5563', lineHeight: 1.5 }}>
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', marginTop: '1px' }}>
             <circle cx="12" cy="12" r="8.6" stroke="#64748B" strokeWidth="1.6"></circle>
             <path d="M12 11v5M12 8h.01" stroke="#64748B" strokeWidth="1.8" strokeLinecap="round"></path>
@@ -64,7 +64,7 @@ export default function GeraisPage({ v }: { v: any }) {
               </button>
             </div>
             {v.gerResults.length ? (
-              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', background: 'var(--surface)', boxShadow: '0 0 0 1px #E7E7EA,0 8px 24px rgba(0,0,0,.06)', padding: '4px', animation: 'fadeInUp .2s ease-out both' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '240px', overflowY: 'auto', borderRadius: '8px', background: 'var(--surface)', boxShadow: '0 0 0 1px var(--border),0 8px 24px rgba(0,0,0,.06)', padding: '4px', animation: 'fadeInUp .2s ease-out both' }}>
                 {v.gerResults.map((r: any) => (
                   <div key={r.cd} onClick={r.onClick} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '7px', fontSize: '12.5px', color: 'var(--text-b)', cursor: 'pointer', transition: 'background .12s' }} className={hv('background:var(--surface-3)', undefined, undefined)}>
                     <span style={codeTag}>{r.cd}</span>
@@ -89,9 +89,9 @@ export default function GeraisPage({ v }: { v: any }) {
           </div>
         ) : null}
 
-        <div style={{ overflowX: 'auto', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ overflowX: 'auto', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           <div style={{ minWidth: '600px' }}>
-            <div style={css(`display:grid;${v.gerGridStyle};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+            <div style={css(`display:grid;${v.gerGridStyle};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
               <div style={colHead}>Código</div>
               <div style={colHead}>Empresa</div>
               <div style={colHead}>Motivo</div>
@@ -112,7 +112,7 @@ export default function GeraisPage({ v }: { v: any }) {
                 <div><span style={codeTag}>{r.cd}</span></div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
                   <span title={r.name} style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.name}</span>
-                  {r.novo ? <span style={{ flex: 'none', padding: '0 6px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, lineHeight: '17px', color: '#4161FF', background: '#EEF2FF' }}>Novo</span> : null}
+                  {r.novo ? <span style={{ flex: 'none', padding: '0 6px', borderRadius: '20px', fontSize: '10px', fontWeight: 600, lineHeight: '17px', color: '#4161FF', background: 'var(--tint-blue-3)' }}>Novo</span> : null}
                 </div>
                 {v.gerPodeEditar ? (
                   <input value={r.motivo} onChange={r.onMotivo} placeholder="Motivo" maxLength={300} aria-label={`Motivo da empresa ${r.cd}`} style={css(r.motivoStyle)} />
@@ -133,7 +133,7 @@ export default function GeraisPage({ v }: { v: any }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 #EEEEF1', background: 'var(--surface-2)', borderRadius: '0 0 10px 10px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 var(--border-soft)', background: 'var(--surface-2)', borderRadius: '0 0 10px 10px' }}>
           <div style={{ fontSize: '12px', color: v.gerDirty ? '#B45309' : 'var(--text-3)', fontWeight: v.gerDirty ? 600 : 400 }}>{v.gerFooterLabel}</div>
           {v.gerPodeEditar ? (
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>

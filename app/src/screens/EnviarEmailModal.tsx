@@ -10,8 +10,8 @@ export default function EnviarEmailModal({ v }: { v: any }) {
   const busy = v.envioEmailBusy;
   return (
     <div style={css('display:flex;position:fixed;inset:0;z-index:120;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')} onClick={v.fecharEnvioEmail}>
-      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 #EEEEF1' }}>
+      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 var(--border-soft)' }}>
           <div style={{ width: '38px', height: '38px', flex: 'none', borderRadius: '11px', background: 'var(--tint-blue)', color: '#4161FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <path d="M4 6.5h16v11H4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"></path>
@@ -73,7 +73,7 @@ export default function EnviarEmailModal({ v }: { v: any }) {
           ) : null}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '10px', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           <button onClick={v.fecharEnvioEmail} disabled={busy} style={{ height: '38px', padding: '0 16px', borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-b)', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: busy ? 'default' : 'pointer', opacity: busy ? 0.6 : 1, transition: 'background .15s,border-color .15s' }} className={hv('background:var(--surface-3);border-color:var(--border-strong)', undefined, undefined)}>
             Cancelar
           </button>

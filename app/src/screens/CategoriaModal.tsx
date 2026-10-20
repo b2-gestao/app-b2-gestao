@@ -9,8 +9,8 @@ export default function CategoriaModal({ v }: { v: any }) {
   if (!v.catModalOpen) return null;
   return (
     <div style={css('display:flex;position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')} onClick={v.closeCatModal}>
-      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 #EEEEF1' }}>
+      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 var(--border-soft)' }}>
           <div style={{ width: '38px', height: '38px', flex: 'none', borderRadius: '11px', background: 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <TagIcon size={19} />
           </div>
@@ -54,7 +54,7 @@ export default function CategoriaModal({ v }: { v: any }) {
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           {v.catEditing ? (
             <button onClick={v.removeCat} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '38px', padding: '0 14px', borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--surface)', color: '#DC2626', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,border-color .15s' }} className={hv('background:var(--tint-red);border-color:#FCA5A5', undefined, undefined)}>
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none">

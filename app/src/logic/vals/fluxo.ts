@@ -102,7 +102,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
     ...g,
     toggle: () => this.setState({ ['fxOpen_' + g.key]: !g.open }),
     chevStyle: `transition:transform .18s;transform:rotate(${g.open ? 90 : 0}deg)`,
-    headStyle: `display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1;transition:background .15s`,
+    headStyle: `display:flex;align-items:center;gap:10px;padding:11px 18px;cursor:pointer;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft);transition:background .15s`,
     headHover: 'background:var(--surface-3)',
     tagStyle: `font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${g.tag === 'Holding · origem dos aportes' ? 'var(--tint-purple)' : 'var(--tint-blue)'};color:${g.tag === 'Holding · origem dos aportes' ? '#7C3AED' : '#2445E8'};white-space:nowrap`,
     badgeStyle: `display:${g.badge ? 'inline' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:var(--tint-amber);border-radius:20px;padding:3px 9px;white-space:nowrap`,
@@ -164,9 +164,9 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
   const fxGroups = (view === 'Por SPE' ? perEmp : (perEmp.length ? [consGroup] : [])).map(compactify);
 
   const fxCards = [
-    { label: 'Receitas no período', val: 'R$ ' + f2(sumRec), sub: fxRecSel.length === recAll.length ? 'Todos os tipos' : fxRecSel.join(', '), style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:150ms', valStyle: 'font-size:20px;font-weight:700;color:#258B6C;font-variant-numeric:tabular-nums' },
-    { label: 'Pagamentos + inputs', val: 'R$ ' + f2(-sumPag + sumInputs), sub: 'Títulos Sienge + manuais', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms', valStyle: 'font-size:20px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
-    { label: 'Aportes às SPEs', val: L ? 'R$ ' + f2(L.totalAportes) : 'R$ 3.015.146,57', sub: 'Calculado pelo sistema', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:250ms', valStyle: 'font-size:20px;font-weight:700;color:#7C3AED;font-variant-numeric:tabular-nums' },
+    { label: 'Receitas no período', val: 'R$ ' + f2(sumRec), sub: fxRecSel.length === recAll.length ? 'Todos os tipos' : fxRecSel.join(', '), style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:150ms', valStyle: 'font-size:20px;font-weight:700;color:#258B6C;font-variant-numeric:tabular-nums' },
+    { label: 'Pagamentos + inputs', val: 'R$ ' + f2(-sumPag + sumInputs), sub: 'Títulos Sienge + manuais', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms', valStyle: 'font-size:20px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
+    { label: 'Aportes às SPEs', val: L ? 'R$ ' + f2(L.totalAportes) : 'R$ 3.015.146,57', sub: 'Calculado pelo sistema', style: 'display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:250ms', valStyle: 'font-size:20px;font-weight:700;color:#7C3AED;font-variant-numeric:tabular-nums' },
   ];
 
   // Same searchable multi-select as Programação diária; selection is stored by company code (fxEmpSel), the dropdown works by name.
@@ -247,7 +247,7 @@ export function fluxoVals(this: AppLogic, subItemStyle: string) {
       if (daysBetween(P.from, v) >= FLUXO_MAX_DAYS) { this.toast(`Período máximo de ${FLUXO_MAX_DAYS} dias.`); return; }
       this.setState({ fxDateTo: v });
     },
-    fxGridStyle: `display:grid;grid-template-columns:${gridCols};gap:0;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`,
+    fxGridStyle: `display:grid;grid-template-columns:${gridCols};gap:0;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`,
     fxTableStyle: `min-width:${256 + 104 * N}px`,
     fxViewTabs: ['Consolidado', 'Por SPE'].map(l => ({ label: l, style: `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${view === l ? '#111827' : 'transparent'};color:${view === l ? '#FFFFFF' : 'var(--text-3)'}`, onClick: () => this.setState({ fxView: l }) })),
     ddFxEmp,

@@ -3,8 +3,8 @@
   --bg:#FEFEFE;--surface:#FFFFFF;--surface-2:#FAFAFB;--hover:#FAFAFA;
   --surface-3:#F4F4F6;--border:#E7E7EA;--border-soft:#EEEEF1;--border-strong:#D8D8E0;
   --text:#111827;--text-b:#374151;--text-2:#475569;--text-3:#64748B;--text-4:#94A3B8;
-  --tint-blue:#EAF1FF;--tint-red:#FEE9E9;--tint-green:#E1F7EF;--tint-amber:#FFF0DD;--tint-purple:#F1E9FF;
-  --scroll-track:#F4F4F6;--scroll-thumb:#C2C2CB;--scroll-thumb-hover:#9CA3AF;
+  --tint-blue:#EAF1FF;--tint-blue-2:#F2F5FF;--tint-blue-3:#EEF2FF;--tint-green-2:#E9F8F2;--tint-amber-2:#FFF7E8;--surface-4:#FCFCFD;--surface-red:#FFFBFB;--tint-red:#FEE9E9;--tint-green:#E1F7EF;--tint-amber:#FFF0DD;--tint-purple:#F1E9FF;
+  --scroll-track:#F4F4F6;--scroll-thumb:#C2C2CB;--scroll-thumb-2:#DADAE0;--scroll-thumb-hover:#9CA3AF;
   --placeholder:#A8B0BD;
   color-scheme:light;
 }
@@ -12,8 +12,8 @@
   --bg:#0F1115;--surface:#171A21;--surface-2:#1B1F27;--hover:#1E222B;
   --surface-3:#222731;--border:#262A33;--border-soft:#20242C;--border-strong:#323845;
   --text:#E6E8EC;--text-b:#CBD1DB;--text-2:#B4BBC8;--text-3:#8B94A5;--text-4:#6F788A;
-  --tint-blue:#1D2540;--tint-red:#3A1F24;--tint-green:#16342C;--tint-amber:#3A2E17;--tint-purple:#2B2146;
-  --scroll-track:#14171D;--scroll-thumb:#353A45;--scroll-thumb-hover:#4A505E;
+  --tint-blue:#1D2540;--tint-blue-2:#1A2036;--tint-blue-3:#1D2540;--tint-green-2:#16342C;--tint-amber-2:#33291A;--surface-4:#1B1F27;--surface-red:#2A1A1E;--tint-red:#3A1F24;--tint-green:#16342C;--tint-amber:#3A2E17;--tint-purple:#2B2146;
+  --scroll-track:#14171D;--scroll-thumb:#353A45;--scroll-thumb-2:#353A45;--scroll-thumb-hover:#4A505E;
   --placeholder:#6B7385;
   color-scheme:dark;
 }

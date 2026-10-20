@@ -66,7 +66,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
       statusLabel: meta.label,
       statusStyle: `display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:${meta.color};background:${meta.bg};border-radius:20px;padding:3px 9px 3px 8px;white-space:nowrap`,
       dotStyle: `width:6px;height:6px;border-radius:50%;background:${meta.dot};${a.status === 'ok' ? '' : 'animation:blink 1.4s ease-in-out infinite'}`,
-      rowStyle: `${cols};padding:10px 18px${grouped ? ' 10px 30px' : ''};background:${tint};box-shadow:inset 0 -1px 0 #F4F4F6;transition:background .15s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
+      rowStyle: `${cols};padding:10px 18px${grouped ? ' 10px 30px' : ''};background:${tint};box-shadow:inset 0 -1px 0 var(--surface-3);transition:background .15s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
       hoverStyle: `background:${a.status === 'missing' ? '#FFF7EB' : 'var(--surface-2)'}`,
       actStyle: actBtn,
       syncIconStyle: syncing ? 'animation:spin .7s linear infinite' : '',
@@ -106,7 +106,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
         subtotal: f2(accs.reduce((t2, a) => t2 + (a.saldo || 0), 0)),
         pendLabel: pend ? (pend === 1 ? '1 pendência' : `${pend} pendências`) : '',
         pendStyle: `display:${pend ? 'inline-flex' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:var(--tint-amber);border-radius:20px;padding:2px 8px`,
-        rowStyle: `${cols};padding:9px 18px;background:#F7F8FF;box-shadow:inset 0 -1px 0 #EEEEF1,inset 3px 0 0 #4161FF;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
+        rowStyle: `${cols};padding:9px 18px;background:#F7F8FF;box-shadow:inset 0 -1px 0 var(--border-soft),inset 3px 0 0 #4161FF;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
       });
       accs.forEach(a => sbRows.push(mkAcct(a)));
     });

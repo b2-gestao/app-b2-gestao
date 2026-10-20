@@ -67,7 +67,7 @@ export function Campo({ rotulo, dica, largura = 1, children }: { rotulo: string;
 
 export function Leitura({ valor, detalhe }: { valor: string; detalhe?: string }) {
   return (
-    <div style={{ minHeight: '38px', padding: '8px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>
+    <div style={{ minHeight: '38px', padding: '8px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--border-soft)', fontSize: '13px', color: 'var(--text)', fontWeight: 500 }}>
       <div style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={valor}>{valor}</div>
       {detalhe ? <div style={{ fontSize: '11.5px', color: 'var(--text-4)', marginTop: '1px' }}>{detalhe}</div> : null}
     </div>
@@ -88,7 +88,7 @@ export function Resumo({ itens }: { itens: [string, string, string?][] }) {
   return (
     <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: '10px' }}>
       {itens.map(([rot, val, det]) => (
-        <div key={rot} style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', minWidth: 0 }}>
+        <div key={rot} style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--border-soft)', minWidth: 0 }}>
           <div style={colHead}>{rot}</div>
           <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text)', marginTop: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={val}>{val}</div>
           {det ? <div style={{ fontSize: '11.5px', color: 'var(--text-4)', marginTop: '1px' }}>{det}</div> : null}
@@ -246,7 +246,7 @@ export function EmpresaModal({ m, sub }: { m: any; sub: string }) {
   return (
     <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Informar empresa" onClick={e => e.stopPropagation()}
-        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
           <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Informar empresa</div>
           <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>{sub}</div>
@@ -257,7 +257,7 @@ export function EmpresaModal({ m, sub }: { m: any; sub: string }) {
           </Campo>
           {m.erro ? <Alerta tom="erro" titulo={m.erro} /> : null}
         </form>
-        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: '#FCFCFD' }}>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: 'var(--surface-4)' }}>
           <button onClick={m.fechar} disabled={m.enviando} style={css(btnSec + ';height:38px' + (m.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
           <button onClick={m.confirmar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
             {m.enviando ? <><Spinner /> Buscando…</> : 'Continuar'}
@@ -305,7 +305,7 @@ function ChamadoModal({ c }: { c: any }) {
   return (
     <div onClick={c.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Criar chamado de conferência" onClick={e => e.stopPropagation()}
-        style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        style={css('width:100%;max-width:560px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
           <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Criar chamado de conferência</div>
           <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>Confira os dados e abra o chamado no TomTicket, no seu nome.</div>
@@ -347,7 +347,7 @@ function ChamadoModal({ c }: { c: any }) {
           ) : null}
           {c.erro ? <Alerta tom="erro" titulo={c.erro} /> : null}
         </div>
-        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: '#FCFCFD' }}>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: 'var(--surface-4)' }}>
           <button onClick={c.fechar} disabled={c.enviando} style={css(btnSec + ';height:38px' + (c.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
           <button onClick={c.criar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
             {c.enviando ? <><Spinner /> Criando…</> : 'Criar chamado'}

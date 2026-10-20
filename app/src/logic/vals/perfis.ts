@@ -36,7 +36,7 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
       iconStyle: 'width:32px;height:32px;flex:none;border-radius:9px;background:var(--tint-purple);display:flex;align-items:center;justify-content:center',
       countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
       countLabel: `${granted}/${totalPaths}`,
-      rowStyle: `display:grid;grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 110px 116px 96px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 #F4F4F6;opacity:${p.active ? 1 : .62};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
+      rowStyle: `display:grid;grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 110px 116px 96px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 var(--surface-3);opacity:${p.active ? 1 : .62};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
       trackStyle: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${p.active ? '#43B997' : '#D8D8E0'}`,
       knobStyle: `position:absolute;top:2.5px;left:${p.active ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
       statusStyle: `font-size:11px;font-weight:600;color:${p.active ? '#35AD88' : 'var(--text-3)'};background:${p.active ? 'var(--tint-green)' : 'var(--surface-3)'};border-radius:20px;padding:2px 8px;white-space:nowrap`,
@@ -136,7 +136,7 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
       : 'Nenhum registro para exibir',
 
     perfilOverlayStyle: `display:${s.perfilModalOpen ? 'flex' : 'none'};position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(2px)`,
-    perfilModalCardStyle: 'width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
+    perfilModalCardStyle: 'width:100%;max-width:640px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
     closePerfilModal: () => this.setState({ perfilModalOpen: false, editingPerfilId: null, pForm: null, pFormErr: '' }),
     openNewPerfil: () => this.setState({ perfilModalOpen: true, editingPerfilId: null, pForm: this.emptyPerfilForm(), pFormErr: '' }),
     perfilModalTitle: editing ? 'Editar perfil' : 'Novo perfil',
