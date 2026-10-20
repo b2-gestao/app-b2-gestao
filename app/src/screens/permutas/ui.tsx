@@ -130,7 +130,7 @@ export function usePaginacao<T>(itens: T[], tamanhos: readonly number[], reinici
 }
 
 export function Paginacao({ pg, rotulo = 'itens' }: { pg: Omit<ReturnType<typeof usePaginacao>, 'visiveis'>; rotulo?: string }) {
-  if (pg.total <= pg.tamanhos[0] && pg.porPag !== 0) return null;
+  if (!pg.total) return null;
   return (
     <div className="pm-pag">
       <span>{pg.porPag ? `${(pg.pag - 1) * pg.tam + 1}–${Math.min(pg.pag * pg.tam, pg.total)}` : pg.total} de {pg.total} {rotulo}</span>

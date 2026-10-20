@@ -19,7 +19,7 @@ const COLUNAS: Coluna[] = [
   { key: 'un', label: 'Unidades', w: 280, min: 120 },
 ];
 
-const POR_PAGINA = [25, 50, 100] as const;
+const POR_PAGINA = [30, 60, 100] as const;
 
 export default function PermutasCadastroPage({ v }: { v: any }) {
   const { ctx, ativo, dados, empresas, nomeOrigem, nomeEmp } = useBasePermutas(v, 'cadastros');
