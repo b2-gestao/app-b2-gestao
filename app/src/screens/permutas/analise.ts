@@ -15,6 +15,9 @@ export interface LinhaUnidade {
   direta?: UnidadeDireta; permuta?: Permuta;
 }
 
+/** Chave da área/empreendimento de origem da permuta (empresa do Sienge ou negócio cadastrado). */
+export const chaveOrigem = (p: Pick<Permuta, 'empresa_id' | 'negocio_id'>) => (p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id);
+
 /** Unidades das permutas de área + cadastradas direto; a mesma unidade nas duas origens vira uma linha só. */
 export function montarUnidades(permutas: Permuta[], diretas: UnidadeDireta[], catalogo: UnidadeCatalogo[], nomeOrigem: (p: Permuta) => string): LinhaUnidade[] {
   const company = new Map<number, number | null>();
@@ -67,12 +70,14 @@ export function analisar(permutas: Permuta[], diretas: UnidadeDireta[], catalogo
   });
 
   // ---------- por terreno (origem da permuta) ----------
-  const terrenos = new Map<string, { nome: string; area: number; proprio: number; div: number; n: number; matricula: number }>();
+  const terrenos = new Map<string, { chave: string; nome: string; area: number; proprio: number; div: number; n: number; matricula: number; aloc: number; unidades: number; pend: number }>();
   permutas.forEach(p => {
     const c = calcular(p);
-    const k = p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id;
-    const t = terrenos.get(k) || { nome: nomeOrigem(p), area: 0, proprio: 0, div: 0, n: 0, matricula: 0 };
+    const a = aloc.find(x => x.id === p.id);
+    const k = chaveOrigem(p);
+    const t = terrenos.get(k) || { chave: k, nome: nomeOrigem(p), area: 0, proprio: 0, div: 0, n: 0, matricula: 0, aloc: 0, unidades: 0, pend: 0 };
     t.area += c.area || 0; t.proprio += c.proprio; t.div += Math.max(0, c.div || 0); t.n += 1; t.matricula += p.area_matricula || 0;
+    t.aloc += a ? a.alocProprio + a.alocDiv : 0; t.unidades += p.unidades.length; if (a && a.situacao !== 'ok') t.pend += 1;
     terrenos.set(k, t);
   });
   const porTerreno = [...terrenos.values()].sort((a, b) => b.area - a.area);
