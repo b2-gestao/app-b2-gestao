@@ -16,6 +16,9 @@ const PAGES: Record<string, { path: string; module: string; open: string }> = {
   nfCadastros: { path: 'notas-fiscais/cadastros', module: 'Notas Fiscais', open: 'nfOpen' },
   nfTitulos: { path: 'notas-fiscais/titulos-a-pagar', module: 'Notas Fiscais', open: 'nfOpen' },
   crcEntregas: { path: 'crc/entregas', module: 'CRC', open: 'crcOpen' },
+  permutasCadastro: { path: 'permutas/terrenos/cadastros', module: 'Permutas', open: 'permutasOpen' },
+  permutasVisao: { path: 'permutas/terrenos/visao-geral', module: 'Permutas', open: 'permutasOpen' },
+  permutasInsights: { path: 'permutas/terrenos/insights', module: 'Permutas', open: 'permutasOpen' },
 };
 
 /** Hash for the screen in this state. */
