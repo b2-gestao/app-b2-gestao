@@ -1,7 +1,7 @@
 // Notas Fiscais: tokens visuais compartilhados pelas telas Cadastros e Título a Pagar.
 
 export const colHead = { fontSize: '10.5px', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-4)', fontWeight: 600 } as const;
-export const card = 'border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)';
+export const card = 'border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)';
 export const anim = (ms: number) => `opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${ms}ms`;
 export const input = 'height:38px;width:100%;padding:0 12px;border-radius:8px;border:1px solid var(--border);background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s';
 export const btnPrim = 'display:inline-flex;align-items:center;justify-content:center;gap:8px;height:38px;padding:0 16px;border:none;border-radius:9px;background:#4161FF;color:#FFFFFF;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;white-space:nowrap;box-shadow:0 4px 14px rgba(65,97,255,.26);transition:background .15s,transform .15s,box-shadow .15s';
@@ -13,7 +13,7 @@ export const link = 'border:none;background:none;padding:0;color:#4161FF;font-si
 
 export const TONS = {
   erro: { bg: '#FEE9E9', bd: '#FCA5A5', fg: '#B91C1C', dot: '#EF4444' },
-  aviso: { bg: '#FFF7E8', bd: '#FAD59A', fg: '#92590A', dot: '#F59E0B' },
-  info: { bg: '#F2F5FF', bd: '#D5DEFF', fg: '#3148B8', dot: '#4161FF' },
-  ok: { bg: '#E9F8F2', bd: '#BDE8D8', fg: '#1F7A5C', dot: '#43B997' },
+  aviso: { bg: 'var(--tint-amber-2)', bd: '#FAD59A', fg: '#92590A', dot: '#F59E0B' },
+  info: { bg: 'var(--tint-blue-2)', bd: '#D5DEFF', fg: '#3148B8', dot: '#4161FF' },
+  ok: { bg: 'var(--tint-green-2)', bd: '#BDE8D8', fg: '#1F7A5C', dot: '#43B997' },
 } as const;

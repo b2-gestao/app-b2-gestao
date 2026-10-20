@@ -11,9 +11,9 @@ import { exportarExcel, IcExcel } from './ui';
 
 const COR: Record<Nivel, { bg: string; fg: string; dot: string; nome: string }> = {
   critico: { bg: '#FEE9E9', fg: '#B91C1C', dot: '#EF4444', nome: 'Crítico' },
-  atencao: { bg: '#FFF7E8', fg: '#92590A', dot: '#F59E0B', nome: 'Atenção' },
-  info: { bg: '#F2F5FF', fg: '#3148B8', dot: '#4161FF', nome: 'Info' },
-  positivo: { bg: '#E9F8F2', fg: '#1F7A5C', dot: '#43B997', nome: 'Positivo' },
+  atencao: { bg: 'var(--tint-amber-2)', fg: '#92590A', dot: '#F59E0B', nome: 'Atenção' },
+  info: { bg: 'var(--tint-blue-2)', fg: '#3148B8', dot: '#4161FF', nome: 'Info' },
+  positivo: { bg: 'var(--tint-green-2)', fg: '#1F7A5C', dot: '#43B997', nome: 'Positivo' },
 };
 const SITUACAO: Record<string, [string, string]> = {
   'sem-area': ['Sem área', 'err'], 'sem-unidade': ['Sem unidade', 'warn'], parcial: ['Parcial', 'warn'], ok: ['Fechado', 'ok'], excesso: ['Acima de 100%', 'err'],

@@ -70,7 +70,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
         if (this.live) { if (this.podeEditar(perm)) write(() => cadastrosApi.atualizarLancamento(a.id, { situacao: sit }), sit === 'lancado' ? 'Marcado como lançado.' : 'Marcado como previsto.'); return; }
         this.setLc(list => list.map(x => x.id === a.id ? Object.assign({}, x, { sit }) : x));
       },
-      rowStyle: `display:grid;grid-template-columns:96px 190px minmax(220px,1fr) 170px 140px 118px 104px 92px;gap:12px;align-items:center;padding:10px 18px;box-shadow:inset 0 -1px 0 #F4F4F6;transition:background .15s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
+      rowStyle: `display:grid;grid-template-columns:96px 190px minmax(220px,1fr) 170px 140px 118px 104px 92px;gap:12px;align-items:center;padding:10px 18px;box-shadow:inset 0 -1px 0 var(--surface-3);transition:background .15s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
       edit: () => openFor(a),
       del: () => {
         if (this.live) {
@@ -90,7 +90,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
     lcInFmt: '+ ' + f2(totalIn), lcInSub: `${ins.length} lançamentos no período`,
     lcRecCount: recCount,
     lcPrevCount: prevCount,
-    lcPrevCardStyle: cardBase + ';box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)',
+    lcPrevCardStyle: cardBase + ';box-shadow:0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03)',
     lcFilterPrev: () => this.setState({ lcSit: s.lcSit === 'Previsto' ? 'Todas' : 'Previsto' }),
     lcFrom: from, onLcFrom: e => this.setState({ lcFrom: e.target.value }),
     lcTo: to, onLcTo: e => this.setState({ lcTo: e.target.value }),

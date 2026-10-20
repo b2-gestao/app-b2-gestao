@@ -54,7 +54,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
       empList: emp.todas ? 'Todas as empresas' : emp.list.join('\n'), ccList: u.centros.join('\n'),
       statusLabel: meta.label,
       toggleTitle: on ? 'Inativar usuário' : 'Ativar usuário',
-      rowStyle: `display:grid;grid-template-columns:minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 #F4F4F6;opacity:${u.status === 'inativo' ? .62 : 1};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
+      rowStyle: `display:grid;grid-template-columns:minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 var(--surface-3);opacity:${u.status === 'inativo' ? .62 : 1};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
       avatarStyle: `width:32px;height:32px;flex:none;border-radius:9px;background:${color}18;color:${color};display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700`,
       countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-blue);color:#2445E8;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
       ccChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
@@ -185,7 +185,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     uNext: () => this.setState({ uPage: Math.min(totalPages, page + 1) }),
 
     overlayStyle: `display:${s.modalOpen ? 'flex' : 'none'};position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both`,
-    modalCardStyle: 'width:100%;max-width:900px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
+    modalCardStyle: 'width:100%;max-width:900px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both',
     stopProp: e => e.stopPropagation(),
     closeModal: () => this.setState({ modalOpen: false, editingId: null, uForm: null, formErr: '' }),
     openNew: () => this.setState({ modalOpen: true, editingId: null, uForm: this.emptyForm(), formErr: '' }),

@@ -87,7 +87,7 @@ export default function BiPage({ v }: { v: any }) {
         </div>
       </div>
 
-      <div ref={cardRef} style={css(`position:relative;flex:1 1 auto;min-height:480px;border-radius:${full ? 0 : 12}px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);overflow:hidden;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:.06s`)}>
+      <div ref={cardRef} style={css(`position:relative;flex:1 1 auto;min-height:480px;border-radius:${full ? 0 : 12}px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03);overflow:hidden;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:.06s`)}>
         {p ? (
           <>
             <iframe

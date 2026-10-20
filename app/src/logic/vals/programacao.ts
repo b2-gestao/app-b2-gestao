@@ -66,7 +66,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       count: `${onItems.length}${offItems.length ? ` (+${offItems.length} fora)` : ''}`,
       open, chevStyle: `transition:transform .18s;transform:rotate(${open ? 90 : 0}deg)`,
       toggle: () => this.setState({ ['pgOpen_' + g.cd]: !open }),
-      rowStyle: `display:grid;grid-template-columns:28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px 74px;gap:12px;align-items:center;padding:10px 18px;cursor:pointer;box-shadow:inset 0 -1px 0 #F4F4F6;transition:background .15s`,
+      rowStyle: `display:grid;grid-template-columns:28px minmax(230px,1fr) 124px 124px 110px 124px 124px 130px 52px 74px;gap:12px;align-items:center;padding:10px 18px;cursor:pointer;box-shadow:inset 0 -1px 0 var(--surface-3);transition:background .15s`,
       hoverStyle: 'background:var(--surface-2)',
       items: onItems.map((it, i) => ({
         title: it.title, sub: it.sub, tag: it.tag,
@@ -80,7 +80,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
 
 
   const noteStyle = (on: boolean) => `display:${on ? 'block' : 'none'};font-size:11px;line-height:1.45;color:var(--text-4);white-space:pre-line;text-wrap:pretty;cursor:default`;
-  const cardBase = i => `display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${100 + i * 50}ms;transition:transform .2s ease`;
+  const cardBase = i => `display:flex;flex-direction:column;gap:7px;padding:15px 17px;border-radius:10px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${100 + i * 50}ms;transition:transform .2s ease`;
   const pgCards = [
     {
       label: 'Saldo inicial do dia', val: f2(totContas),

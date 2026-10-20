@@ -9,11 +9,11 @@ import {
 import { colHead, card, anim, input, btnPrim, btnPrimHover, btnSec, btnSecHover, off, link, TONS } from './nf/estilo';
 
 const SIM = {
-  alta: { bg: '#E9F8F2', fg: '#1F7A5C' },
-  media: { bg: '#FFF7E8', fg: '#92590A' },
+  alta: { bg: 'var(--tint-green-2)', fg: '#1F7A5C' },
+  media: { bg: 'var(--tint-amber-2)', fg: '#92590A' },
   baixa: { bg: '#FEE9E9', fg: '#B91C1C' },
-  manual: { bg: '#F2F5FF', fg: '#3148B8' },
-  valor: { bg: '#E9F8F2', fg: '#1F7A5C' },
+  manual: { bg: 'var(--tint-blue-2)', fg: '#3148B8' },
+  valor: { bg: 'var(--tint-green-2)', fg: '#1F7A5C' },
   vazio: { bg: 'transparent', fg: '#CBD5E1' },
 } as const;
 
@@ -128,7 +128,7 @@ function Historico({ nf }: { nf: any }) {
       <div style={css(`${card};overflow:hidden;${anim(110)}`)}>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: '980px' }}>
-            <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+            <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
               <div style={colHead}>Cadastro</div>
               <div style={colHead}>Documento</div>
               <div style={colHead}>Fornecedor · empresa</div>
@@ -207,7 +207,7 @@ function Historico({ nf }: { nf: any }) {
                 </div>
               </div>
             ) : null}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-3)' }}>{nf.rangeLabel}</div>
           {!nf.podeEditar ? <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-4)' }}>Seu perfil pode consultar, mas não cadastrar notas.</div> : null}
         </div>
@@ -314,10 +314,10 @@ function Pedido({ nf }: { nf: any }) {
           sub={`Pedidos autorizados, não atendidos ou parcialmente atendidos, deste fornecedor para esta empresa.${a.outraEmpresa ? ` ${a.outraEmpresa} pedido(s) em aberto de outras empresas foram omitidos.` : ''}`}
           delay={130}
         >
-          <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+          <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
             <div style={{ overflowX: 'auto' }}>
               <div style={{ minWidth: '820px' }}>
-                <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 16px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+                <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 16px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
                   <div style={colHead}>Pedido</div>
                   <div style={colHead}>Data</div>
                   <div style={colHead}>Obra</div>
@@ -326,7 +326,7 @@ function Pedido({ nf }: { nf: any }) {
                   <div></div>
                 </div>
                 {a.pedidos.map((p: any, i: number) => (
-                  <div key={p.id} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 16px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 30, 300)}ms`)} className={hv('background:var(--surface-2)', undefined, undefined)}>
+                  <div key={p.id} style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 16px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 30, 300)}ms`)} className={hv('background:var(--surface-2)', undefined, undefined)}>
                     <div style={{ fontSize: '13px', fontWeight: 700, color: 'var(--text)', fontVariantNumeric: 'tabular-nums' }}>{p.numero}</div>
                     <div style={{ fontSize: '12.5px', color: 'var(--text-b)', fontVariantNumeric: 'tabular-nums' }}>{p.data}</div>
                     <div style={{ fontSize: '12.5px', color: 'var(--text-b)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={p.obra}>{p.obra}</div>
@@ -389,7 +389,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
           </Campo>
           <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={colHead}>Observação interna</span>
-            <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '12.5px', color: 'var(--text-b)' }}>{c.observacaoAutomatica}</div>
+            <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--border-soft)', fontSize: '12.5px', color: 'var(--text-b)' }}>{c.observacaoAutomatica}</div>
             <textarea value={c.obs} onChange={c.onObs} rows={2} placeholder="Complemento opcional" style={css(input + ';height:auto;padding:9px 12px;resize:vertical;line-height:1.45')} />
             <span style={{ fontSize: '11.5px', color: 'var(--text-4)' }}>Observações, observações dos insumos e anexos do pedido também são copiados para a nota.</span>
           </div>
@@ -405,7 +405,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
         </>}
         delay={130}
       >
-        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: c.comItens ? '1080px' : '700px' }}>
               {c.comItens ? (
@@ -415,7 +415,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
                   <div style={{ ...colHead, gridColumn: 'span 5', color: '#4161FF' }}>Insumo do pedido de compra</div>
                 </div>
               ) : null}
-              <div style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:9px 14px 10px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+              <div style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:9px 14px 10px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
                 {c.comItens ? <><div style={colHead}>Produto</div><div style={{ ...colHead, textAlign: 'right' }}>Qtd · valor</div><div></div></> : null}
                 <div></div>
                 <div style={colHead}>Insumo</div>
@@ -427,7 +427,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
                 const sim = SIM[l.nivel as keyof typeof SIM];
                 // Uma linha por item da nota ligado ao insumo; quantidade e subtotal só na primeira.
                 return (c.comItens ? l.notas : [null]).map((n: any, k: number) => (
-                  <div key={`${l.itemNumber}-${k}`} style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:10px 14px;${k ? 'box-shadow:inset 0 1px 0 #F8F8FA;' : i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}background:${l.selecionado ? '#FBFCFF' : 'var(--surface)'};opacity:${l.semSaldo ? 0.55 : 1};transition:background .15s`)}>
+                  <div key={`${l.itemNumber}-${k}`} style={css(`display:grid;${gridIt};gap:10px;align-items:center;padding:10px 14px;${k ? 'box-shadow:inset 0 1px 0 #F8F8FA;' : i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}background:${l.selecionado ? '#FBFCFF' : 'var(--surface)'};opacity:${l.semSaldo ? 0.55 : 1};transition:background .15s`)}>
                     {n ? (
                       <>
                         <div style={{ minWidth: 0 }}>
@@ -473,7 +473,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
         </div>
 
         {c.semVinculo.length ? (
-          <div style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1' }}>
+          <div style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--border-soft)' }}>
             <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--text-b)' }}>Itens da nota sem insumo associado</div>
             <ul style={{ margin: '5px 0 0', paddingLeft: '18px', fontSize: '12px', color: 'var(--text-3)', lineHeight: 1.55 }}>
               {c.semVinculo.map((i: any) => <li key={i.indice}>{i.texto}</li>)}
@@ -483,7 +483,7 @@ function Conferencia({ nf, c }: { nf: any; c: any }) {
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '10px' }}>
           {[['Valor do documento', c.totalDocumento, '#111827'], ['Insumos selecionados (preço do pedido)', c.totalSelecionado, '#4161FF'], ['Diferença', c.diferenca, c.diferente ? '#D97706' : '#35AD88']].map(([r, val, cor]) => (
-            <div key={r} style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1' }}>
+            <div key={r} style={{ padding: '10px 12px', borderRadius: '9px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--border-soft)' }}>
               <div style={colHead}>{r}</div>
               <div style={{ fontSize: '16px', fontWeight: 700, color: cor, marginTop: '4px', fontVariantNumeric: 'tabular-nums' }}>{val}</div>
             </div>
@@ -573,7 +573,7 @@ function Anexos({ c }: { c: any }) {
         Use a sigla na descrição: <b>NF</b> (nota fiscal), <b>NFS</b> (nota de serviço), <b>BLT</b> (boleto), <b>FAT</b> (fatura).
       </div>
       {c.recusados.length ? <Alerta tom="aviso" titulo="Arquivos não adicionados" itens={c.recusados} /> : null}
-      <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+      <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
         <LinhaAnexo
           descricao={c.descricaoPrincipal} onDescricao={c.onDescricaoPrincipal} sugestoes={c.sugestoesAnexo.map((s: string) => ({ value: s }))} max={c.maxDescricao}
           nome={c.nomePrincipal} detalhe="PDF do cadastro · anexado automaticamente" principal
@@ -593,7 +593,7 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
   return (
     <section style={css(`${card};padding:24px;display:flex;flex-direction:column;gap:16px;${anim(80)}`)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <div style={{ width: '46px', height: '46px', flex: 'none', borderRadius: '13px', background: '#E9F8F2', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(67,185,151,.08)' }}>
+        <div style={{ width: '46px', height: '46px', flex: 'none', borderRadius: '13px', background: 'var(--tint-green-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(67,185,151,.08)' }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#35AD88" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
         </div>
         <div>
@@ -607,7 +607,7 @@ function Concluido({ nf, r }: { nf: any; r: any }) {
       {r.envios.length ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={colHead}>Anexos adicionais do título</div>
-          <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+          <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
             {r.envios.map((e: any, i: number) => (
               <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '70px minmax(0,1fr) auto', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text)' }}>{e.descricao}</span>
@@ -646,7 +646,7 @@ function PedidoModal({ m }: { m: any }) {
   return (
     <div onClick={m.fechar} style={css('position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')}>
       <div role="dialog" aria-modal="true" aria-label="Informar pedido de compra" onClick={e => e.stopPropagation()}
-        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        style={css('width:100%;max-width:420px;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ padding: '18px 22px', boxShadow: 'inset 0 -1px 0 #F1F1F4' }}>
           <div style={{ fontWeight: 700, fontSize: '15.5px', color: 'var(--text)' }}>Informar pedido de compra</div>
           <div style={{ fontSize: '12.5px', color: 'var(--text-3)', marginTop: '3px' }}>
@@ -659,7 +659,7 @@ function PedidoModal({ m }: { m: any }) {
           </Campo>
           {m.erro ? <Alerta tom="erro" titulo={m.erro} /> : null}
         </form>
-        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: '#FCFCFD' }}>
+        <div style={{ padding: '14px 22px', display: 'flex', justifyContent: 'flex-end', gap: '8px', boxShadow: 'inset 0 1px 0 #F1F1F4', background: 'var(--surface-4)' }}>
           <button onClick={m.fechar} disabled={m.enviando} style={css(btnSec + ';height:38px' + (m.enviando ? off : ''))} className={hv(btnSecHover, undefined, undefined)}>Cancelar</button>
           <button onClick={m.confirmar} disabled={bloqueado} style={css(btnPrim + (bloqueado ? off : ''))} className={bloqueado ? undefined : hv(btnPrimHover, 'transform:scale(.97)', undefined)}>
             {m.enviando ? <><Spinner /> Buscando…</> : 'Continuar'}

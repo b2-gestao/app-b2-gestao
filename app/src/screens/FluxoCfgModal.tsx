@@ -8,8 +8,8 @@ export default function FluxoCfgModal({ v }: { v: any }) {
   if (!v.fxCfgOpen) return null;
   return (
     <div style={css('display:flex;position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')} onClick={v.closeFxCfg}>
-      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 #EEEEF1' }}>
+      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:680px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 var(--border-soft)' }}>
           <div style={{ width: '38px', height: '38px', flex: 'none', borderRadius: '11px', background: 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <circle cx="12" cy="12" r="3" stroke="#4161FF" strokeWidth="1.7"></circle>
@@ -30,7 +30,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
         </div>
 
         <div style={{ flex: '1', overflowY: 'auto', padding: '20px 24px 22px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', borderRadius: '10px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px #EEEEF1' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', borderRadius: '10px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px var(--border-soft)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(220px,1fr))', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
                 <span style={label}>Empresa <span style={{ color: '#EF4444' }}>*</span></span>
@@ -42,7 +42,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
               </label>
             </div>
             {v.fxCfgResults.length ? (
-              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '220px', overflowY: 'auto', borderRadius: '8px', background: 'var(--surface)', boxShadow: '0 0 0 1px #E7E7EA', padding: '4px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', maxHeight: '220px', overflowY: 'auto', borderRadius: '8px', background: 'var(--surface)', boxShadow: '0 0 0 1px var(--border)', padding: '4px' }}>
                 {v.fxCfgResults.map((r: any) => (
                   <div key={r.cd} onClick={r.onClick} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 10px', borderRadius: '7px', fontSize: '12.5px', color: 'var(--text-b)', cursor: 'pointer', transition: 'background .12s' }} className={hv('background:var(--surface-3)', undefined, undefined)}>
                     <span style={{ flex: 'none', minWidth: '34px', padding: '2px 6px', borderRadius: '5px', background: 'var(--tint-blue)', color: '#2445E8', fontSize: '10.5px', fontWeight: 700, textAlign: 'center', fontVariantNumeric: 'tabular-nums' }}>{r.cd}</span>
@@ -55,7 +55,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
               <div style={{ fontSize: '12px', color: 'var(--text-4)' }}>Nenhuma empresa encontrada (ou já está na lista).</div>
             ) : null}
             <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-              <button onClick={v.addFxCfg} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 14px', borderRadius: '8px', border: '1px solid #C9D5FF', background: 'var(--surface)', color: '#4161FF', fontSize: '12.5px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,transform .15s' }} className={hv('background:#EEF2FF', 'transform:scale(.97)', undefined)}>
+              <button onClick={v.addFxCfg} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 14px', borderRadius: '8px', border: '1px solid #C9D5FF', background: 'var(--surface)', color: '#4161FF', fontSize: '12.5px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,transform .15s' }} className={hv('background:var(--tint-blue-3)', 'transform:scale(.97)', undefined)}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                 </svg>
@@ -67,7 +67,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ fontSize: '10.5px', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-4)', fontWeight: 600 }}>{v.fxCfgCountLabel}</span>
             {v.fxCfgRows.length ? (
-              <div style={{ borderRadius: '10px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+              <div style={{ borderRadius: '10px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
                 {v.fxCfgRows.map((r: any, i: number) => (
                   <div key={r.cd} style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.2fr) 32px', gap: '12px', alignItems: 'center', padding: '10px 12px', boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '9px', minWidth: 0 }}>
@@ -84,7 +84,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
                 ))}
               </div>
             ) : (
-              <div style={{ padding: '22px', borderRadius: '10px', boxShadow: '0 0 0 1px #EEEEF1', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-3)' }}>
+              <div style={{ padding: '22px', borderRadius: '10px', boxShadow: '0 0 0 1px var(--border-soft)', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-3)' }}>
                 Todas as empresas consideram as parcelas a receber. Pesquise uma empresa acima para adicionar.
               </div>
             )}
@@ -101,7 +101,7 @@ export default function FluxoCfgModal({ v }: { v: any }) {
           ) : null}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button onClick={v.closeFxCfg} style={{ height: '38px', padding: '0 16px', borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-b)', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,border-color .15s' }} className={hv('background:var(--surface-3);border-color:var(--border-strong)', undefined, undefined)}>
               Cancelar

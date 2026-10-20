@@ -118,7 +118,7 @@ function Historico({ nt }: { nt: any }) {
       <div style={css(`${card};overflow:hidden;${anim(110)}`)}>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: '960px' }}>
-            <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+            <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
               <div style={colHead}>Cadastro</div>
               <div style={colHead}>Documento</div>
               <div style={colHead}>Credor · empresa</div>
@@ -142,7 +142,7 @@ function Historico({ nt }: { nt: any }) {
                       <div style={{ fontSize: '11.5px', color: 'var(--text-4)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={r.quem}>{r.hora} · {r.quem}</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', minWidth: 0 }}>
-                      <div style={{ width: '32px', height: '32px', flex: 'none', borderRadius: '9px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '32px', height: '32px', flex: 'none', borderRadius: '9px', background: 'var(--tint-blue-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <DocIcon size={15} color="#4161FF" />
                       </div>
                       <div style={{ minWidth: 0 }}>
@@ -177,7 +177,7 @@ function Historico({ nt }: { nt: any }) {
                           <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: 'var(--surface-3)', color: 'var(--text-b)', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
                         ))}
                         {r.apropriacoesObra.map((a: string) => (
-                          <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: '#EEF2FF', color: '#3148B8', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
+                          <span key={a} style={{ display: 'inline-flex', alignItems: 'center', height: '22px', padding: '0 9px', borderRadius: '20px', background: 'var(--tint-blue-3)', color: '#3148B8', fontSize: '11.5px', fontWeight: 600 }}>{a}</span>
                         ))}
                       </div>
                       {r.detalhes.length ? <Alerta tom="aviso" titulo="Pendências para ajuste manual no Sienge" itens={r.detalhes} /> : (
@@ -192,7 +192,7 @@ function Historico({ nt }: { nt: any }) {
         </div>
         {!nt.carregando && nt.historico.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', padding: '52px 20px', textAlign: 'center' }}>
-            <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: '#EEF2FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'var(--tint-blue-3)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <DocIcon size={22} color="#4161FF" />
             </div>
             <div style={{ fontSize: '13.5px', fontWeight: 600, color: 'var(--text)' }}>{nt.filtrado ? 'Nenhum título encontrado' : 'Nenhum título cadastrado pelo app ainda'}</div>
@@ -201,7 +201,7 @@ function Historico({ nt }: { nt: any }) {
             </div>
           </div>
         ) : null}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-3)' }}>{nt.rangeLabel}</div>
           {!nt.podeEditar ? <div style={{ marginLeft: 'auto', fontSize: '12px', color: 'var(--text-4)' }}>Seu perfil pode consultar, mas não cadastrar títulos.</div> : null}
         </div>
@@ -296,7 +296,7 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
           </Campo>
           <div style={{ gridColumn: '1 / -1', display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <span style={colHead}>Observação do título</span>
-            <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px #EEEEF1', fontSize: '12.5px', color: 'var(--text-b)' }}>{c.observacaoAutomatica}</div>
+            <div style={{ padding: '9px 12px', borderRadius: '8px', background: 'var(--surface-2)', boxShadow: 'inset 0 0 0 1px var(--border-soft)', fontSize: '12.5px', color: 'var(--text-b)' }}>{c.observacaoAutomatica}</div>
             <textarea value={c.obs} onChange={c.onObs} rows={2} maxLength={c.maxObs} placeholder="Complemento opcional" style={css(input + ';height:auto;padding:9px 12px;resize:vertical;line-height:1.45')} />
           </div>
         </div>
@@ -314,10 +314,10 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
         </>}
         delay={130}
       >
-        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: '760px' }}>
-              <div style={css(`display:grid;${gridAp};gap:12px;align-items:center;padding:10px 14px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+              <div style={css(`display:grid;${gridAp};gap:12px;align-items:center;padding:10px 14px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
                 <div style={colHead}>Centro de custo</div>
                 <div style={colHead}>Plano financeiro</div>
                 <div style={{ ...colHead, textAlign: 'right' }}>Percentual</div>
@@ -325,7 +325,7 @@ function Conferencia({ nt, c }: { nt: any; c: any }) {
                 <div></div>
               </div>
               {c.apropriacoes.map((a: any, i: number) => (
-                <div key={a.id} style={css(`display:grid;${gridAp};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}animation:rowIn .25s ease-out both`)}>
+                <div key={a.id} style={css(`display:grid;${gridAp};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}animation:rowIn .25s ease-out both`)}>
                   <div style={{ minWidth: 0 }}>
                     <Sugestoes value={a.centro} onChange={a.onCentro} opcoes={c.centrosOpcoes} inputMode="numeric" placeholder="Código" ariaLabel={`Centro de custo da linha ${i + 1}`} />
                     <div style={{ fontSize: '11px', color: a.centroNome ? '#1F7A5C' : 'var(--text-4)', marginTop: '3px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={a.centroNome}>{a.centroNome || 'Digite ou escolha o código'}</div>
@@ -397,10 +397,10 @@ function ApropriacaoObra({ c }: { c: any }) {
       delay={150}
     >
       {c.apropriacoesObra.length ? (
-        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+        <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
           <div style={{ overflowX: 'auto' }}>
             <div style={{ minWidth: '900px' }}>
-              <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 14px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+              <div style={css(`display:grid;${grid};gap:12px;align-items:center;padding:10px 14px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
                 <div style={colHead}>Obra</div>
                 <div style={colHead}>Unidade construtiva</div>
                 <div style={colHead}>Item do orçamento</div>
@@ -409,7 +409,7 @@ function ApropriacaoObra({ c }: { c: any }) {
                 <div></div>
               </div>
               {c.apropriacoesObra.map((a: any, i: number) => (
-                <div key={a.id} style={css(`display:grid;${grid};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}animation:rowIn .25s ease-out both`)}>
+                <div key={a.id} style={css(`display:grid;${grid};gap:12px;align-items:start;padding:10px 14px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}animation:rowIn .25s ease-out both`)}>
                   <div style={{ minWidth: 0 }}>
                     <Sugestoes value={a.obra} onChange={a.onObra} opcoes={c.obrasOpcoes} inputMode="numeric" placeholder="Código da obra" ariaLabel={`Obra da linha ${i + 1}`} />
                     {a.obraErro ? (
@@ -532,7 +532,7 @@ function Anexos({ c }: { c: any }) {
         Use a sigla na descrição: <b>NF</b> (nota fiscal), <b>NFS</b> (nota de serviço), <b>BLT</b> (boleto), <b>FAT</b> (fatura).
       </div>
       {c.recusados.length ? <Alerta tom="aviso" titulo="Arquivos não adicionados" itens={c.recusados} /> : null}
-      <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+      <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
         <LinhaAnexo
           descricao={c.descricaoPrincipal} onDescricao={c.onDescricaoPrincipal} sugestoes={c.sugestoesAnexo.map((s: string) => ({ value: s }))} max={c.maxDescricao}
           nome={c.nomePrincipal} detalhe="PDF do cadastro · anexado automaticamente" principal
@@ -552,7 +552,7 @@ function Concluido({ nt, r }: { nt: any; r: any }) {
   return (
     <section style={css(`${card};padding:24px;display:flex;flex-direction:column;gap:16px;${anim(80)}`)}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-        <div style={{ width: '46px', height: '46px', flex: 'none', borderRadius: '13px', background: '#E9F8F2', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(67,185,151,.08)' }}>
+        <div style={{ width: '46px', height: '46px', flex: 'none', borderRadius: '13px', background: 'var(--tint-green-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(67,185,151,.08)' }}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7.5" stroke="#35AD88" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"></path></svg>
         </div>
         <div>
@@ -566,7 +566,7 @@ function Concluido({ nt, r }: { nt: any; r: any }) {
       {r.envios.length ? (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={colHead}>Anexos adicionais do título</div>
-          <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+          <div style={{ borderRadius: '9px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
             {r.envios.map((e: any, i: number) => (
               <div key={e.id} style={{ display: 'grid', gridTemplateColumns: '70px minmax(0,1fr) auto', gap: '12px', alignItems: 'center', padding: '10px 14px', boxShadow: i ? 'inset 0 1px 0 #F4F4F6' : 'none' }}>
                 <span style={{ fontSize: '12.5px', fontWeight: 700, color: 'var(--text)' }}>{e.descricao}</span>

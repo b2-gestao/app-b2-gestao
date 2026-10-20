@@ -27,7 +27,7 @@ export function categoriasVals(this: AppLogic) {
   const cRows = filtered.map((c, i) => ({
     name: c.name,
     desc: c.desc || '—',
-    rowStyle: `display:grid;${grid};gap:12px;align-items:center;padding:13px 18px;${i ? 'box-shadow:inset 0 1px 0 #F4F4F6;' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
+    rowStyle: `display:grid;${grid};gap:12px;align-items:center;padding:13px 18px;${i ? 'box-shadow:inset 0 1px 0 var(--surface-3);' : ''}opacity:0;animation:rowIn .3s ease-out both;animation-delay:${Math.min(i * 25, 300)}ms`,
     statusStyle: `font-size:12px;font-weight:600;color:${c.active ? '#35AD88' : 'var(--text-3)'}`,
     statusLabel: c.active ? 'Ativa' : 'Inativa',
     toggleTitle: c.active ? 'Inativar categoria' : 'Reativar categoria',

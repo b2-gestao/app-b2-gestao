@@ -18,8 +18,8 @@ export default function BiCfgModal({ v }: { v: any }) {
   if (!v.biCfgOpen) return null;
   return (
     <div style={css('display:flex;position:fixed;inset:0;z-index:100;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')} onClick={v.closeBiCfg}>
-      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 #EEEEF1' }}>
+      <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:720px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
+        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 var(--border-soft)' }}>
           <div style={{ width: '38px', height: '38px', flex: 'none', borderRadius: '11px', background: 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <path d="M5 20v-7M10 20V8M15 20v-5M20 20V4" stroke="#4161FF" strokeWidth="1.9" strokeLinecap="round"></path>
@@ -39,7 +39,7 @@ export default function BiCfgModal({ v }: { v: any }) {
         </div>
 
         <div style={{ flex: '1', overflowY: 'auto', padding: '20px 24px 22px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', borderRadius: '10px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px #EEEEF1' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', padding: '14px', borderRadius: '10px', background: 'var(--surface-2)', boxShadow: '0 0 0 1px var(--border-soft)' }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0,1fr) minmax(0,1.6fr)', gap: '12px' }}>
               <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0 }}>
                 <span style={label}>Nome no menu <span style={{ color: '#EF4444' }}>*</span></span>
@@ -54,7 +54,7 @@ export default function BiCfgModal({ v }: { v: any }) {
               <span style={{ flex: '1 1 300px', fontSize: '11.5px', color: 'var(--text-3)', lineHeight: 1.5 }}>
                 No Power BI: <strong style={{ color: 'var(--text-b)' }}>Arquivo › Inserir relatório › Publicar na Web</strong>. Cole o link ou o código &lt;iframe&gt; inteiro.
               </span>
-              <button onClick={v.addBiCfg} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 14px', borderRadius: '8px', border: '1px solid #C9D5FF', background: 'var(--surface)', color: '#4161FF', fontSize: '12.5px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,transform .15s' }} className={hv('background:#EEF2FF', 'transform:scale(.97)', undefined)}>
+              <button onClick={v.addBiCfg} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', height: '34px', padding: '0 14px', borderRadius: '8px', border: '1px solid #C9D5FF', background: 'var(--surface)', color: '#4161FF', fontSize: '12.5px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,transform .15s' }} className={hv('background:var(--tint-blue-3)', 'transform:scale(.97)', undefined)}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                   <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                 </svg>
@@ -66,7 +66,7 @@ export default function BiCfgModal({ v }: { v: any }) {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             <span style={{ fontSize: '10.5px', letterSpacing: '.06em', textTransform: 'uppercase', color: 'var(--text-4)', fontWeight: 600 }}>{v.biCfgCountLabel}</span>
             {v.biCfgRows.length ? (
-              <div style={{ borderRadius: '10px', boxShadow: '0 0 0 1px #EEEEF1', overflow: 'hidden' }}>
+              <div style={{ borderRadius: '10px', boxShadow: '0 0 0 1px var(--border-soft)', overflow: 'hidden' }}>
                 {v.biCfgRows.map((r: any) => (
                   <div key={r.key} style={css(r.rowStyle)}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -99,7 +99,7 @@ export default function BiCfgModal({ v }: { v: any }) {
                 ))}
               </div>
             ) : (
-              <div style={{ padding: '22px', borderRadius: '10px', boxShadow: '0 0 0 1px #EEEEF1', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-3)' }}>
+              <div style={{ padding: '22px', borderRadius: '10px', boxShadow: '0 0 0 1px var(--border-soft)', textAlign: 'center', fontSize: '12.5px', color: 'var(--text-3)' }}>
                 Nenhum painel cadastrado. Informe o nome e o link acima para adicionar.
               </div>
             )}
@@ -125,7 +125,7 @@ export default function BiCfgModal({ v }: { v: any }) {
           ) : null}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 #EEEEF1' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '14px 24px', background: 'var(--surface-2)', boxShadow: 'inset 0 1px 0 var(--border-soft)' }}>
           <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '10px' }}>
             <button onClick={v.closeBiCfg} style={{ height: '38px', padding: '0 16px', borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--surface)', color: 'var(--text-b)', fontSize: '13px', fontWeight: 600, fontFamily: 'inherit', cursor: 'pointer', transition: 'background .15s,border-color .15s' }} className={hv('background:var(--surface-3);border-color:var(--border-strong)', undefined, undefined)}>
               Cancelar

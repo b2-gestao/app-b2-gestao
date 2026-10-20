@@ -180,7 +180,7 @@ export function renderVals(this: AppLogic) {
     valueFmt: this.fmtBRL(p.v),
     cardStyle: `position:relative;flex:none;width:212px;padding:14px;border-radius:11px;background:var(--surface);border:1px solid ${p.urgent ? '#FCA5A5' : 'var(--border-soft)'};box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:${260 + i * 55}ms;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease`,
     cardHover: `transform:translateY(-4px);border-color:${p.tone};box-shadow:0 12px 26px ${p.tone}22`,
-    nodeStyle: `position:absolute;top:-14px;left:16px;width:11px;height:11px;border-radius:50%;background:${p.tone};box-shadow:0 0 0 3px #FFFFFF,0 0 0 4px ${p.tone}44;animation:${p.urgent ? 'pulseNode 1.8s ease-in-out infinite' : 'none'}`,
+    nodeStyle: `position:absolute;top:-14px;left:16px;width:11px;height:11px;border-radius:50%;background:${p.tone};box-shadow:0 0 0 3px var(--surface),0 0 0 4px ${p.tone}44;animation:${p.urgent ? 'pulseNode 1.8s ease-in-out infinite' : 'none'}`,
     dateStyle: `font-size:20px;font-weight:700;color:var(--text);line-height:1`,
     tagStyle: `display:inline-flex;align-items:center;gap:5px;font-size:10.5px;font-weight:600;padding:2px 8px;border-radius:20px;background:${p.tone}14;color:${p.tone}`,
   }));

@@ -32,7 +32,7 @@ export default function CategoriasPage({ v }: { v: any }) {
         </button>
       </div>
 
-      <div style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', padding: '14px 16px', borderRadius: '10px', background: 'var(--surface)', boxShadow: '0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)', opacity: 0, animation: 'fadeInUp .45s ease-out both', animationDelay: '60ms' }}>
+      <div style={{ position: 'relative', zIndex: 10, display: 'flex', alignItems: 'flex-end', gap: '10px', flexWrap: 'wrap', padding: '14px 16px', borderRadius: '10px', background: 'var(--surface)', boxShadow: '0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03)', opacity: 0, animation: 'fadeInUp .45s ease-out both', animationDelay: '60ms' }}>
         <label style={{ display: 'flex', flexDirection: 'column', gap: '6px', flex: '1 1 250px', minWidth: '0' }}>
           <span style={colHead}>Buscar</span>
           <span style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
@@ -54,10 +54,10 @@ export default function CategoriasPage({ v }: { v: any }) {
         <button onClick={v.clearCatFilters} style={css(v.clearCatFiltersStyle)}>Limpar filtros</button>
       </div>
 
-      <div style={{ borderRadius: '10px', background: 'var(--surface)', boxShadow: '0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)', overflow: 'hidden', opacity: 0, animation: 'fadeInUp .45s ease-out both', animationDelay: '110ms' }}>
+      <div style={{ borderRadius: '10px', background: 'var(--surface)', boxShadow: '0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)', overflow: 'hidden', opacity: 0, animation: 'fadeInUp .45s ease-out both', animationDelay: '110ms' }}>
         <div style={{ overflowX: 'auto' }}>
           <div style={{ minWidth: '560px' }}>
-            <div style={css(`display:grid;${v.cGridStyle};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 #EEEEF1`)}>
+            <div style={css(`display:grid;${v.cGridStyle};gap:12px;align-items:center;padding:11px 18px;background:var(--surface-2);box-shadow:inset 0 -1px 0 var(--border-soft)`)}>
               <div style={colHead}>Categoria</div>
               <div style={colHead}>Descrição</div>
               <div style={colHead}>Status</div>
@@ -104,7 +104,7 @@ export default function CategoriasPage({ v }: { v: any }) {
             </div>
           </div>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 #EEEEF1', background: 'var(--surface)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', padding: '12px 18px', boxShadow: 'inset 0 1px 0 var(--border-soft)', background: 'var(--surface)' }}>
           <div style={{ fontSize: '12px', color: 'var(--text-3)' }}>{v.cRangeLabel}</div>
         </div>
       </div>
