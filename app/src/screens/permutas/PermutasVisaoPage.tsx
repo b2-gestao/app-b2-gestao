@@ -28,26 +28,33 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
   const { permutas, diretas, catalogo, carregado, erro } = dados;
   const [fEmp, setFEmp] = useState('');
   const [fOrigem, setFOrigem] = useState('');
+  const [fPerm, setFPerm] = useState('');
   const [busca, setBusca] = useState('');
   const [porPag, setPorPag] = useState<number>(POR_PAGINA[0]); // 0 = mostrar todos
   const [pag, setPag] = useState(1);
   const [grafTodos, setGrafTodos] = useState(false);
   const [modal, setModal] = useState<{ tipo: 'permuta'; p: Permuta } | { tipo: 'unidade'; u: UnidadeDireta | null } | null>(null);
   const cols = useColunas('visao', COLUNAS);
-  useEffect(() => { setPag(1); }, [fEmp, fOrigem, busca, porPag]);
+  useEffect(() => { setPag(1); }, [fEmp, fOrigem, fPerm, busca, porPag]);
 
   const an = useMemo(() => analisar(permutas, diretas, catalogo, nomeOrigem, nomeEmp), [permutas, diretas, catalogo, empresas, dados.negocios]);
   const todas = useMemo(() => montarUnidades(permutas, diretas, catalogo, nomeOrigem), [permutas, diretas, catalogo, empresas, dados.negocios]);
   const terrenos = an.porTerreno;
   const empsComUnidade = useMemo(() => [...new Set(todas.map(l => l.enterprise_id))].map(id => ({ id, nome: nomeEmp(id) })).sort((a, b) => a.nome.localeCompare(b.nome)), [todas, catalogo]);
   const maxT = Math.max(1, ...terrenos.map(t => t.proprio + t.div));
-  const filtrando = !!(fEmp || fOrigem);
-  const limparFiltros = () => { setFEmp(''); setFOrigem(''); };
+  const permutantes = useMemo(() => {
+    const m = new Map<string, string>();
+    todas.forEach(l => { const n = l.permutante.trim(); if (n && !m.has(n.toUpperCase())) m.set(n.toUpperCase(), n); });
+    return [...m.entries()].map(([chave, nome]) => ({ chave, nome })).sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+  }, [todas]);
+  const filtrando = !!(fEmp || fOrigem || fPerm);
+  const limparFiltros = () => { setFEmp(''); setFOrigem(''); setFPerm(''); };
 
   const q = semAcento(busca.trim());
   const linhas = todas
     .filter(l => !fEmp || 'e' + l.enterprise_id === fEmp)
     .filter(l => !fOrigem || (l.permuta && chaveOrigem(l.permuta) === fOrigem))
+    .filter(l => !fPerm || l.permutante.trim().toUpperCase() === fPerm)
     .filter(l => !q || semAcento([nomeEmp(l.enterprise_id), l.unidade, l.permutante, l.origem, l.obs].join(' ')).includes(q))
     .sort((a, b) => nomeEmp(a.enterprise_id).localeCompare(nomeEmp(b.enterprise_id)) || a.unidade.localeCompare(b.unidade, 'pt-BR', { numeric: true }));
   const nVia = linhas.filter(l => l.kind !== 'dir').length;
@@ -158,13 +165,28 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
         </div>
       </section>
 
+      <div className="pm-sec">
+        <b>Distribuição de unidades</b>
+        <span>Unidades permutadas por empreendimento, permutante e área de origem.</span>
+      </div>
+
       <div className="pm-filters">
-        <div className="pm-f" style={{ flex: '0 1 300px' }}>
+        <div className="pm-f" style={{ flex: '1 1 220px' }}>
           <span className="pm-cap">Empreendimento</span>
           <FiltroBusca value={fEmp} onChange={setFEmp} todos="Todos os empreendimentos" placeholder="Buscar empreendimento…"
             opcoes={empsComUnidade.map(e => ({ value: 'e' + e.id, label: e.nome, sub: String(e.id) }))} />
         </div>
-        <label className="pm-f" style={{ flex: '1 1 240px' }}>
+        <div className="pm-f" style={{ flex: '1 1 220px' }}>
+          <span className="pm-cap">Origem</span>
+          <FiltroBusca value={fOrigem} onChange={setFOrigem} todos="Todas as origens" placeholder="Buscar origem…"
+            opcoes={terrenos.map(t => ({ value: t.chave, label: t.nome }))} />
+        </div>
+        <div className="pm-f" style={{ flex: '1 1 220px' }}>
+          <span className="pm-cap">Permutante</span>
+          <FiltroBusca value={fPerm} onChange={setFPerm} todos="Todos os permutantes" placeholder="Buscar permutante…"
+            opcoes={permutantes.map(p => ({ value: p.chave, label: p.nome }))} />
+        </div>
+        <label className="pm-f" style={{ flex: '1 1 220px' }}>
           <span className="pm-cap">Buscar</span>
           <input className="pm-in" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Unidade, permutante, origem…" />
         </label>
