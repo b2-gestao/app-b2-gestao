@@ -30,6 +30,7 @@ import CrcEntregasPage from '../crc/CrcEntregasPage';
 import PermutasCadastroPage from '../permutas/PermutasCadastroPage';
 import PermutasVisaoPage from '../permutas/PermutasVisaoPage';
 import PermutasInsightsPage from '../permutas/PermutasInsightsPage';
+import PermutasBensPage from '../permutas/PermutasBensPage';
 import Toast from './Toast';
 
 export default function AppRoot({ v }: { v: any }) {
@@ -58,6 +59,7 @@ export default function AppRoot({ v }: { v: any }) {
           <PermutasCadastroPage v={v} />
           <PermutasVisaoPage v={v} />
           <PermutasInsightsPage v={v} />
+          <PermutasBensPage v={v} />
         </div>
         <UserModal v={v} />
         <DeptModal v={v} />

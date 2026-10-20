@@ -232,7 +232,6 @@ export default function Sidebar({ v }: { v: any }) {
             </svg>
             <span style={css(`${v.navLabelStyle};color:#C7C7CB`)}>
               Permutas
-              <span style={css(v.betaTagStyle)}>Beta</span>
             </span>
             {!v.collapsed ? (
               <>
@@ -260,8 +259,8 @@ export default function Sidebar({ v }: { v: any }) {
                   </a>
                 </div>
               </div>
-              <a href="#" onClick={v.beta.permutasAcompanhamento} style={css(v.subItemStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
-                Acompanhamento
+              <a href="#" onClick={v.goPermutasBens} style={css(v.permutasBensStyle)} className={hv("border-color:#43B997;color:#F5F5F7", undefined, undefined)}>
+                Bens
               </a>
             </div>
           </div>
