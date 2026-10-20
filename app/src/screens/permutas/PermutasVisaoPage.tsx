@@ -50,7 +50,7 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
     .filter(l => !fOrigem || (l.permuta && chaveOrigem(l.permuta) === fOrigem))
     .filter(l => !q || semAcento([nomeEmp(l.enterprise_id), l.unidade, l.permutante, l.origem, l.obs].join(' ')).includes(q))
     .sort((a, b) => nomeEmp(a.enterprise_id).localeCompare(nomeEmp(b.enterprise_id)) || a.unidade.localeCompare(b.unidade, 'pt-BR', { numeric: true }));
-  const nDir = linhas.filter(l => l.kind !== 'via').length, nVia = linhas.filter(l => l.kind !== 'dir').length;
+  const nVia = linhas.filter(l => l.kind !== 'dir').length;
   const area = linhas.reduce((s, l) => s + (l.metragem || 0), 0);
   const semM2 = linhas.filter(l => l.metragem == null).length;
   const nPerm = new Set(linhas.map(l => l.permutante.trim().toUpperCase()).filter(Boolean)).size;
@@ -92,7 +92,7 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
       {erro ? <div className="pm-err">Não foi possível carregar: {erro}</div> : null}
 
       <div className="pm-kpis">
-        <Kpi fundo="#EAF1FF" rotulo="Unidades permutadas" valor={String(linhas.length)} sub={`${nDir} cadastradas · ${nVia} via permutas de áreas`}
+        <Kpi fundo="#EAF1FF" rotulo="Unidades permutadas" valor={String(linhas.length)} sub="Vinculadas no cadastro da permuta"
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="#4161FF" strokeWidth="1.7" /><path d="M8 8h2M14 8h2M8 12h2M14 12h2M10 20.5v-4h4v4" stroke="#4161FF" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
         <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="Área privativa" valor={m2(area)} un="m²" sub={semM2 ? `${semM2} unid. sem m² informado` : 'todas com m²'}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#35AD88" strokeWidth="1.7" /><path d="M4 12h16M12 4v16" stroke="#35AD88" strokeWidth="1.5" /></svg>} />

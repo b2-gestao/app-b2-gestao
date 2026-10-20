@@ -47,7 +47,7 @@ export function Kpi({ cor, fundo, rotulo, valor, un, sub, icone, onClick, ativo 
     <div className={'pm-kpi' + (onClick ? ' clic' : '') + (ativo ? ' on' : '')} onClick={onClick} role={onClick ? 'button' : undefined} tabIndex={onClick ? 0 : undefined}>
       <div className="h"><span className="pm-ic" style={{ background: fundo }}>{icone}</span><span className="pm-cap">{rotulo}</span></div>
       <div className="v" style={cor ? { color: cor } : undefined}>{valor}{un ? <small>{un}</small> : null}</div>
-      <div className="d">{sub}</div>
+      <div className="d">{sub.charAt(0).toUpperCase() + sub.slice(1)}</div>
     </div>
   );
 }
