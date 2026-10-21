@@ -50,7 +50,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     const bk = this.live ? { c: a.bankColor, s: a.bankShort } : this.sbBanks[a.bank];
     const i = idx++;
     const syncing = s.sbSyncing === a.id;
-    const tint = a.status === 'missing' ? 'var(--bg-fffbf3)' : (a.status === 'div' ? 'var(--bg-fffafa)' : 'var(--surface)');
+    const tint = a.status === 'missing' ? 'var(--row-warn)' : (a.status === 'div' ? 'var(--row-danger)' : 'var(--surface)');
     return {
       isAcct: true, isGroup: false,
       cdLabel: a.cd, emp: a.emp,
@@ -67,7 +67,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
       statusStyle: `display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:${meta.color};background:${meta.bg};border-radius:20px;padding:3px 9px 3px 8px;white-space:nowrap`,
       dotStyle: `width:6px;height:6px;border-radius:50%;background:${meta.dot};${a.status === 'ok' ? '' : 'animation:blink 1.4s ease-in-out infinite'}`,
       rowStyle: `${cols};padding:10px 18px${grouped ? ' 10px 30px' : ''};background:${tint};box-shadow:inset 0 -1px 0 var(--surface-3);transition:background .15s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
-      hoverStyle: `background:${a.status === 'missing' ? 'var(--tint-amber-2)' : 'var(--surface-2)'}`,
+      hoverStyle: `background:${a.status === 'missing' ? 'var(--row-warn-hover)' : 'var(--surface-2)'}`,
       actStyle: actBtn,
       syncIconStyle: syncing ? 'animation:spin .7s linear infinite' : '',
       inform: () => openFor(a),
