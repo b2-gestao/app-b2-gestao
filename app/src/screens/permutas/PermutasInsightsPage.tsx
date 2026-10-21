@@ -18,6 +18,8 @@ const COR: Record<Nivel, { bg: string; fg: string; dot: string; nome: string }> 
 const SITUACAO: Record<string, [string, string]> = {
   'sem-area': ['Sem área', 'err'], 'sem-unidade': ['Sem unidade', 'warn'], parcial: ['Parcial', 'warn'], ok: ['Fechado', 'ok'], excesso: ['Acima de 100%', 'err'],
 };
+/** Cards da "Análise da IA" ocultos por enquanto: volte para true para reexibir (e voltar a chamar a IA). */
+const ANALISE_IA_VISIVEL = false;
 const pctTxt = (v: number | null) => (v == null ? '—' : `${Math.round(v * 100)}%`);
 
 export default function PermutasInsightsPage({ v }: { v: any }) {
@@ -40,7 +42,7 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
       if (n === pedido.current) setIa({ estado: 'erro', msg: e?.status === 503 ? 'A IA não está configurada no servidor. Abaixo, os pontos calculados pelas regras do app.' : `Não foi possível falar com a IA (${e?.message || e}). Abaixo, os pontos calculados pelas regras do app.` });
     }
   };
-  useEffect(() => { if (ativo && carregado && ia.estado === 'ocioso') pedirIa(); }, [ativo, carregado]);
+  useEffect(() => { if (ANALISE_IA_VISIVEL && ativo && carregado && ia.estado === 'ocioso') pedirIa(); }, [ativo, carregado]);
 
   if (!ativo || !ctx) return null;
   const tipos = [...new Set(a.alertas.map(x => x.tipo))];
@@ -65,16 +67,19 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
         </div>
         <div className="acts">
           <button type="button" className="pm-btn" onClick={exportar} disabled={!a.alertas.length}><IcExcel />Exportar alertas</button>
-          <button type="button" className="ia-cta" style={{ height: '38px', padding: '0 16px 0 13px', fontSize: '13px' }} onClick={pedirIa} disabled={ia.estado === 'carregando' || !carregado}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" fill="currentColor" /></svg>
-            {ia.estado === 'carregando' ? 'Analisando…' : 'Atualizar análise'}
-          </button>
+          {ANALISE_IA_VISIVEL ? (
+            <button type="button" className="ia-cta" style={{ height: '38px', padding: '0 16px 0 13px', fontSize: '13px' }} onClick={pedirIa} disabled={ia.estado === 'carregando' || !carregado}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" fill="currentColor" /></svg>
+              {ia.estado === 'carregando' ? 'Analisando…' : 'Atualizar análise'}
+            </button>
+          ) : null}
         </div>
       </div>
 
       {erro ? <div className="pm-err">Não foi possível carregar: {erro}</div> : null}
 
       {/* Análise da IA */}
+      {ANALISE_IA_VISIVEL ? (
       <section className="pm-ia">
         <div className="pm-ia-h">
           <span className="pm-ia-ic"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" fill="currentColor" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor" /></svg></span>
@@ -111,6 +116,7 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
           </>
         )}
       </section>
+      ) : null}
 
       <div className="pm-kpis">
         <Kpi cor="#258B6C" fundo="var(--tint-green)" rotulo="Área de permuta" valor={m2(a.totais.tArea)} un="m²" sub={`${permutas.length} permutas · ${a.porTerreno.length} terrenos`}
