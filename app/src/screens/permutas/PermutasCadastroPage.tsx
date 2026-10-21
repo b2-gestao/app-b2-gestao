@@ -22,7 +22,7 @@ const COLUNAS: Coluna[] = [
 const POR_PAGINA = [30, 60, 100] as const;
 
 export default function PermutasCadastroPage({ v }: { v: any }) {
-  const { ctx, ativo, dados, empresas, nomeOrigem, nomeEmp } = useBasePermutas(v, 'cadastros');
+  const { ctx, ativo, dados, empresas, nomeOrigem, nomeEmp, empDaOrigem } = useBasePermutas(v, 'cadastros');
   const { permutas, negocios, carregado, erro } = dados;
   const [busca, setBusca] = useState('');
   const [fOrigem, setFOrigem] = useState('');
@@ -34,15 +34,15 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
   const linhas = useMemo(() => {
     const q = semAcento(busca.trim());
     return permutas
-      .map(p => ({ p, c: calcular(p), origem: nomeOrigem(p) }))
-      .filter(({ p, c, origem }) => {
+      .map(p => ({ p, c: calcular(p), origem: nomeOrigem(p), emp: empDaOrigem(p) }))
+      .filter(({ p, c, origem, emp }) => {
         if (fOrigem && (p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id) !== fOrigem) return false;
         if (soPend && !(p.pendencia || c.area == null || (c.div != null && c.div < 0))) return false;
-        if (q && !semAcento([origem, p.permutante, p.num_matricula, p.observacao, p.pendencia, ...p.unidades.map(u => u.unidade_nome)].join(' ')).includes(q)) return false;
+        if (q && !semAcento([origem, emp, p.permutante, p.num_matricula, p.observacao, p.pendencia, ...p.unidades.map(u => u.unidade_nome)].join(' ')).includes(q)) return false;
         return true;
       })
       .sort((a, b) => a.origem.localeCompare(b.origem) || a.p.permutante.localeCompare(b.p.permutante));
-  }, [permutas, busca, fOrigem, soPend, empresas, negocios]);
+  }, [permutas, busca, fOrigem, soPend, empresas, negocios, dados.catalogo]);
 
   const pg = usePaginacao(linhas, POR_PAGINA, [busca, fOrigem, soPend]);
   const soma = (f: (x: (typeof linhas)[number]) => number | null) => linhas.reduce((s, x) => s + (f(x) || 0), 0);
@@ -52,17 +52,20 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
   const pctMedio = base.reduce((s, x) => s + (x.c.aprov || 0), 0) ? base.reduce((s, x) => s + (x.c.area || 0), 0) / base.reduce((s, x) => s + (x.c.aprov || 0), 0) : null;
   const origens = useMemo(() => {
     const m = new Map<string, string>();
-    permutas.forEach(p => m.set(p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id, nomeOrigem(p)));
+    permutas.forEach(p => {
+      const emp = empDaOrigem(p);
+      m.set(p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id, emp ? `${nomeOrigem(p)} – ${emp}` : nomeOrigem(p));
+    });
     return [...m].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [permutas, empresas, negocios]);
+  }, [permutas, empresas, negocios, dados.catalogo]);
 
   const exportar = () => {
     const r4 = (v: number | null) => (v == null ? null : +v.toFixed(4));
     exportarExcel('permutas-terrenos-cadastros.xlsx', 'Cadastros',
       ['Área / empreendimento', 'Origem', 'Permutante', 'Nº matrícula', 'Data do contrato', 'Área matrícula (m²)', 'Coeficiente', 'Aproveitamento (m²)', '% permuta',
         'Área de permuta (m²)', 'Próprio empreendimento (m²)', 'Empreendimentos diversos (m²)', 'Unidades', 'Documentos', 'Observação', 'Pendência'],
-      linhas.map(({ p, c, origem }) => [
-        origem, p.empresa_id != null ? `Sienge ${p.empresa_id}` : 'Negócio', p.permutante, p.num_matricula, dataBr(p.data_contrato),
+      linhas.map(({ p, c, origem, emp }) => [
+        emp ? `${origem} – ${emp}` : origem, p.empresa_id != null ? `Sienge ${p.empresa_id}` : 'Negócio', p.permutante, p.num_matricula, dataBr(p.data_contrato),
         p.area_matricula, p.coeficiente, r4(c.aprov), p.pct_permuta == null ? null : +(p.pct_permuta * 100).toFixed(6),
         r4(c.area), p.area_propria, r4(c.div),
         p.unidades.map(u => `${empNome(u)} ${u.unidade_nome}${u.area_privativa != null ? ` (${m2(u.area_privativa)} m²)` : ''}`).join(' | '),
@@ -133,11 +136,13 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
           {carregado && !linhas.length ? (
             <div className="pm-empty"><b>{permutas.length ? 'Nenhuma permuta para este filtro.' : 'Nenhuma permuta cadastrada ainda.'}</b>{permutas.length ? 'Ajuste os filtros acima.' : podeEditar ? 'Use “Novo permutante” para incluir a primeira.' : ''}</div>
           ) : null}
-          {pg.visiveis.map(({ p, c, origem }) => (
+          {pg.visiveis.map(({ p, c, origem, emp }) => (
             <div key={p.id} className="pm-tr row" style={cols.estilo} tabIndex={0} onClick={() => setModal({ p })} onKeyDown={e => { if (e.key === 'Enter') setModal({ p }); }}>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
                 {p.empresa_id != null ? <span className="pm-code">{p.empresa_id}</span> : <span className="pm-tagn">Negócio</span>}
-                <b className="pm-ell" style={{ fontWeight: 600, color: 'var(--text)' }}>{origem}</b>
+                <b className="pm-ell" style={{ fontWeight: 600, color: 'var(--text)' }} title={emp ? `${origem} – ${emp}` : origem}>
+                  {origem}{emp ? <span style={{ fontWeight: 500, color: 'var(--text-3)' }}> – {emp}</span> : null}
+                </b>
               </span>
               <span className="pm-ell">{p.permutante}</span>
               <span className="pm-ell">{p.num_matricula || "—"}</span>

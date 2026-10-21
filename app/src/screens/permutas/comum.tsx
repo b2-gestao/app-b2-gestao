@@ -37,7 +37,25 @@ export function useBasePermutas(v: any, pagina: PaginaPermutas) {
     return m;
   }, [dados.catalogo]);
   const nomeEmp = (enterprise_id: number) => empInfo.get(enterprise_id)?.empreendimento || `Empreendimento ${enterprise_id}`;
-  return { ctx, ativo, live, dados, empresas, nomeOrigem, nomeEmp, empInfo };
+  // Empreendimento(s) da empresa Sienge: o cadastro da empresa e, na falta dele, o catálogo de unidades.
+  const empsPorEmpresa = useMemo(() => {
+    const m = new Map<number, Set<string>>();
+    dados.catalogo.forEach(u => {
+      const nome = u.empreendimento?.trim();
+      if (u.company_id == null || !nome) return;
+      if (!m.has(u.company_id)) m.set(u.company_id, new Set());
+      m.get(u.company_id)!.add(nome);
+    });
+    return m;
+  }, [dados.catalogo]);
+  const empDaOrigem = (p: Permuta): string | null => {
+    if (p.empresa_id == null) return null;
+    const cad = empresas.find(e => e.id === p.empresa_id)?.emp?.trim();
+    if (cad) return cad;
+    const cat = empsPorEmpresa.get(p.empresa_id);
+    return cat && cat.size ? [...cat].sort((a, b) => a.localeCompare(b)).join(', ') : null;
+  };
+  return { ctx, ativo, live, dados, empresas, nomeOrigem, nomeEmp, empInfo, empDaOrigem };
 }
 
 export function Kpi({ cor, fundo, rotulo, valor, un, sub, icone, onClick, ativo }: {
