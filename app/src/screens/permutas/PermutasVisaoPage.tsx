@@ -20,6 +20,8 @@ const COLUNAS: Coluna[] = [
   { key: 'orig', label: 'Origem', w: 260, min: 120 },
   { key: 'obs', label: 'Observação', w: 240, min: 100 },
 ];
+/** Insights (análise da IA) ocultos por enquanto: volte para true para reexibir o botão. */
+const INSIGHTS_VISIVEL = false;
 const POR_PAGINA = [30, 60, 100] as const;
 const GRAFICO_INICIAL = 12;
 
@@ -81,10 +83,12 @@ export default function PermutasVisaoPage({ v }: { v: any }) {
           <div className="s">Como as unidades permutadas estão distribuídas pelos terrenos e empreendimentos. Inclui as unidades vinculadas nas permutas de área (Cadastros) e as cadastradas direto aqui.</div>
         </div>
         <div className="acts">
-          <button type="button" className="ia-cta" style={{ height: '38px', padding: '0 16px 0 13px', fontSize: '13px' }} onClick={() => ctx.ir('insights')}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" fill="currentColor" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor" /></svg>
-            Insights
-          </button>
+          {INSIGHTS_VISIVEL ? (
+            <button type="button" className="ia-cta" style={{ height: '38px', padding: '0 16px 0 13px', fontSize: '13px' }} onClick={() => ctx.ir('insights')}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z" fill="currentColor" /><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z" fill="currentColor" /></svg>
+              Insights
+            </button>
+          ) : null}
           <button type="button" className="pm-btn" onClick={exportar} disabled={!linhas.length}><IcExcel />Exportar Excel</button>
         </div>
       </div>
