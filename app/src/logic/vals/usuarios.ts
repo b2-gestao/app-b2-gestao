@@ -35,9 +35,9 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
 
   const palette = ['#4161FF', '#43B997', '#7C3AED', '#F59E0B', '#EC4899', '#0EA5E9'];
   const statusMeta = {
-    ativo: { label: 'Ativo', color: '#35AD88', bg: '#E1F7EF' },
-    inativo: { label: 'Inativo', color: 'var(--text-3)', bg: '#F1F1F3' },
-    pendente: { label: 'Pendente', color: '#D97706', bg: '#FFF0DD' },
+    ativo: { label: 'Ativo', color: '#35AD88', bg: 'var(--tint-green)' },
+    inativo: { label: 'Inativo', color: 'var(--text-3)', bg: 'var(--surface-3)' },
+    pendente: { label: 'Pendente', color: 'var(--warn-text)', bg: 'var(--tint-amber)' },
   };
   const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid var(--border-soft);background:var(--surface);color:var(--text-4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
 
@@ -56,13 +56,13 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
       toggleTitle: on ? 'Inativar usuário' : 'Ativar usuário',
       rowStyle: `display:grid;grid-template-columns:minmax(210px,2.2fr) 132px 158px 138px 78px 78px 116px 128px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 var(--surface-3);opacity:${u.status === 'inativo' ? .62 : 1};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
       avatarStyle: `width:32px;height:32px;flex:none;border-radius:9px;background:${color}18;color:${color};display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:700`,
-      countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-blue);color:#2445E8;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
-      ccChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
-      trackStyle: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${on ? '#43B997' : '#D8D8E0'}`,
+      countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-blue);color:var(--tx-2445e8);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
+      ccChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:var(--tx-7c3aed);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
+      trackStyle: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${on ? '#43B997' : 'var(--track)'}`,
       knobStyle: `position:absolute;top:2.5px;left:${on ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
       statusStyle: `font-size:11px;font-weight:600;color:${meta.color};background:${meta.bg};border-radius:20px;padding:2px 8px;white-space:nowrap`,
       actEditStyle: actBtn, actMailStyle: actBtn, actResetStyle: actBtn,
-      actPowerStyle: actBtn + (on ? '' : ';color:#43B997;border-color:#C7EEE0'),
+      actPowerStyle: actBtn + (on ? '' : ';color:#43B997;border-color:var(--bd-c7eee0)'),
       toggle: () => {
         if (this.live) { this.usuarioAcao('definir_status', { id: u.id, ativo: !on }, on ? `${parts[0]} foi inativado.` : `${parts[0]} foi reativado.`); return; }
         this.setUsers(list => list.map(x => x.id === u.id ? Object.assign({}, x, { status: on ? 'inativo' : 'ativo' }) : x));
@@ -93,7 +93,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const empresas = this.userEmpresas();
   const centros = this.userCentros();
   const empNames = empresas.map(e => e.n);
-  const chipOn = (on, color) => `display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:${on ? 600 : 500};cursor:pointer;white-space:nowrap;flex:none;border:1px solid ${on ? color : '#E7E7EA'};background:${on ? color + '12' : '#FFFFFF'};color:${on ? color : 'var(--text-3)'};transition:all .15s;user-select:none`;
+  const chipOn = (on, color) => `display:inline-flex;align-items:center;gap:7px;padding:6px 11px;border-radius:20px;font-size:12px;font-weight:${on ? 600 : 500};cursor:pointer;white-space:nowrap;flex:none;border:1px solid ${on ? color : '#E7E7EA'};background:${on ? color + '12' : 'var(--surface)'};color:${on ? color : 'var(--text-3)'};transition:all .15s;user-select:none`;
   const empColorByName: any = {}; empresas.forEach(e => { empColorByName[e.n] = e.c; });
   const empChips = form.empresas.map(n => ({
     name: n,
@@ -127,7 +127,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
   const fPerfilTodas = !!(fPerfil && (fPerfil.sistema || fPerfil.todasEmpresas));
   const fPerfilEmps = empresasDoPerfil(fPerfil);
   const fTodas = !!form.todas && !form.restringir;
-  const fEmpAddBtn = 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer';
+  const fEmpAddBtn = 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--accent-text);background:var(--tint-blue);border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer';
 
   const editing = !!s.editingId;
   const fieldBase = 'height:38px;padding:0 12px;border-radius:8px;background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s;border:1px solid ';
@@ -168,9 +168,9 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     statusTabs: ['Todos', 'Ativos', 'Inativos', 'Pendentes'].map(t => ({
       label: t,
       onClick: () => this.setState({ uStatus: t, uPage: 1 }),
-      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.uStatus === t ? '#111827' : 'transparent'};color:${s.uStatus === t ? '#FFFFFF' : 'var(--text-3)'}`,
+      style: `border:none;border-radius:6px;padding:0 11px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${s.uStatus === t ? 'var(--ink)' : 'transparent'};color:${s.uStatus === t ? '#FFFFFF' : 'var(--text-3)'}`,
     })),
-    clearFiltersStyle: `display:${(q || s.uRole !== 'Todas as funções' || s.uDept !== 'Todos os departamentos' || s.uEmpF !== 'Todas as empresas' || s.uStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
+    clearFiltersStyle: `display:${(q || s.uRole !== 'Todas as funções' || s.uDept !== 'Todos os departamentos' || s.uEmpF !== 'Todas as empresas' || s.uStatus !== 'Todos') ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--accent-text);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer`,
     clearFilters: () => this.setState({ uSearch: '', uRole: 'Todas as funções', uDept: 'Todos os departamentos', uEmpF: 'Todas as empresas', uStatus: 'Todos', uPage: 1 }),
 
     uRows,
@@ -194,15 +194,15 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     saveLabel: s.uSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar usuário',
 
     fName: form.name, fEmail: form.email, fPhone: form.phone, fRole: form.role, fDept: form.dept,
-    fNameStyle: fieldBase + (errName ? '#FCA5A5' : '#E7E7EA'),
-    fEmailStyle: fieldBase + (errEmail ? '#FCA5A5' : '#E7E7EA'),
+    fNameStyle: fieldBase + (errName ? 'var(--danger-border)' : 'var(--border)'),
+    fEmailStyle: fieldBase + (errEmail ? 'var(--danger-border)' : 'var(--border)'),
     onFName: e => this.patchForm({ name: e.target.value }),
     onFEmail: e => this.patchForm({ email: e.target.value }),
     onFPhone: e => this.patchForm({ phone: e.target.value }),
     onFRole: e => this.patchForm({ role: e.target.value }),
     onFDept: e => this.patchForm({ dept: e.target.value }),
     roleList: this.uRoles, deptList: this.uDepts,
-    fTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : '#D8D8E0'}`,
+    fTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : 'var(--track)'}`,
     fKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     fActiveLabel: form.active ? 'Ativo' : 'Inativo',
     fActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#35AD88' : 'var(--text-3)'}`,
@@ -213,10 +213,10 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     closePicker: () => this.setState({ pickerOpen: null, pickerQuery: '' }),
     fEmpTitle: form.restringir ? 'Empresas do usuário' : 'Empresas adicionais',
     fEmpCountLabel: fTodas ? 'Todas as empresas' : `${form.empresas.length} de ${empNames.length} selecionadas`,
-    fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${form.restringir ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${fTodas ? '#43B997' : '#D8D8E0'};opacity:${form.restringir ? .5 : 1}`,
+    fTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${form.restringir ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${fTodas ? '#43B997' : 'var(--track)'};opacity:${form.restringir ? .5 : 1}`,
     fTodasKnobStyle: `position:absolute;top:2.5px;left:${fTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     toggleFTodas: () => { if (form.restringir) return; this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ todas: !form.todas }); },
-    fRestrTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.restringir ? '#F59E0B' : '#D8D8E0'}`,
+    fRestrTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.restringir ? '#F59E0B' : 'var(--track)'}`,
     fRestrKnobStyle: `position:absolute;top:2.5px;left:${form.restringir ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     toggleFRestr: () => { this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchForm({ restringir: !form.restringir, todas: false }); },
     fRestrHint: form.restringir
@@ -233,8 +233,8 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     fCcCountLabel: `${form.centros.length} de ${centros.length} selecionados`,
 
     formErr: s.formErr,
-    formErrStyle: `display:${s.formErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px`,
-    deleteBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:#DC2626;font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s`,
+    formErrStyle: `display:${s.formErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid var(--danger-border);color:var(--danger-text);font-size:12.5px`,
+    deleteBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--danger-text);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,border-color .15s`,
     removeUser: () => {
       const id = s.editingId;
       if (this.live) { this.usuarioAcao('excluir', { id }, 'Usuário excluído.').then(ok => ok && this.setState({ modalOpen: false, editingId: null, uForm: null })); return; }
@@ -275,7 +275,7 @@ export function usersVals(this: AppLogic, subItemStyle: string) {
     },
 
     toastMsg: s.toastMsg,
-    toastStyle: `display:${s.toastMsg ? 'flex' : 'none'};align-items:center;gap:9px;position:fixed;left:50%;bottom:28px;z-index:300;padding:11px 16px;border-radius:10px;background:#111827;color:#FFFFFF;font-size:12.5px;font-weight:500;box-shadow:0 18px 40px rgba(9,10,16,.34);animation:toastIn .22s ease-out both;max-width:min(560px,86vw)`,
+    toastStyle: `display:${s.toastMsg ? 'flex' : 'none'};align-items:center;gap:9px;position:fixed;left:50%;bottom:28px;z-index:300;padding:11px 16px;border-radius:10px;background:var(--ink);color:#FFFFFF;font-size:12.5px;font-weight:500;box-shadow:0 18px 40px rgba(9,10,16,.34);animation:toastIn .22s ease-out both;max-width:min(560px,86vw)`,
 
     iaOpenProg: () => { this.setState({ iaPanel: 'prog' }); this.askIa('prog'); },
     iaOpenFluxo: () => { this.setState({ iaPanel: 'fluxo' }); this.askIa('fluxo'); },

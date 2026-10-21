@@ -34,15 +34,15 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     return {
       name: p.name, desc: p.desc || '—',
       iconStyle: 'width:32px;height:32px;flex:none;border-radius:9px;background:var(--tint-purple);display:flex;align-items:center;justify-content:center',
-      countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:#7C3AED;display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
+      countChipStyle: 'min-width:26px;height:22px;padding:0 7px;border-radius:7px;background:var(--tint-purple);color:var(--tx-7c3aed);display:flex;align-items:center;justify-content:center;font-size:11.5px;font-weight:600;cursor:default',
       countLabel: `${granted}/${totalPaths}`,
       rowStyle: `display:grid;grid-template-columns:minmax(180px,2fr) minmax(220px,3fr) 110px 116px 96px;gap:12px;align-items:center;padding:11px 18px;box-shadow:inset 0 -1px 0 var(--surface-3);opacity:${p.active ? 1 : .62};transition:background .15s,opacity .2s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 14) * 18}ms`,
-      trackStyle: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${p.active ? '#43B997' : '#D8D8E0'}`,
+      trackStyle: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${p.active ? '#43B997' : 'var(--track)'}`,
       knobStyle: `position:absolute;top:2.5px;left:${p.active ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
       statusStyle: `font-size:11px;font-weight:600;color:${p.active ? '#35AD88' : 'var(--text-3)'};background:${p.active ? 'var(--tint-green)' : 'var(--surface-3)'};border-radius:20px;padding:2px 8px;white-space:nowrap`,
       statusLabel: p.active ? 'Ativo' : 'Inativo',
       toggleTitle: p.active ? 'Inativar perfil' : 'Ativar perfil',
-      actEditStyle: actBtn, actPowerStyle: actBtn + (p.active ? '' : ';color:#43B997;border-color:#C7EEE0'),
+      actEditStyle: actBtn, actPowerStyle: actBtn + (p.active ? '' : ';color:#43B997;border-color:var(--bd-c7eee0)'),
       toggle: () => {
         if (this.live) {
           if (p.sistema) { this.toast(`O perfil ${p.name} é do sistema e não pode ser inativado.`); return; }
@@ -144,13 +144,13 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     savePerfilLabel: s.pSaving ? 'Salvando…' : editing ? 'Salvar alterações' : 'Cadastrar perfil',
 
     pfName: form.name, pfDesc: form.desc,
-    pfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? '#FCA5A5' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`,
+    pfNameStyle: `height:38px;padding:0 12px;border-radius:8px;border:1px solid ${errName ? 'var(--danger-border)' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`,
     onPfName: e => this.patchPerfilForm({ name: e.target.value }),
     onPfDesc: e => this.patchPerfilForm({ desc: e.target.value }),
-    pfTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : '#D8D8E0'}`,
+    pfTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${form.active ? '#43B997' : 'var(--track)'}`,
     pfKnobStyle: `position:absolute;top:2.5px;left:${form.active ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     pfActiveLabel: form.active ? 'Ativo' : 'Inativo',
-    pfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? '#258B6C' : 'var(--text-3)'}`,
+    pfActiveLabelStyle: `font-size:12.5px;font-weight:600;color:${form.active ? 'var(--ok-text)' : 'var(--text-3)'}`,
     togglePfActive: () => this.patchPerfilForm({ active: !form.active }),
 
     pEmpChips, pPickEmp,
@@ -158,16 +158,16 @@ export function perfisVals(this: AppLogic, subItemStyle: string) {
     pfEmpHint: pfSistema ? 'Perfil do sistema: sempre vê todas as empresas.'
       : pfTodas ? 'Inclui as empresas que forem criadas no Sienge.'
         : 'Quem usa este perfil só vê as empresas abaixo (mais as adicionais do usuário).',
-    pfTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${pfSistema ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${pfTodas ? '#43B997' : '#D8D8E0'};opacity:${pfSistema ? .6 : 1}`,
+    pfTodasTrackStyle: `width:34px;height:19px;flex:none;border-radius:10px;cursor:${pfSistema ? 'default' : 'pointer'};position:relative;transition:background .18s ease;background:${pfTodas ? '#43B997' : 'var(--track)'};opacity:${pfSistema ? .6 : 1}`,
     pfTodasKnobStyle: `position:absolute;top:2.5px;left:${pfTodas ? '17.5px' : '2.5px'};width:14px;height:14px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
     togglePfTodas: () => { if (pfSistema) return; this.setState({ pickerOpen: null, pickerQuery: '' }); this.patchPerfilForm({ todasEmpresas: !form.todasEmpresas }); },
-    pfEmpAddStyle: pfTodas ? 'display:none' : 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer',
+    pfEmpAddStyle: pfTodas ? 'display:none' : 'margin-left:auto;display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;color:var(--accent-text);background:var(--tint-blue);border:none;border-radius:20px;padding:5px 12px 5px 10px;font-family:inherit;cursor:pointer',
     pfEmpChipsStyle: `display:${pfTodas ? 'none' : 'flex'};flex-wrap:wrap;gap:7px`,
 
     permRows,
     permGrantedLabel: `${grantedCount(form.perms)} de ${totalPaths} itens liberados`,
 
-    perfilFormErrStyle: `display:${s.pFormErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:var(--tint-red);color:#DC2626;font-size:12.5px`,
+    perfilFormErrStyle: `display:${s.pFormErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:8px;background:var(--tint-red);color:var(--danger-text);font-size:12.5px`,
     perfilFormErr: s.pFormErr,
     deletePerfilBtnStyle: `display:${editing ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:38px;padding:0 14px;border-radius:9px;border:1px solid var(--border-soft);background:var(--surface);color:var(--text-3);font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s`,
     removePerfil: () => {

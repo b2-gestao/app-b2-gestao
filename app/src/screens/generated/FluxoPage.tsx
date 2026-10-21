@@ -17,7 +17,7 @@ export default function FluxoPage({ v }: { v: any }) {
                 <div style={{ "fontWeight": "700", "fontSize": "20px", "color": "var(--text)", "letterSpacing": "-.01em" }}>
                   Fluxo de caixa
                 </div>
-                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "var(--tint-green)", "color": "#258B6C", "fontSize": "11.5px", "fontWeight": "600" }}>
+                <span style={{ "display": "inline-flex", "alignItems": "center", "gap": "7px", "height": "24px", "padding": "0 10px", "borderRadius": "20px", "background": "var(--tint-green)", "color": "var(--ok-text)", "fontSize": "11.5px", "fontWeight": "600" }}>
                   <span style={{ "width": "7px", "height": "7px", "borderRadius": "50%", "background": "#43B997", "animation": "blink 1.6s ease-in-out infinite" }}></span>
                   {v.syncLabel}
                 </span>
@@ -44,20 +44,20 @@ export default function FluxoPage({ v }: { v: any }) {
                   Input
                 </strong>
                 {" "}(lançamentos manuais). Quando negativo, o sistema calcula o{" "}
-                <strong style={{ "color": "#7C3AED" }}>
+                <strong style={{ "color": "var(--tx-7c3aed)" }}>
                   Aporte
                 </strong>
                 {" "}necessário.
               </div>
             </div>
             <div style={{ "display": "flex", "alignItems": "center", "gap": "8px", "flexWrap": "wrap" }}>
-              <button onClick={v.openFxCfg} title="Configurações do fluxo · empresas sem recebíveis" aria-label="Configurações do fluxo de caixa" style={{ "width": "38px", "height": "38px", "flex": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.openFxCfg} title="Configurações do fluxo · empresas sem recebíveis" aria-label="Configurações do fluxo de caixa" style={{ "width": "38px", "height": "38px", "flex": "none", "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:var(--accent-text)", "transform:scale(.97)", undefined)}>
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
                   <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.7"></circle>
                   <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 11-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 110-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06a1.65 1.65 0 001.82.33H9a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 112.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 110 4h-.09a1.65 1.65 0 00-1.51 1z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
               </button>
-              <button onClick={v.fxExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:#4161FF", "transform:scale(.97)", undefined)}>
+              <button onClick={v.fxExport} style={{ "display": "inline-flex", "alignItems": "center", "gap": "8px", "height": "38px", "padding": "0 14px", "borderRadius": "9px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "13px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s,transform .15s" }} className={hv("border-color:#4161FF;color:var(--accent-text)", "transform:scale(.97)", undefined)}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                   <path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M4 17v3h16v-3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
                 </svg>
@@ -72,17 +72,17 @@ export default function FluxoPage({ v }: { v: any }) {
               </button>
             </div>
           </div>
-          <div style={{ "display": "flex", "alignItems": "center", "gap": "12px", "padding": "12px 16px", "borderRadius": "10px", "background": "#FEF6E7", "boxShadow": "0 0 0 1px #FBE8C6", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "20ms" }}>
-            <span style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "background": "#FCEBC4", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+          <div style={{ "display": "flex", "alignItems": "center", "gap": "12px", "padding": "12px 16px", "borderRadius": "10px", "background": "var(--bg-fef6e7)", "boxShadow": "0 0 0 1px var(--bd-fbe8c6)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "20ms" }}>
+            <span style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "background": "var(--bg-fcebc4)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
                 <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="#B7791F" strokeWidth="1.4" strokeLinejoin="round"></path>
               </svg>
             </span>
             <div style={{ "flex": "1", "minWidth": "0" }}>
-              <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "#7C5A17" }}>
+              <div style={{ "fontSize": "13px", "fontWeight": "600", "color": "var(--tx-7c5a17)" }}>
                 {v.iaFluxoHeadline}
               </div>
-              <div style={{ "fontSize": "11.5px", "color": "#8A6A2C", "marginTop": "1px" }}>
+              <div style={{ "fontSize": "11.5px", "color": "var(--tx-8a6a2c)", "marginTop": "1px" }}>
                 {v.iaFluxoSub}
               </div>
             </div>
@@ -94,7 +94,7 @@ export default function FluxoPage({ v }: { v: any }) {
               {v.iaFluxoBtnLabel}
             </button>
           </div>
-          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
+          <div style={{ "position": "relative", "zIndex": "10", "display": "flex", "alignItems": "flex-end", "gap": "10px", "flexWrap": "wrap", "padding": "14px 16px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03)", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "60ms" }}>
             <div style={{ "display": "flex", "flexDirection": "column", "gap": "6px" }}>
               <span style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                 Período
@@ -141,7 +141,7 @@ export default function FluxoPage({ v }: { v: any }) {
                         <input value={v.ddFxGrupo.query} onChange={v.ddFxGrupo.onQuery} onClick={v.stopProp} placeholder="Buscar grupo..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
-                    <button onClick={v.ddFxGrupo.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
+                    <button onClick={v.ddFxGrupo.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "var(--accent-text)", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
                       {v.ddFxGrupo.allOnLabel}
                     </button>
                     <div style={css(v.ddFxGrupo.listStyle)}>
@@ -187,7 +187,7 @@ export default function FluxoPage({ v }: { v: any }) {
                         <input value={v.ddFxEmp.query} onChange={v.ddFxEmp.onQuery} onClick={v.stopProp} placeholder="Buscar empresa..." autoFocus={true} style={{ "height": "32px", "padding": "0 9px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface-2)", "fontSize": "12.5px", "fontFamily": "inherit", "color": "var(--text)", "flex": "none" }} />
                       </>
                     ) : null}
-                    <button onClick={v.ddFxEmp.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "#4161FF", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
+                    <button onClick={v.ddFxEmp.toggleAllVisible} style={{ "alignSelf": "flex-start", "border": "none", "background": "none", "color": "var(--accent-text)", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "padding": "2px" }}>
                       {v.ddFxEmp.allOnLabel}
                     </button>
                     <div style={css(v.ddFxEmp.listStyle)}>
@@ -225,7 +225,7 @@ export default function FluxoPage({ v }: { v: any }) {
                 <span style={css(v.fxAporteKnobStyle)}></span>
               </span>
               Aportes
-              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid #CBD5E1", "color": "var(--text-4)", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
+              <span style={{ "display": "inline-flex", "alignItems": "center", "justifyContent": "center", "width": "15px", "height": "15px", "borderRadius": "50%", "border": "1px solid var(--input-border)", "color": "var(--text-4)", "fontSize": "10px", "fontWeight": "700", "lineHeight": "1" }}>
                 ?
               </span>
             </button>
@@ -248,7 +248,7 @@ export default function FluxoPage({ v }: { v: any }) {
               </Fragment>
             ))}
           </div>
-          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "overflow": "hidden", "opacity": "0", "animation": "fadeInUp .45s ease-out both", "animationDelay": "250ms" }}>
             <div style={{ "overflowX": "auto" }}>
               <div style={css(v.fxTableStyle)}>
                 <div style={css(v.fxGridStyle)}>
@@ -256,7 +256,7 @@ export default function FluxoPage({ v }: { v: any }) {
                     <div style={{ "fontSize": "10.5px", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "fontWeight": "600" }}>
                       {v.fxScopeLabel}
                     </div>
-                    <button onClick={v.fxCompactToggle} title="Mostrar só o aporte necessário de cada empresa" style={css(v.fxCompactStyle)} className={hv("border-color:#C4B5FD;color:#7C3AED", undefined, undefined)}>
+                    <button onClick={v.fxCompactToggle} title="Mostrar só o aporte necessário de cada empresa" style={css(v.fxCompactStyle)} className={hv("border-color:var(--bd-c4b5fd);color:var(--tx-7c3aed)", undefined, undefined)}>
                       <svg width="11" height="11" viewBox="0 0 24 24" fill="none">
                         <path d="M4 7h16M4 12h16M4 17h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
                       </svg>
@@ -283,7 +283,7 @@ export default function FluxoPage({ v }: { v: any }) {
                         <svg width="13" height="13" viewBox="0 0 24 24" fill="none" style={css(grp.chevStyle)}>
                           <path d="M9 6l6 6-6 6" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
                         </svg>
-                        <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "var(--tint-blue)", "color": "#2445E8", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
+                        <span style={{ "flex": "none", "minWidth": "30px", "padding": "2px 6px", "borderRadius": "5px", "background": "var(--tint-blue)", "color": "var(--tx-2445e8)", "fontSize": "10.5px", "fontWeight": "700", "textAlign": "center", "fontVariantNumeric": "tabular-nums" }}>
                           {grp.cd}
                         </span>
                         <span style={{ "fontSize": "13px", "fontWeight": "700", "color": "var(--text)", "whiteSpace": "nowrap", "overflow": "hidden", "textOverflow": "ellipsis" }}>
@@ -350,7 +350,7 @@ export default function FluxoPage({ v }: { v: any }) {
             </svg>
             Linha calculada pelo sistema. Aportes entre empresas se anulam no consolidado.
           </div>
-          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "var(--surface-2)", "boxShadow": "0 0 0 1px #EEEEF1" }}>
+          <footer style={{ "marginTop": "4px", "padding": "14px 18px", "borderRadius": "10px", "background": "var(--surface-2)", "boxShadow": "0 0 0 1px var(--border-soft)" }}>
             <div style={{ "fontSize": "11px", "fontWeight": "700", "letterSpacing": ".06em", "textTransform": "uppercase", "color": "var(--text-4)", "marginBottom": "8px" }}>
               Regras de cálculo
             </div>

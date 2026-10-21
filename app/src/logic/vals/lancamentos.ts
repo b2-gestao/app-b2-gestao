@@ -33,7 +33,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
   const write = (fn: () => Promise<unknown>, okMsg: string, onError?: (m: string) => void) =>
     this.cadastroAcao(fn, okMsg, () => this.loadLanc(), onError);
   const prevCount = all.filter(a => a.sit === 'previsto').length;
-  const seg = on => `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${on ? '#111827' : 'transparent'};color:${on ? '#FFFFFF' : 'var(--text-3)'}`;
+  const seg = on => `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${on ? 'var(--ink)' : 'transparent'};color:${on ? '#FFFFFF' : 'var(--text-3)'}`;
   const cardBase = 'display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:10px;background:var(--surface);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms;transition:transform .2s ease,box-shadow .2s ease;cursor:pointer';
   const hasFilters = q || lcEmp !== empAll || tipo !== 'Todos' || sit !== 'Todas';
 
@@ -57,13 +57,13 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
     return {
       dateLabel: dLabel(a.date), cd: a.cd, emp: a.emp, desc: a.desc, cat: a.cat,
       tipo: isOut ? 'Saída' : 'Entrada',
-      tipoStyle: `font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;${isOut ? 'background:var(--tint-red);color:#DC2626' : 'background:var(--tint-green);color:#258B6C'}`,
+      tipoStyle: `font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;${isOut ? 'background:var(--tint-red);color:var(--danger-text)' : 'background:var(--tint-green);color:var(--ok-text)'}`,
       valFmt: (isOut ? '−' : '+') + ' ' + f2(a.value),
-      valStyle: `text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:${isOut ? '#DC2626' : '#258B6C'}`,
+      valStyle: `text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:${isOut ? 'var(--danger-text)' : 'var(--ok-text)'}`,
       rec: a.rec === 'Nenhuma' ? '—' : (this.live ? `${a.rec} · ${a.parc}/${a.parcTotal}` : `${a.rec} · ${a.parc}x`),
       recIconStyle: `display:${a.rec === 'Nenhuma' ? 'none' : 'inline'}`,
       sit: lanc ? 'Lançado' : 'Previsto',
-      sitStyle: `display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;border:none;font-family:inherit;cursor:pointer;color:${lanc ? '#258B6C' : '#B45309'};background:${lanc ? 'var(--tint-green)' : 'var(--tint-amber)'};border-radius:20px;padding:3px 9px 3px 8px;white-space:nowrap;transition:filter .15s`,
+      sitStyle: `display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;border:none;font-family:inherit;cursor:pointer;color:${lanc ? 'var(--ok-text)' : 'var(--tx-b45309)'};background:${lanc ? 'var(--tint-green)' : 'var(--tint-amber)'};border-radius:20px;padding:3px 9px 3px 8px;white-space:nowrap;transition:filter .15s`,
       sitDot: `width:6px;height:6px;border-radius:50%;background:${lanc ? '#43B997' : '#F59E0B'}`,
       toggleSit: () => {
         const sit = a.sit === 'lancado' ? 'previsto' : 'lancado';
@@ -98,7 +98,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
     lcTipoTabs: ['Todos', 'Saídas', 'Entradas'].map(l => ({ label: l, style: seg(tipo === l), onClick: () => this.setState({ lcTipo: l }) })),
     lcSitTabs: ['Todas', 'Lançado', 'Previsto'].map(l => ({ label: l, style: seg(sit === l), onClick: () => this.setState({ lcSit: l }) })),
     lcSearch: s.lcSearch || '', onLcSearch: e => this.setState({ lcSearch: e.target.value }),
-    lcClearStyle: `display:${hasFilters ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;animation:popIn .18s ease-out both`,
+    lcClearStyle: `display:${hasFilters ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--accent-text);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;animation:popIn .18s ease-out both`,
     lcClearFilters: () => this.setState({ lcSearch: '', lcEmp: empAll, lcTipo: 'Todos', lcSit: 'Todas' }),
     lcRows,
     lcEmptyStyle: `display:${filtered.length ? 'none' : 'flex'};flex-direction:column;align-items:center;gap:6px;padding:48px 20px`,
@@ -120,7 +120,7 @@ export function lancVals(this: AppLogic, subItemStyle: string) {
     onLcFParc: e => patch({ parc: parseInt(e.target.value) || 2 }),
     lcFSitTabs: [['lancado', 'Lançado'], ['previsto', 'Previsto']].map(([k, l]) => ({ label: l, style: seg(form.sit === k), onClick: () => patch({ sit: k }) })),
     lcErr: s.lcErr || '',
-    lcErrStyle: `display:${s.lcErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px;animation:popIn .18s ease-out both`,
+    lcErrStyle: `display:${s.lcErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid var(--danger-border);color:var(--danger-text);font-size:12.5px;animation:popIn .18s ease-out both`,
     lcSave: async () => {
       const v = parseBRL(form.value);
       if (!form.desc.trim()) { this.setState({ lcErr: 'Informe a descrição.' }); return; }

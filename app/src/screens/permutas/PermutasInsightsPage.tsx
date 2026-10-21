@@ -10,10 +10,10 @@ import { analisar, type Nivel } from './analise';
 import { exportarExcel, IcExcel } from './ui';
 
 const COR: Record<Nivel, { bg: string; fg: string; dot: string; nome: string }> = {
-  critico: { bg: '#FEE9E9', fg: '#B91C1C', dot: '#EF4444', nome: 'Crítico' },
-  atencao: { bg: 'var(--tint-amber-2)', fg: '#92590A', dot: '#F59E0B', nome: 'Atenção' },
-  info: { bg: 'var(--tint-blue-2)', fg: '#3148B8', dot: '#4161FF', nome: 'Info' },
-  positivo: { bg: 'var(--tint-green-2)', fg: '#1F7A5C', dot: '#43B997', nome: 'Positivo' },
+  critico: { bg: 'var(--tint-red)', fg: 'var(--tx-b91c1c)', dot: '#EF4444', nome: 'Crítico' },
+  atencao: { bg: 'var(--tint-amber-2)', fg: 'var(--tx-92590a)', dot: '#F59E0B', nome: 'Atenção' },
+  info: { bg: 'var(--tint-blue-2)', fg: 'var(--tx-3148b8)', dot: '#4161FF', nome: 'Info' },
+  positivo: { bg: 'var(--tint-green-2)', fg: 'var(--tx-1f7a5c)', dot: '#43B997', nome: 'Positivo' },
 };
 const SITUACAO: Record<string, [string, string]> = {
   'sem-area': ['Sem área', 'err'], 'sem-unidade': ['Sem unidade', 'warn'], parcial: ['Parcial', 'warn'], ok: ['Fechado', 'ok'], excesso: ['Acima de 100%', 'err'],
@@ -113,13 +113,13 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
       </section>
 
       <div className="pm-kpis">
-        <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="Área de permuta" valor={m2(a.totais.tArea)} un="m²" sub={`${permutas.length} permutas · ${a.porTerreno.length} terrenos`}
+        <Kpi cor="#258B6C" fundo="var(--tint-green)" rotulo="Área de permuta" valor={m2(a.totais.tArea)} un="m²" sub={`${permutas.length} permutas · ${a.porTerreno.length} terrenos`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3.5-3.5M17 17H5l3.5 3.5" stroke="#35AD88" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
-        <Kpi cor="#7C3AED" fundo="#F1E9FF" rotulo="Em empreend. diversos" valor={pctTxt(a.totais.pctDiv)} sub={`${m2(a.totais.tDiv)} m² fora do próprio empreendimento`}
+        <Kpi cor="#7C3AED" fundo="var(--tint-purple)" rotulo="Em empreend. diversos" valor={pctTxt(a.totais.pctDiv)} sub={`${m2(a.totais.tDiv)} m² fora do próprio empreendimento`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20V9l8-5 8 5v11" stroke="#7C3AED" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 20v-5h6v5" stroke="#7C3AED" strokeWidth="1.7" /></svg>} />
-        <Kpi fundo="#EAF1FF" rotulo="Alocado em unidades" valor={pctTxt(a.totais.tArea ? a.totais.tAloc / a.totais.tArea : null)} sub={`${m2(a.totais.tAloc)} de ${m2(a.totais.tArea)} m²`}
+        <Kpi fundo="var(--tint-blue)" rotulo="Alocado em unidades" valor={pctTxt(a.totais.tArea ? a.totais.tAloc / a.totais.tArea : null)} sub={`${m2(a.totais.tAloc)} de ${m2(a.totais.tArea)} m²`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="3.5" width="16" height="17" rx="2" stroke="#4161FF" strokeWidth="1.7" /><path d="M8 8h2M14 8h2M8 12h2M14 12h2" stroke="#4161FF" strokeWidth="1.6" strokeLinecap="round" /></svg>} />
-        <Kpi cor={nCrit ? '#DC2626' : '#258B6C'} fundo={nCrit ? '#FEE9E9' : '#E1F7EF'} rotulo="Alertas críticos" valor={String(nCrit)} sub={`${a.alertas.length} pontos de atenção no total`}
+        <Kpi cor={nCrit ? '#DC2626' : '#258B6C'} fundo={nCrit ? 'var(--tint-red)' : 'var(--tint-green)'} rotulo="Alertas críticos" valor={String(nCrit)} sub={`${a.alertas.length} pontos de atenção no total`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M12 4l9 16H3z" stroke={nCrit ? '#EF4444' : '#35AD88'} strokeWidth="1.7" strokeLinejoin="round" /><path d="M12 10v4M12 17h.01" stroke={nCrit ? '#EF4444' : '#35AD88'} strokeWidth="1.8" strokeLinecap="round" /></svg>} />
       </div>
 
@@ -206,7 +206,7 @@ export default function PermutasInsightsPage({ v }: { v: any }) {
           <div className="pm-alertas">
             {a.entregas.sort((x, y) => x.dias - y.dias).map(e => (
               <div key={e.emp} className="pm-al" style={{ gridTemplateColumns: '90px minmax(0,1fr) minmax(0,1.4fr)' }}>
-                <span className="pm-al-n" style={{ background: e.dias <= 120 ? 'var(--tint-red)' : '#F2F5FF', color: e.dias <= 120 ? '#B91C1C' : '#3148B8' }}>{e.dias < 0 ? 'Entregue' : `${e.dias} dias`}</span>
+                <span className="pm-al-n" style={{ background: e.dias <= 120 ? 'var(--tint-red)' : 'var(--tint-blue-2)', color: e.dias <= 120 ? 'var(--tx-b91c1c)' : 'var(--tx-3148b8)' }}>{e.dias < 0 ? 'Entregue' : `${e.dias} dias`}</span>
                 <div className="pm-al-t"><b>{e.emp}</b><p>Entrega {dataBr(e.data)}</p></div>
                 <div className="pm-al-c"><span className="pm-cap">Sem unidade definida</span><p>{e.permutantes.length ? e.permutantes.join(', ') : 'Todos com unidade definida.'}</p></div>
               </div>

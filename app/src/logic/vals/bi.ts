@@ -85,10 +85,10 @@ export function biVals(this: AppLogic, subItemStyle: string) {
     ).then(ok => ok && close());
   };
 
-  const inputStyle = (err: boolean) => `height:38px;width:100%;box-sizing:border-box;padding:0 12px;border-radius:8px;border:1px solid ${err ? '#FCA5A5' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`;
+  const inputStyle = (err: boolean) => `height:38px;width:100%;box-sizing:border-box;padding:0 12px;border-radius:8px;border:1px solid ${err ? 'var(--danger-border)' : 'var(--border)'};background:var(--surface);font-size:13px;font-family:inherit;color:var(--text);transition:border-color .15s,box-shadow .15s`;
   const err = s.biCfgErr || '';
   const switchStyle = (on: boolean) => ({
-    track: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${on ? '#43B997' : '#D8D8E0'}`,
+    track: `width:32px;height:18px;flex:none;border-radius:10px;cursor:pointer;position:relative;transition:background .18s ease;background:${on ? '#43B997' : 'var(--track)'}`,
     knob: `position:absolute;top:2.5px;left:${on ? '16.5px' : '2.5px'};width:13px;height:13px;border-radius:50%;background:var(--surface);transition:left .18s ease;box-shadow:0 1px 3px rgba(0,0,0,.18)`,
   });
 
@@ -108,7 +108,7 @@ export function biVals(this: AppLogic, subItemStyle: string) {
     })),
     biMenuEmpty: listados.length === 0,
     canManageBi: gerenciar,
-    biManageItemStyle: subItemStyle + ';display:flex;align-items:center;gap:6px;color:#71717a',
+    biManageItemStyle: subItemStyle + ';display:flex;align-items:center;gap:6px;color:var(--tx-71717a)',
     openBiCfgMenu: e => { if (e && e.preventDefault) e.preventDefault(); openCfg(); },
     openFirstBi: () => {
       if (this.semAcesso(visiveis.length > 0 || gerenciar || (listados.length === 0 && this.podeModulo('bi')))) return;
@@ -161,7 +161,7 @@ export function biVals(this: AppLogic, subItemStyle: string) {
         canUp: i > 0, canDown: i < draft.length - 1,
         up: () => move(i, -1), down: () => move(i, 1),
         remove: () => setDraft(draft.filter(x => x.key !== d.key)),
-        rowStyle: `display:flex;flex-direction:column;gap:8px;padding:12px;box-shadow:${i ? 'inset 0 1px 0 #F4F4F6' : 'none'};opacity:${d.ativo ? 1 : .62};transition:opacity .2s`,
+        rowStyle: `display:flex;flex-direction:column;gap:8px;padding:12px;box-shadow:${i ? 'inset 0 1px 0 var(--line-faint)' : 'none'};opacity:${d.ativo ? 1 : .62};transition:opacity .2s`,
       };
     }),
     biCfgErr: err,

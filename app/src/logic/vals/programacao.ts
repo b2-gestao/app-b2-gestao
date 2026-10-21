@@ -58,11 +58,11 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       saldoTip: `Contas ${f2(contas)} + a receber ${f2(rec)}${semRec.has(Number(g.cd)) ? ' (plano empresário: recebíveis não considerados)' : ''}${g.recNoSaldo ? `\nRecebíveis de ${fromLabel} (${f2(g.recNoSaldo)}) já no saldo bancário` : ''}`,
       tit: tit ? '−' + f2(tit) : '—',
       man: man ? '−' + f2(man) : '—',
-      manStyle: `text-align:right;font-size:13px;color:${man ? '#DC2626' : 'var(--text-4)'};font-variant-numeric:tabular-nums`,
+      manStyle: `text-align:right;font-size:13px;color:${man ? 'var(--danger-text)' : 'var(--text-4)'};font-variant-numeric:tabular-nums`,
       total: f2(total),
-      after: f2(after), afterStyle: `text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:${after < 0 ? '#DC2626' : 'var(--text)'}`,
+      after: f2(after), afterStyle: `text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:${after < 0 ? 'var(--danger-text)' : 'var(--text)'}`,
       aporte: aporte ? f2(aporte) : '—',
-      aporteStyle: `font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;${aporte ? 'background:var(--tint-purple);color:#7C3AED' : 'color:#CBD5E1'}`,
+      aporteStyle: `font-size:11.5px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;${aporte ? 'background:var(--tint-purple);color:var(--tx-7c3aed)' : 'color:#CBD5E1'}`,
       count: `${onItems.length}${offItems.length ? ` (+${offItems.length} fora)` : ''}`,
       open, chevStyle: `transition:transform .18s;transform:rotate(${open ? 90 : 0}deg)`,
       toggle: () => this.setState({ ['pgOpen_' + g.cd]: !open }),
@@ -70,7 +70,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       hoverStyle: 'background:var(--surface-2)',
       items: onItems.map((it, i) => ({
         title: it.title, sub: it.sub, tag: it.tag,
-        tagStyle: `font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap;${it.tag === 'Título' ? 'background:var(--tint-blue);color:#2445E8' : 'background:var(--tint-purple);color:#7C3AED'}`,
+        tagStyle: `font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;white-space:nowrap;${it.tag === 'Título' ? 'background:var(--tint-blue);color:var(--tx-2445e8)' : 'background:var(--tint-purple);color:var(--tx-7c3aed)'}`,
         val: '−' + f2(it.val),
         boxStyle: `width:16px;height:16px;border-radius:5px;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;background:#43B997;transition:background .15s`,
         toggle: () => (live ? this.setState(st => ({ pgOff: { ...(st.pgOff || {}), [it.key]: true } })) : this.setPg(list => list.map(x => x.cd === g.cd ? Object.assign({}, x, { items: x.items.map(y => y === it ? Object.assign({}, y, { on: false }) : y) }) : x))),
@@ -92,10 +92,10 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       sub: `Contas ${f2(totContas)} + receber ${f2(totRec)} = ${f2(totSaldo)}`,
       style: cardBase(1), valStyle: 'font-size:21px;font-weight:700;color:#16A34A;font-variant-numeric:tabular-nums',
     },
-    { label: 'Títulos a Pagar - Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
-    { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(3), valStyle: 'font-size:21px;font-weight:700;color:#DC2626;font-variant-numeric:tabular-nums' },
+    { label: 'Títulos a Pagar - Sienge', val: '−' + f2(totTit), sub: 'Parcelas em aberto no período', style: cardBase(2), valStyle: 'font-size:21px;font-weight:700;color:var(--danger-text);font-variant-numeric:tabular-nums' },
+    { label: 'Lançamentos manuais', val: '−' + f2(totMan), sub: 'Entram na programação', style: cardBase(3), valStyle: 'font-size:21px;font-weight:700;color:var(--danger-text);font-variant-numeric:tabular-nums' },
     { label: 'Total a pagar', val: f2(totTit + totMan), sub: 'Títulos + lançamentos manuais', style: cardBase(4), valStyle: 'font-size:21px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums' },
-    { label: 'Aporte necessário total', val: f2(totAporte), sub: totAporte ? 'Soma da coluna Aporte necessário' : 'Nenhuma empresa precisa de aporte', style: cardBase(5), valStyle: `font-size:21px;font-weight:700;color:${totAporte > 0 ? '#DC2626' : '#16A34A'};font-variant-numeric:tabular-nums` },
+    { label: 'Aporte necessário total', val: f2(totAporte), sub: totAporte ? 'Soma da coluna Aporte necessário' : 'Nenhuma empresa precisa de aporte', style: cardBase(5), valStyle: `font-size:21px;font-weight:700;color:${totAporte > 0 ? 'var(--danger-text)' : '#16A34A'};font-variant-numeric:tabular-nums` },
   ].map(c => ({ note: '', noteTip: '', noteStyle: noteStyle(false), ...c }));
 
   const ia = this.live && s.page === 'programacao' ? this.iaBanner('prog', progInsights(this)) : null;
@@ -107,7 +107,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     progItemStyle: s.page === 'programacao' ? subItemStyle + ';color:#F5F5F7;font-weight:600;background:rgba(67,185,151,.14);border-color:#43B997' : subItemStyle,
     goProg: e => { if (e && e.preventDefault) e.preventDefault(); if (this.semAcesso(this.pode('financeiro.programacao'))) return; this.setState({ view: 'app', page: 'programacao', module: 'Financeiro', financeiroOpen: true, userMenuOpen: false }); },
     pgStatusLabel: closed ? 'Programação fechada' : 'Aberta · em edição',
-    pgStatusPill: `display:${closed ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${closed ? 'var(--tint-purple)' : 'var(--tint-green)'};color:${closed ? '#7C3AED' : '#258B6C'}`,
+    pgStatusPill: `display:${closed ? 'inline-flex' : 'none'};align-items:center;gap:7px;height:24px;padding:0 10px;border-radius:20px;font-size:11.5px;font-weight:600;background:${closed ? 'var(--tint-purple)' : 'var(--tint-green)'};color:${closed ? 'var(--tx-7c3aed)' : 'var(--ok-text)'}`,
     pgStatusDot: `width:7px;height:7px;border-radius:50%;background:${closed ? '#7C3AED' : '#43B997'};${closed ? '' : 'animation:blink 1.6s ease-in-out infinite'}`,
     pgExport: () => {
       if (!groups.length) { this.toast('Nenhuma empresa selecionada para exportar.'); return; }
@@ -116,19 +116,19 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       this.toast(`Programação exportada para Excel · ${file}`);
     },
     pgToggleClose: () => { this.setState({ pgClosed: !closed }); this.toast(!closed ? 'Programação do dia fechada.' : 'Programação reaberta para edição.'); },
-    pgCloseBtnStyle: `display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;border:1px solid ${closed ? '#E4D6FF' : 'var(--border)'};background:${closed ? 'var(--tint-purple)' : 'var(--surface)'};color:${closed ? '#7C3AED' : 'var(--text-b)'};font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s`,
+    pgCloseBtnStyle: `display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 16px;border-radius:9px;border:1px solid ${closed ? 'var(--bd-e4d6ff)' : 'var(--border)'};background:${closed ? 'var(--tint-purple)' : 'var(--surface)'};color:${closed ? 'var(--tx-7c3aed)' : 'var(--text-b)'};font-size:13px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s`,
     pgLockPath: closed ? 'M9 10.5V8a3 3 0 016 0v2.5' : 'M9 10.5V8a3 3 0 015.7-1.3',
     pgCloseLabel: closed ? 'Reabrir programação' : 'Fechar programação',
     pgPrevDay: () => {},
     pgNextDay: () => {},
     pgDayLabel: '',
-    pgTodayPill: 'font-size:10.5px;font-weight:600;color:#258B6C;background:var(--tint-green);border-radius:20px;padding:3px 9px',
+    pgTodayPill: 'font-size:10.5px;font-weight:600;color:var(--ok-text);background:var(--tint-green);border-radius:20px;padding:3px 9px',
     pgExpandAll: () => this.setState(Object.fromEntries(groups.map(g => ['pgOpen_' + g.cd, true]))),
     pgCollapseAll: () => this.setState(Object.fromEntries(groups.map(g => ['pgOpen_' + g.cd, false]))),
     pgPeriods: ['Diário', 'Semanal', 'Mensal', 'Trimestral'].map(p => {
       const period = this.state.pgPeriod || 'Diário';
       const isPg = period === p;
-      return { label: p, style: `border:none;border-radius:6px;padding:0 10px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${isPg ? '#111827' : 'var(--surface-3)'};color:${isPg ? '#FFFFFF' : 'var(--text-3)'}`, onClick: () => this.setState({ pgPeriod: p, ...this.getDateRangeForPeriod(p) }) };
+      return { label: p, style: `border:none;border-radius:6px;padding:0 10px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${isPg ? 'var(--ink)' : 'var(--surface-3)'};color:${isPg ? '#FFFFFF' : 'var(--text-3)'}`, onClick: () => this.setState({ pgPeriod: p, ...this.getDateRangeForPeriod(p) }) };
     }),
     pgDateFrom: this.state.pgDateFrom || (this.live ? todayIso() : '2026-09-23'),
     pgDateTo: this.state.pgDateTo || (this.live ? todayIso() : '2026-09-23'),
@@ -148,7 +148,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
       this.toast(`Visão padrão salva \u00b7 ${pgEmpSelVis.length} de ${empAllNames.length} empresas${pgGrupoSel ? ` \u00b7 ${pgGrupoSel.length} grupo${pgGrupoSel.length === 1 ? '' : 's'}` : ''}.`);
     },
     pgSaveViewLabel: isSavedMatch ? 'Visão padrão salva' : 'Salvar como visão padrão',
-    pgSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${isSavedMatch ? '#C7EEE0' : 'var(--border)'};background:${isSavedMatch ? 'var(--tint-green)' : 'var(--surface)'};color:${isSavedMatch ? '#258B6C' : 'var(--text-b)'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,
+    pgSaveViewStyle: `display:inline-flex;align-items:center;gap:7px;height:36px;padding:0 12px;border-radius:8px;border:1px solid ${isSavedMatch ? 'var(--bd-c7eee0)' : 'var(--border)'};background:${isSavedMatch ? 'var(--tint-green)' : 'var(--surface)'};color:${isSavedMatch ? 'var(--ok-text)' : 'var(--text-b)'};font-size:12.5px;font-weight:600;font-family:inherit;cursor:pointer;transition:all .15s;white-space:nowrap`,
     pgCards,
     pgRows: rows,
     pgTot: {
@@ -160,7 +160,7 @@ export function progVals(this: AppLogic, subItemStyle: string) {
     pgOffTotal: f2(offRows.reduce((t, o) => t + o.val, 0)),
     pgOffRows: offRows.map(o => ({
       cd: o.cd, title: o.title, emp: o.emp,
-      tag: 'Fora', tagStyle: 'font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--tint-amber);color:#B45309;white-space:nowrap',
+      tag: 'Fora', tagStyle: 'font-size:10.5px;font-weight:600;padding:2px 7px;border-radius:20px;background:var(--tint-amber);color:var(--tx-b45309);white-space:nowrap',
       val: f2(o.val),
       restore: () => (live ? this.setState(st => { const off = { ...(st.pgOff || {}) }; delete off[o.key]; return { pgOff: off }; }) : this.setPg(list => list.map(x => x.cd === o.groupCd ? Object.assign({}, x, { items: x.items.map(y => y.title === o.title ? Object.assign({}, y, { on: true }) : y) }) : x))),
     })),

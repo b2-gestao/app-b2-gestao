@@ -12,7 +12,7 @@ export default function DashboardPage({ v }: { v: any }) {
       <>
         <main style={{ "flex": "1", "minHeight": "0", "overflowY": "auto", "padding": "28px 32px", "display": "flex", "flexDirection": "column", "gap": "24px" }}>
           <div style={{ "display": "grid", "gridTemplateColumns": "repeat(4,1fr)", "gap": "16px" }}>
-            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "0ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(65,97,255,.1)", undefined, undefined)}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "0ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(65,97,255,.1)", undefined, undefined)}>
               <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-blue)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <path d="M3 17l5-6 4 4 8-10" stroke="#4161FF" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -24,11 +24,11 @@ export default function DashboardPage({ v }: { v: any }) {
               <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "280ms" }}>
                 {v.kpiReceberFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-blue)", "color": "#2445E8" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-blue)", "color": "var(--tx-2445e8)" }}>
                 {v.kpiReceberDelta}
               </div>
             </div>
-            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "60ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(124,58,237,.1)", undefined, undefined)}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "60ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(124,58,237,.1)", undefined, undefined)}>
               <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-purple)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="6" width="18" height="13" rx="2" stroke="#7C3AED" strokeWidth="1.8"></rect>
@@ -41,11 +41,11 @@ export default function DashboardPage({ v }: { v: any }) {
               <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "340ms" }}>
                 {v.kpiPagarFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-purple)", "color": "#7C3AED" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-purple)", "color": "var(--tx-7c3aed)" }}>
                 {v.kpiPagarDelta}
               </div>
             </div>
-            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "120ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(67,185,151,.12)", undefined, undefined)}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "120ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(67,185,151,.12)", undefined, undefined)}>
               <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <rect x="3" y="7" width="18" height="12" rx="2" stroke="#43B997" strokeWidth="1.8"></rect>
@@ -63,7 +63,7 @@ export default function DashboardPage({ v }: { v: any }) {
                 {v.kpiSaldoSub}
               </div>
             </div>
-            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "180ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(245,158,11,.12)", undefined, undefined)}>
+            <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "180ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(245,158,11,.12)", undefined, undefined)}>
               <div style={{ "width": "40px", "height": "40px", "borderRadius": "10px", "background": "var(--tint-amber)", "display": "flex", "alignItems": "center", "justifyContent": "center", "marginBottom": "14px" }}>
                 <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
                   <rect x="5" y="3" width="14" height="18" rx="2" stroke="#F59E0B" strokeWidth="1.8"></rect>
@@ -76,12 +76,12 @@ export default function DashboardPage({ v }: { v: any }) {
               <div style={{ "fontWeight": "700", "fontSize": "27px", "color": "var(--text)", "marginTop": "6px", "display": "inline-block", "whiteSpace": "nowrap", "opacity": "0", "animation": "popIn .4s ease-out both", "animationDelay": "460ms" }}>
                 {v.kpiPrevisaoFmt}
               </div>
-              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-amber)", "color": "#D97706" }}>
+              <div style={{ "display": "inline-flex", "marginTop": "10px", "fontSize": "11px", "padding": "2px 8px", "borderRadius": "6px", "background": "var(--tint-amber)", "color": "var(--warn-text)" }}>
                 {v.kpiPrevisaoSub}
               </div>
             </div>
           </div>
-          <div style={{ "position": "relative", "flex": "none", "borderRadius": "14px", "padding": "1.5px", "overflow": "hidden", "background": "#EFEFF3", "boxShadow": "0 1px 2px rgba(17,24,39,.04),0 10px 30px rgba(65,97,255,.07)", "opacity": "0", "animation": "fadeInUp .55s ease-out both", "animationDelay": "210ms" }}>
+          <div style={{ "position": "relative", "flex": "none", "borderRadius": "14px", "padding": "1.5px", "overflow": "hidden", "background": "var(--bg-efeff3)", "boxShadow": "0 1px 2px rgba(17,24,39,.04),0 10px 30px rgba(65,97,255,.07)", "opacity": "0", "animation": "fadeInUp .55s ease-out both", "animationDelay": "210ms" }}>
             <div style={{ "position": "absolute", "top": "50%", "left": "50%", "width": "170%", "aspectRatio": "1", "background": "conic-gradient(from 0deg,transparent 0deg,rgba(65,97,255,.55) 60deg,rgba(124,58,237,.75) 120deg,rgba(67,185,151,.45) 175deg,transparent 240deg,transparent 360deg)", "transform": "translate(-50%,-50%)", "animation": "spinBorder 7s linear infinite", "pointerEvents": "none" }}></div>
             <div style={{ "position": "relative", "borderRadius": "12.5px", "background": "var(--surface)", "overflow": "hidden" }}>
               <div style={{ "position": "absolute", "inset": "0", "background": "linear-gradient(115deg,rgba(65,97,255,.055),rgba(255,255,255,0) 42%,rgba(124,58,237,.06))", "pointerEvents": "none" }}></div>
@@ -89,8 +89,8 @@ export default function DashboardPage({ v }: { v: any }) {
               <div style={{ "position": "relative", "display": "flex", "alignItems": "flex-start", "gap": "16px", "padding": "22px 24px" }}>
                 <div style={{ "width": "40px", "height": "40px", "flex": "none", "borderRadius": "12px", "background": "linear-gradient(135deg,#4161FF,#7C3AED)", "display": "flex", "alignItems": "center", "justifyContent": "center", "boxShadow": "0 6px 18px rgba(65,97,255,.28)", "animation": "pulseGlow 3.2s ease-in-out infinite" }}>
                   <svg width="19" height="19" viewBox="0 0 24 24" fill="none" style={css(v.aiIconStyle)}>
-                    <path d="M12 3l1.6 4.2L18 9l-4.4 1.8L12 15l-1.6-4.2L6 9l4.4-1.8L12 3z" fill="#FFFFFF"></path>
-                    <path d="M19 15l.8 2.1L22 18l-2.2.9L19 21l-.8-2.1L16 18l2.2-.9L19 15z" fill="#FFFFFF"></path>
+                    <path d="M12 3l1.6 4.2L18 9l-4.4 1.8L12 15l-1.6-4.2L6 9l4.4-1.8L12 3z" fill="var(--surface)"></path>
+                    <path d="M19 15l.8 2.1L22 18l-2.2.9L19 21l-.8-2.1L16 18l2.2-.9L19 15z" fill="var(--surface)"></path>
                   </svg>
                 </div>
                 <div style={{ "flex": "1", "minWidth": "0" }}>
@@ -103,9 +103,9 @@ export default function DashboardPage({ v }: { v: any }) {
                     </span>
                   </div>
                   <div style={css(v.skeletonWrapStyle)}>
-                    <div style={{ "height": "11px", "width": "92%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,#E7E7EA 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
-                    <div style={{ "height": "11px", "width": "76%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,#E7E7EA 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
-                    <div style={{ "height": "11px", "width": "54%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,#E7E7EA 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
+                    <div style={{ "height": "11px", "width": "92%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,var(--border) 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
+                    <div style={{ "height": "11px", "width": "76%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,var(--border) 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
+                    <div style={{ "height": "11px", "width": "54%", "borderRadius": "4px", "background": "linear-gradient(90deg,var(--surface-3) 25%,var(--border) 37%,var(--surface-3) 63%)", "backgroundSize": "400px 100%", "animation": "shimmer 1.3s ease-in-out infinite" }}></div>
                   </div>
                   <div style={css(v.textWrapStyle)}>
                     <p style={{ "margin": "11px 0 0", "fontSize": "14px", "lineHeight": "1.62", "color": "var(--text-b)", "maxWidth": "80ch", "textWrap": "pretty" }}>
@@ -143,7 +143,7 @@ export default function DashboardPage({ v }: { v: any }) {
             </div>
           </div>
           <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "16px", "alignItems": "stretch" }}>
-            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "230ms" }}>
+            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "230ms" }}>
               <div style={{ "display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "flexWrap": "wrap", "gap": "12px", "marginBottom": "6px" }}>
                 <div>
                   <div style={{ "fontWeight": "700", "fontSize": "18px", "color": "var(--text)" }}>
@@ -233,7 +233,7 @@ export default function DashboardPage({ v }: { v: any }) {
                 </div>
               </div>
             </div>
-            <div style={{ "flex": "1 1 300px", "maxWidth": "340px", "minWidth": "280px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "20px 18px", "display": "flex", "flexDirection": "column", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "270ms" }}>
+            <div style={{ "flex": "1 1 300px", "maxWidth": "340px", "minWidth": "280px", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "20px 18px", "display": "flex", "flexDirection": "column", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "270ms" }}>
               <div style={{ "display": "flex", "alignItems": "baseline", "justifyContent": "space-between", "gap": "8px" }}>
                 <div style={{ "fontWeight": "700", "fontSize": "14.5px", "color": "var(--text)" }}>
                   Ranking por empresa
@@ -274,7 +274,7 @@ export default function DashboardPage({ v }: { v: any }) {
           </div>
           <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "16px", "alignItems": "stretch" }}>
             <div style={{ "flex": "1 1 236px", "maxWidth": "280px", "minWidth": "210px", "display": "flex", "flexDirection": "column", "gap": "16px" }}>
-              <div style={{ "flex": "1", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "300ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(245,158,11,.14)", undefined, undefined)}>
+              <div style={{ "flex": "1", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "300ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(245,158,11,.14)", undefined, undefined)}>
                 <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
                   <div style={{ "width": "32px", "height": "32px", "borderRadius": "9px", "background": "var(--tint-amber)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
@@ -293,11 +293,11 @@ export default function DashboardPage({ v }: { v: any }) {
                 <div style={{ "height": "6px", "borderRadius": "99px", "background": "var(--surface-3)", "marginTop": "12px", "overflow": "hidden" }}>
                   <div style={css(v.jurosBarStyle)}></div>
                 </div>
-                <div style={{ "fontSize": "11px", "color": "#D97706", "marginTop": "8px" }}>
+                <div style={{ "fontSize": "11px", "color": "var(--warn-text)", "marginTop": "8px" }}>
                   {v.jurosPctFmt}
                 </div>
               </div>
-              <div style={{ "flex": "1", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "340ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(67,185,151,.14)", undefined, undefined)}>
+              <div style={{ "flex": "1", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "340ms", "transition": "transform .2s ease,box-shadow .2s ease" }} className={hv("transform:translateY(-3px);box-shadow:0 0 0 1px var(--border-soft),0 10px 24px rgba(67,185,151,.14)", undefined, undefined)}>
                 <div style={{ "display": "flex", "alignItems": "center", "gap": "9px" }}>
                   <div style={{ "width": "32px", "height": "32px", "borderRadius": "9px", "background": "var(--tint-green)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
                     <svg width="17" height="17" viewBox="0 0 24 24" fill="none">
@@ -320,7 +320,7 @@ export default function DashboardPage({ v }: { v: any }) {
                 </div>
               </div>
             </div>
-            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "320ms" }}>
+            <div style={{ "flex": "1 1 460px", "minWidth": "0", "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 18px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "320ms" }}>
               <div style={{ "display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "gap": "12px", "flexWrap": "wrap" }}>
                 <div>
                   <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "var(--text)" }}>
@@ -353,17 +353,17 @@ export default function DashboardPage({ v }: { v: any }) {
                       <stop offset="100%" stopColor="#4161FF" stopOpacity="0"></stop>
                     </linearGradient>
                   </defs>
-                  <line x1="40" y1="32" x2="580" y2="32" stroke="#F1F1F3" strokeWidth="1" strokeDasharray="4 4"></line>
-                  <line x1="40" y1="74" x2="580" y2="74" stroke="#F1F1F3" strokeWidth="1" strokeDasharray="4 4"></line>
-                  <line x1="40" y1="116" x2="580" y2="116" stroke="#F1F1F3" strokeWidth="1" strokeDasharray="4 4"></line>
-                  <line x1="40" y1="158" x2="580" y2="158" stroke="#E7E7EA" strokeWidth="1"></line>
+                  <line x1="40" y1="32" x2="580" y2="32" stroke="var(--line-faint)" strokeWidth="1" strokeDasharray="4 4"></line>
+                  <line x1="40" y1="74" x2="580" y2="74" stroke="var(--line-faint)" strokeWidth="1" strokeDasharray="4 4"></line>
+                  <line x1="40" y1="116" x2="580" y2="116" stroke="var(--line-faint)" strokeWidth="1" strokeDasharray="4 4"></line>
+                  <line x1="40" y1="158" x2="580" y2="158" stroke="var(--border)" strokeWidth="1"></line>
                   <path d={v.areaPago} fill="url(#fillPago)"></path>
                   <path d={v.pathPago} fill="none" stroke="#4161FF" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" pathLength="1" strokeDasharray="1" style={{ "animation": "drawLine 1.1s cubic-bezier(.16,1,.3,1) both" }}></path>
                   <path d={v.pathJuros} fill="none" stroke="#F59E0B" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" pathLength="1" strokeDasharray="1" style={{ "animation": "drawLine 1.1s cubic-bezier(.16,1,.3,1) .15s both" }}></path>
                   <path d={v.pathDesc} fill="none" stroke="#43B997" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="1" pathLength="1" style={{ "animation": "drawLine 1.1s cubic-bezier(.16,1,.3,1) .3s both" }}></path>
                   {(v.linePts || []).map((pt: any, _i0: number) => (
                     <Fragment key={_i0}>
-                      <circle cx={pt.cx} cy={pt.cy} r={pt.r} fill="#FFFFFF" stroke={pt.color} strokeWidth="2.2" style={{ "transition": "r .15s" }}></circle>
+                      <circle cx={pt.cx} cy={pt.cy} r={pt.r} fill="var(--surface)" stroke={pt.color} strokeWidth="2.2" style={{ "transition": "r .15s" }}></circle>
                     </Fragment>
                   ))}
                 </svg>
@@ -402,7 +402,7 @@ export default function DashboardPage({ v }: { v: any }) {
               </div>
             </div>
           </div>
-          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "360ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "360ms" }}>
             <div style={{ "display": "flex", "alignItems": "baseline", "gap": "12px", "flexWrap": "wrap" }}>
               <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "var(--text)" }}>
                 Linha do tempo · vencimentos
@@ -410,13 +410,13 @@ export default function DashboardPage({ v }: { v: any }) {
               <div style={{ "fontSize": "11px", "color": "var(--text-4)" }}>
                 Parcelas a pagar nos próximos 30 dias
               </div>
-              <div style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "11px", "color": "#EF4444", "background": "var(--tint-red)", "borderRadius": "20px", "padding": "3px 10px" }}>
+              <div style={{ "marginLeft": "auto", "display": "inline-flex", "alignItems": "center", "gap": "6px", "fontSize": "11px", "color": "var(--danger-text-2)", "background": "var(--tint-red)", "borderRadius": "20px", "padding": "3px 10px" }}>
                 <span style={{ "width": "6px", "height": "6px", "borderRadius": "50%", "background": "#EF4444", "display": "inline-block", "animation": "blink 1.6s ease-in-out infinite" }}></span>
                 {v.parcelasTodayLabel}
               </div>
             </div>
             <div style={{ "position": "relative", "marginTop": "34px", "overflowX": "auto", "paddingBottom": "6px" }}>
-              <div style={{ "position": "absolute", "left": "0", "right": "0", "top": "-8px", "height": "2px", "background": "linear-gradient(90deg,transparent,#E7E7EA 6%,#E7E7EA 94%,transparent)" }}></div>
+              <div style={{ "position": "absolute", "left": "0", "right": "0", "top": "-8px", "height": "2px", "background": "linear-gradient(90deg,transparent,var(--border) 6%,var(--border) 94%,transparent)" }}></div>
               <div style={{ "display": "flex", "gap": "14px", "minWidth": "min-content", "paddingTop": "2px" }}>
                 {(v.parcelaCards || []).map((p: any, _i0: number) => (
                   <Fragment key={_i0}>
@@ -450,7 +450,7 @@ export default function DashboardPage({ v }: { v: any }) {
               </div>
             </div>
           </div>
-          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "400ms" }}>
+          <div style={{ "borderRadius": "10px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 1px 2px rgba(0,0,0,.03),0 4px 16px rgba(0,0,0,.025)", "padding": "22px 24px 20px", "opacity": "0", "animation": "fadeInUp .5s ease-out both", "animationDelay": "400ms" }}>
             <div style={{ "display": "flex", "alignItems": "flex-start", "justifyContent": "space-between", "gap": "12px", "flexWrap": "wrap" }}>
               <div>
                 <div style={{ "fontWeight": "700", "fontSize": "17px", "color": "var(--text)" }}>
@@ -485,7 +485,7 @@ export default function DashboardPage({ v }: { v: any }) {
                 </Fragment>
               ))}
             </div>
-            <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "space-between", "gap": "12px", "marginTop": "16px", "paddingTop": "14px", "background": "linear-gradient(to right,transparent,#EEEEF1 48px,#EEEEF1 calc(100% - 48px),transparent) no-repeat top/100% 1px" }}>
+            <div style={{ "display": "flex", "alignItems": "center", "justifyContent": "space-between", "gap": "12px", "marginTop": "16px", "paddingTop": "14px", "background": "linear-gradient(to right,transparent,var(--track-2) 48px,var(--track-2) calc(100% - 48px),transparent) no-repeat top/100% 1px" }}>
               <div style={{ "fontSize": "11.5px", "color": "var(--text-3)" }}>
                 {v.grupoTotalLabel}
               </div>

@@ -9,9 +9,9 @@ export default function IaPanel({ v }: { v: any }) {
   return (
     <>
     <div style={css(v.iaOverlayStyle)} onClick={v.iaClose}>
-      <div onClick={v.stopProp} style={{ "width": "100%", "maxWidth": "520px", "maxHeight": "92vh", "display": "flex", "flexDirection": "column", "borderRadius": "14px", "background": "var(--surface)", "boxShadow": "0 0 0 1px #EEEEF1,0 30px 70px rgba(9,10,16,.34)", "overflow": "hidden", "animation": "modalIn .24s cubic-bezier(.16,1,.3,1) both" }}>
-        <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "12px", "padding": "20px 22px 16px", "boxShadow": "inset 0 -1px 0 #EEEEF1" }}>
-          <span style={{ "width": "36px", "height": "36px", "flex": "none", "borderRadius": "10px", "background": "#FCEBC4", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
+      <div onClick={v.stopProp} style={{ "width": "100%", "maxWidth": "520px", "maxHeight": "92vh", "display": "flex", "flexDirection": "column", "borderRadius": "14px", "background": "var(--surface)", "boxShadow": "0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34)", "overflow": "hidden", "animation": "modalIn .24s cubic-bezier(.16,1,.3,1) both" }}>
+        <div style={{ "display": "flex", "alignItems": "flex-start", "gap": "12px", "padding": "20px 22px 16px", "boxShadow": "inset 0 -1px 0 var(--border-soft)" }}>
+          <span style={{ "width": "36px", "height": "36px", "flex": "none", "borderRadius": "10px", "background": "var(--bg-fcebc4)", "display": "flex", "alignItems": "center", "justifyContent": "center" }}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
               <path d="M12 3l1.6 4.7L18 9l-4.4 1.3L12 15l-1.6-4.7L6 9l4.4-1.3L12 3z" stroke="#B7791F" strokeWidth="1.4" strokeLinejoin="round"></path>
             </svg>
@@ -25,13 +25,13 @@ export default function IaPanel({ v }: { v: any }) {
             </div>
             {v.iaPdfShow ? (
               <div style={{ "display": "flex", "flexWrap": "wrap", "gap": "8px", "marginTop": "12px" }}>
-                <button onClick={v.iaPdf} title={v.iaPdfTitle} style={css(v.iaPdfStyle)} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
+                <button onClick={v.iaPdf} title={v.iaPdfTitle} style={css(v.iaPdfStyle)} className={hv("border-color:#4161FF;color:var(--accent-text)", undefined, undefined)}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                     <path d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
                   </svg>
                   {v.iaPdfLabel}
                 </button>
-                <button onClick={v.iaEmail} title={v.iaEmailTitle} style={css(v.iaEmailStyle)} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
+                <button onClick={v.iaEmail} title={v.iaEmailTitle} style={css(v.iaEmailStyle)} className={hv("border-color:#4161FF;color:var(--accent-text)", undefined, undefined)}>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
                     <path d="M4 6.5h16v11H4z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"></path>
                     <path d="M4.5 7l7.5 6 7.5-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -41,7 +41,7 @@ export default function IaPanel({ v }: { v: any }) {
               </div>
             ) : null}
           </div>
-          <button onClick={v.iaClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:#EF4444;background:var(--tint-red)", undefined, undefined)}>
+          <button onClick={v.iaClose} title="Fechar" style={{ "width": "30px", "height": "30px", "flex": "none", "borderRadius": "8px", "border": "1px solid var(--border-soft)", "background": "var(--surface)", "color": "var(--text-4)", "display": "flex", "alignItems": "center", "justifyContent": "center", "cursor": "pointer", "transition": "all .15s" }} className={hv("border-color:#EF4444;color:var(--danger-text-2);background:var(--tint-red)", undefined, undefined)}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
               <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round"></path>
             </svg>
@@ -57,12 +57,12 @@ export default function IaPanel({ v }: { v: any }) {
                     {it.label}
                   </span>
                 </div>
-                <div style={{ "fontSize": "12.5px", "color": "#4B5563", "lineHeight": "1.5", "marginTop": "5px" }}>
+                <div style={{ "fontSize": "12.5px", "color": "var(--tx-4b5563)", "lineHeight": "1.5", "marginTop": "5px" }}>
                   {it.text}
                 </div>
                 {it.action ? (
                   <>
-                    <button onClick={it.onAction} style={{ "marginTop": "9px", "display": "inline-flex", "alignItems": "center", "height": "28px", "padding": "0 11px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s" }} className={hv("border-color:#4161FF;color:#4161FF", undefined, undefined)}>
+                    <button onClick={it.onAction} style={{ "marginTop": "9px", "display": "inline-flex", "alignItems": "center", "height": "28px", "padding": "0 11px", "borderRadius": "7px", "border": "1px solid var(--border)", "background": "var(--surface)", "color": "var(--text-b)", "fontSize": "11.5px", "fontWeight": "600", "fontFamily": "inherit", "cursor": "pointer", "transition": "border-color .15s,color .15s" }} className={hv("border-color:#4161FF;color:var(--accent-text)", undefined, undefined)}>
                       {it.action}
                     </button>
                   </>

@@ -12,7 +12,7 @@ export default function EnviarEmailModal({ v }: { v: any }) {
     <div style={css('display:flex;position:fixed;inset:0;z-index:120;align-items:center;justify-content:center;padding:28px;background:rgba(9,10,16,.5);backdrop-filter:blur(3px);animation:overlayIn .18s ease-out both')} onClick={v.fecharEnvioEmail}>
       <div onClick={e => e.stopPropagation()} style={css('width:100%;max-width:540px;max-height:92vh;display:flex;flex-direction:column;border-radius:14px;background:var(--surface);box-shadow:0 0 0 1px var(--border-soft),0 30px 70px rgba(9,10,16,.34);overflow:hidden;animation:modalIn .24s cubic-bezier(.16,1,.3,1) both')}>
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', padding: '20px 24px 16px', boxShadow: 'inset 0 -1px 0 var(--border-soft)' }}>
-          <div style={{ width: '38px', height: '38px', flex: 'none', borderRadius: '11px', background: 'var(--tint-blue)', color: '#4161FF', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ width: '38px', height: '38px', flex: 'none', borderRadius: '11px', background: 'var(--tint-blue)', color: 'var(--accent-text)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="19" height="19" viewBox="0 0 24 24" fill="none">
               <path d="M4 6.5h16v11H4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round"></path>
               <path d="M4.5 7l7.5 6 7.5-6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"></path>
@@ -35,7 +35,7 @@ export default function EnviarEmailModal({ v }: { v: any }) {
             <div style={caixa}>{v.envioEmailDe}</div>
           </div>
           <label style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <span style={label}>Para <span style={{ color: '#EF4444' }}>*</span></span>
+            <span style={label}>Para <span style={{ color: 'var(--danger-text-2)' }}>*</span></span>
             <input
               value={v.envioEmailPara}
               onChange={e => v.setEnvioEmailPara(e.target.value)}
@@ -43,7 +43,7 @@ export default function EnviarEmailModal({ v }: { v: any }) {
               placeholder="nome@empresa.com.br; outro@empresa.com.br"
               autoFocus
               disabled={busy}
-              style={{ height: '38px', padding: '0 12px', borderRadius: '8px', border: `1px solid ${v.envioEmailErro ? '#FCA5A5' : 'var(--border)'}`, background: 'var(--surface)', fontSize: '13px', fontFamily: 'inherit', color: 'var(--text)', outline: 'none' }}
+              style={{ height: '38px', padding: '0 12px', borderRadius: '8px', border: `1px solid ${v.envioEmailErro ? 'var(--danger-border)' : 'var(--border)'}`, background: 'var(--surface)', fontSize: '13px', fontFamily: 'inherit', color: 'var(--text)', outline: 'none' }}
             />
             <span style={{ fontSize: '11px', color: 'var(--text-4)' }}>Separe vários e-mails com vírgula ou ponto e vírgula.</span>
           </label>
@@ -56,14 +56,14 @@ export default function EnviarEmailModal({ v }: { v: any }) {
             <div style={{ ...caixa, whiteSpace: 'pre-line', lineHeight: 1.5 }}>{v.envioEmailCorpo}</div>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'var(--text-3)' }}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', color: '#DC2626' }}>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', color: 'var(--danger-text)' }}>
               <path d="M7 3.5h7l4 4V20.5H7z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
               <path d="M14 3.5v4h4" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
             </svg>
             Anexo: {v.envioEmailArquivo}
           </div>
           {v.envioEmailErro ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', background: 'var(--tint-red)', color: '#B91C1C', fontSize: '12.5px', fontWeight: 500 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 12px', borderRadius: '8px', background: 'var(--tint-red)', color: 'var(--tx-b91c1c)', fontSize: '12.5px', fontWeight: 500 }}>
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none' }}>
                 <circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeWidth="1.7"></circle>
                 <path d="M12 8v5M12 16h.01" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>

@@ -1,22 +1,39 @@
-/* Tokens de tema. Os valores do modo claro são as cores originais do app; o escuro é redefinido por data-theme="dark". */
+/* Tokens de tema. Modo claro = cores originais do app; o escuro (grafite) é redefinido por data-theme="dark".
+   Superfícies em 4 níveis (bg < surface < surface-2 < surface-3), bordas sutis e texto com contraste AA. */
 :root{
   --bg:#FEFEFE;--surface:#FFFFFF;--surface-2:#FAFAFB;--hover:#FAFAFA;
-  --surface-3:#F4F4F6;--border:#E7E7EA;--border-soft:#EEEEF1;--border-strong:#D8D8E0;
+  --surface-3:#F4F4F6;--surface-4:#FCFCFD;--surface-red:#FFFBFB;--line-faint:#F4F4F6;
+  --row-warn:#FFFBF3;--row-danger:#FFFAFA;--row-warn-hover:#FFF7E8;
+  --border:#E7E7EA;--border-soft:#EEEEF1;--border-strong:#D8D8E0;--input-border:#CBD5E1;
+  --track:#D8D8E0;--track-2:#EEEEF1;--ink:#111827;
   --text:#111827;--text-b:#374151;--text-2:#475569;--text-3:#64748B;--text-4:#94A3B8;
-  --tint-blue:#EAF1FF;--tint-blue-2:#F2F5FF;--tint-blue-3:#EEF2FF;--tint-green-2:#E9F8F2;--tint-amber-2:#FFF7E8;--surface-4:#FCFCFD;--surface-red:#FFFBFB;--tint-red:#FEE9E9;--tint-green:#E1F7EF;--tint-amber:#FFF0DD;--tint-purple:#F1E9FF;
+  --accent-text:#4161FF;--danger-text:#DC2626;--danger-text-2:#EF4444;--ok-text:#258B6C;--warn-text:#D97706;
+  --danger-border:#FCA5A5;
+  --tint-blue:#EAF1FF;--tint-blue-2:#F2F5FF;--tint-blue-3:#EEF2FF;--tint-green:#E1F7EF;--tint-green-2:#E9F8F2;
+  --tint-amber:#FFF0DD;--tint-amber-2:#FFF7E8;--tint-red:#FEE9E9;--tint-purple:#F1E9FF;
   --scroll-track:#F4F4F6;--scroll-thumb:#C2C2CB;--scroll-thumb-2:#DADAE0;--scroll-thumb-hover:#9CA3AF;
   --placeholder:#A8B0BD;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
-  --bg:#0F1115;--surface:#171A21;--surface-2:#1B1F27;--hover:#1E222B;
-  --surface-3:#222731;--border:#262A33;--border-soft:#20242C;--border-strong:#323845;
-  --text:#E6E8EC;--text-b:#CBD1DB;--text-2:#B4BBC8;--text-3:#8B94A5;--text-4:#6F788A;
-  --tint-blue:#1D2540;--tint-blue-2:#1A2036;--tint-blue-3:#1D2540;--tint-green-2:#16342C;--tint-amber-2:#33291A;--surface-4:#1B1F27;--surface-red:#2A1A1E;--tint-red:#3A1F24;--tint-green:#16342C;--tint-amber:#3A2E17;--tint-purple:#2B2146;
-  --scroll-track:#14171D;--scroll-thumb:#353A45;--scroll-thumb-2:#353A45;--scroll-thumb-hover:#4A505E;
-  --placeholder:#6B7385;
+  --bg:#0C0E13;--surface:#13161D;--surface-2:#181C25;--hover:#1A1F29;
+  --surface-3:#1F2430;--surface-4:#161A22;--surface-red:#231619;--line-faint:#1A1F29;
+  --row-warn:#13161D;--row-danger:#13161D;--row-warn-hover:#1A1F29;
+  --border:#262C38;--border-soft:#1D222C;--border-strong:#343B4A;--input-border:#394152;
+  --track:#2B3240;--track-2:#242A36;--ink:#2A3140;
+  --text:#E8EAEF;--text-b:#CDD3DD;--text-2:#AAB2C0;--text-3:#8991A2;--text-4:#6A7285;
+  --accent-text:#8EA2FF;--danger-text:#F87171;--danger-text-2:#F87171;--ok-text:#5FD3B0;--warn-text:#FBBF24;
+  --danger-border:#7A2F38;
+  --tint-blue:#1A2240;--tint-blue-2:#171E36;--tint-blue-3:#1A2240;--tint-green:#13302A;--tint-green-2:#13302A;
+  --tint-amber:#2F2616;--tint-amber-2:#2A2214;--tint-red:#2E1A20;--tint-purple:#251D40;
+  --scroll-track:#10131A;--scroll-thumb:#343B4A;--scroll-thumb-2:#343B4A;--scroll-thumb-hover:#4A5365;
+  --placeholder:#6A7285;
   color-scheme:dark;
 }
+/* GERADO-INICIO (tokens da cauda longa: claro = hex original; escuro calculado para contraste) */
+:root{--bd-bde8d8:#BDE8D8;--bd-c4b5fd:#C4B5FD;--bd-c7eee0:#C7EEE0;--bd-c9d4ff:#C9D4FF;--bd-c9d5ff:#C9D5FF;--bd-d5deff:#D5DEFF;--bd-dce6ff:#DCE6FF;--bd-ddd6fe:#DDD6FE;--bd-e4d6ff:#E4D6FF;--bd-e4e9ff:#E4E9FF;--bd-fbe8c6:#FBE8C6;--bd-fbfcff:#FBFCFF;--bd-fccfcf:#FCCFCF;--bd-fcd9a8:#FCD9A8;--bd-fce7c8:#FCE7C8;--bd-fde68a:#FDE68A;--bd-fecdca:#FECDCA;--bg-dce6ff:#DCE6FF;--bg-e2e4ea:#E2E4EA;--bg-e7e8ee:#E7E8EE;--bg-e8f8f6:#E8F8F6;--bg-efeff3:#EFEFF3;--bg-f0f9ff:#F0F9FF;--bg-f0fdf4:#F0FDF4;--bg-f2f4f7:#F2F4F7;--bg-f5f0ff:#F5F0FF;--bg-f7f8ff:#F7F8FF;--bg-f7f9ff:#F7F9FF;--bg-f8f8fa:#F8F8FA;--bg-f9fafb:#F9FAFB;--bg-fcebc4:#FCEBC4;--bg-fef3e2:#FEF3E2;--bg-fef6e7:#FEF6E7;--bg-fef7d6:#FEF7D6;--bg-fef9c3:#FEF9C3;--bg-fff7ec:#FFF7EC;--bg-fffcf7:#FFFCF7;--tx-14533f:#14533F;--tx-1e3ae0:#1E3AE0;--tx-1f5c47:#1F5C47;--tx-1f7a5c:#1F7A5C;--tx-2445e8:#2445E8;--tx-3148b8:#3148B8;--tx-3153f4:#3153F4;--tx-4b5563:#4B5563;--tx-52525b:#52525B;--tx-71717a:#71717A;--tx-7c3aed:#7C3AED;--tx-7c5a17:#7C5A17;--tx-8a6a00:#8A6A00;--tx-8a6a2c:#8A6A2C;--tx-92590a:#92590A;--tx-b45309:#B45309;--tx-b91c1c:#B91C1C}
+:root[data-theme="dark"]{--bd-bde8d8:#345549;--bd-c4b5fd:#352960;--bd-c7eee0:#32574A;--bd-c9d4ff:#293560;--bd-c9d5ff:#293660;--bd-d5deff:#293560;--bd-dce6ff:#293960;--bd-ddd6fe:#332960;--bd-e4d6ff:#3C2960;--bd-e4e9ff:#293460;--bd-fbe8c6:#604D29;--bd-fbfcff:#293760;--bd-fccfcf:#602929;--bd-fcd9a8:#604929;--bd-fce7c8:#604A29;--bd-fde68a:#605529;--bd-fecdca:#602C29;--bg-dce6ff:#161F36;--bg-e2e4ea:#1F222E;--bg-e7e8ee:#1F212E;--bg-e8f8f6:#1B312F;--bg-efeff3:#1F1F2E;--bg-f0f9ff:#162936;--bg-f0fdf4:#163620;--bg-f2f4f7:#1F252E;--bg-f5f0ff:#211636;--bg-f7f8ff:#161A36;--bg-f7f9ff:#161E36;--bg-f8f8fa:#1F1F2E;--bg-f9fafb:#1F262E;--bg-fcebc4:#362D16;--bg-fef3e2:#362A16;--bg-fef6e7:#362B16;--bg-fef7d6:#363116;--bg-fef9c3:#363416;--bg-fff7ec:#362916;--bg-fffcf7:#362A16;--tx-14533f:#269D77;--tx-1e3ae0:#6E80EC;--tx-1f5c47:#349976;--tx-1f7a5c:#279B75;--tx-2445e8:#6E84F0;--tx-3148b8:#7586DA;--tx-3153f4:#657EF3;--tx-4b5563:#808D9F;--tx-52525b:#898994;--tx-71717a:#8B8B93;--tx-7c3aed:#A172F2;--tx-7c5a17:#B07F21;--tx-8a6a00:#AF8A0E;--tx-8a6a2c:#A98236;--tx-92590a:#BF7610;--tx-b45309:#DE6A12;--tx-b91c1c:#E75E5E}
+/* GERADO-FIM */
 body,header,button{transition:background-color .2s,border-color .2s,color .2s}
 /* Botão de tema no cabeçalho: lua no claro, sol no escuro. */
 .theme-btn{display:grid;place-items:center}
@@ -25,12 +42,12 @@ body,header,button{transition:background-color .2s,border-color .2s,color .2s}
 :root[data-theme="dark"] .theme-btn .t-moon{opacity:0;transform:rotate(90deg) scale(.5)}
 :root[data-theme="dark"] .theme-btn .t-sun{opacity:1;transform:none}
 @media (prefers-reduced-motion:reduce){.theme-btn svg,body,header,button{transition:none}}
-/* CRC › Entregas tem tokens próprios (escopo .crc-ent): redefinidos no escuro. */
+/* CRC › Entregas tem tokens próprios (escopo .crc-ent): redefinidos no escuro com a mesma paleta. */
 :root[data-theme="dark"] .crc-ent{
-  --sb-bg:#171A21;--sb-hover:#222731;--sb-text:#8B94A5;--sb-text-hover:#E6E8EC;--sb-active-bg:#1D2540;
-  --primary-soft:#1D2540;--primary-border:#2C3A78;--primary-text:#8FA3FF;
-  --ok-soft:#16342C;--ok-border:#235C4B;--ok-text:#5FD3B0;
-  --bg:#0F1115;--surface:#171A21;--surface-2:#1B1F27;--surface-3:#222731;--border:#262A33;--border-strong:#323845;
-  --text:#E6E8EC;--text-2:#9AA3B2;--text-3:#6F788A;
-  --danger-soft:#3A1F24;--danger-border:#5C2A31;--warn-soft:#3A2E17;--warn-border:#5C4720;--info-soft:#1B2A45;
+  --sb-bg:#13161D;--sb-hover:#1F2430;--sb-text:#8991A2;--sb-text-hover:#E8EAEF;--sb-active-bg:#1A2240;
+  --primary-soft:#1A2240;--primary-border:#2C3A78;--primary-text:#8EA2FF;
+  --ok-soft:#13302A;--ok-border:#235C4B;--ok-text:#5FD3B0;
+  --bg:#0C0E13;--surface:#13161D;--surface-2:#181C25;--surface-3:#1F2430;--border:#262C38;--border-strong:#343B4A;
+  --text:#E8EAEF;--text-2:#AAB2C0;--text-3:#8991A2;
+  --danger-soft:#2E1A20;--danger-border:#5C2A31;--warn-soft:#2F2616;--warn-border:#5C4720;--info-soft:#1B2A45;
 }

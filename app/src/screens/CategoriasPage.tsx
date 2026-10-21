@@ -79,13 +79,13 @@ export default function CategoriasPage({ v }: { v: any }) {
                   <span style={css(c.statusStyle)}>{c.statusLabel}</span>
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '3px' }}>
-                  <button onClick={c.edit} title="Editar categoria" style={css(c.actEditStyle)} className={hv('border-color:#4161FF;background:var(--tint-blue);color:#4161FF', undefined, undefined)}>
+                  <button onClick={c.edit} title="Editar categoria" style={css(c.actEditStyle)} className={hv('border-color:#4161FF;background:var(--tint-blue);color:var(--accent-text)', undefined, undefined)}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                       <path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"></path>
                       <path d="M14.5 5.5l4 4" stroke="currentColor" strokeWidth="1.6"></path>
                     </svg>
                   </button>
-                  <button onClick={c.toggle} title={c.toggleTitle} style={css(c.actPowerStyle)} className={hv('border-color:#EF4444;background:var(--tint-red);color:#EF4444', undefined, undefined)}>
+                  <button onClick={c.toggle} title={c.toggleTitle} style={css(c.actPowerStyle)} className={hv('border-color:#EF4444;background:var(--tint-red);color:var(--danger-text-2)', undefined, undefined)}>
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none">
                       <path d="M12 3.5v7.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>
                       <path d="M7.4 6.6a6.6 6.6 0 109.2 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"></path>

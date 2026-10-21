@@ -101,15 +101,15 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
       {erro ? <div className="pm-err">Não foi possível carregar as permutas: {erro}</div> : null}
 
       <div className="pm-kpis">
-        <Kpi fundo="#EAF1FF" rotulo="Área de matrícula" valor={m2(tMat)} un="m²" sub={`${linhas.length} registro${linhas.length === 1 ? '' : 's'} · ${new Set(linhas.map(x => x.p.permutante.trim().toUpperCase())).size} permutantes`}
+        <Kpi fundo="var(--tint-blue)" rotulo="Área de matrícula" valor={m2(tMat)} un="m²" sub={`${linhas.length} registro${linhas.length === 1 ? '' : 's'} · ${new Set(linhas.map(x => x.p.permutante.trim().toUpperCase())).size} permutantes`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="#4161FF" strokeWidth="1.7" /><path d="M4 12h16M12 4v16" stroke="#4161FF" strokeWidth="1.5" /></svg>} />
-        <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="Área de permuta" valor={m2(tArea)} un="m²" sub={`% médio ponderado ${pct(pctMedio)}`}
+        <Kpi cor="#258B6C" fundo="var(--tint-green)" rotulo="Área de permuta" valor={m2(tArea)} un="m²" sub={`% médio ponderado ${pct(pctMedio)}`}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3.5-3.5M17 17H5l3.5 3.5" stroke="#35AD88" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
-        <Kpi cor="#258B6C" fundo="#E1F7EF" rotulo="No próprio empreendimento" valor={m2(tProprio)} un="m²" sub={tArea ? `${pct(tProprio / tArea)} da área de permuta` : '—'}
+        <Kpi cor="#258B6C" fundo="var(--tint-green)" rotulo="No próprio empreendimento" valor={m2(tProprio)} un="m²" sub={tArea ? `${pct(tProprio / tArea)} da área de permuta` : '—'}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M4 20V9l8-5 8 5v11" stroke="#35AD88" strokeWidth="1.7" strokeLinejoin="round" /><path d="M9 20v-5h6v5" stroke="#35AD88" strokeWidth="1.7" /></svg>} />
-        <Kpi cor="#D97706" fundo="#FFF0DD" rotulo="Em empreend. diversos" valor={m2(tDiv)} un="m²" sub={tArea ? `${pct(tDiv / tArea)} da área de permuta` : '—'}
+        <Kpi cor="#D97706" fundo="var(--tint-amber)" rotulo="Em empreend. diversos" valor={m2(tDiv)} un="m²" sub={tArea ? `${pct(tDiv / tArea)} da área de permuta` : '—'}
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M7 7h12l-3.5-3.5M17 17H5l3.5 3.5" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" /></svg>} />
-        <Kpi cor="#D97706" fundo="#FFF0DD" rotulo="Pendências" valor={String(nPend)} sub="registros para revisar"
+        <Kpi cor="#D97706" fundo="var(--tint-amber)" rotulo="Pendências" valor={String(nPend)} sub="registros para revisar"
           icone={<svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="#D97706" strokeWidth="1.6" /><path d="M12 8v5M12 16h.01" stroke="#D97706" strokeWidth="1.8" strokeLinecap="round" /></svg>} />
       </div>
 

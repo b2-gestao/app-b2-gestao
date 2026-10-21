@@ -13,7 +13,7 @@ export function renderVals(this: AppLogic) {
   const navItemActiveStyle = navItemStyle + ";background:#4161FF;border-color:#4161FF;box-shadow:0 4px 12px rgba(65,97,255,.22)";
   const navLabelStyle = `font-size:13px;white-space:nowrap;opacity:${c ? 0 : 1};max-width:${c ? '0px' : '160px'};transition:opacity .12s,max-width .18s;overflow:hidden`;
   const subItemStyle = "display:block;padding:6px 10px;font-size:12.5px;color:#A1A1AA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;border-radius:6px;border-width:1px;border-style:solid;border-color:transparent;background:transparent;transition:border-color .18s ease,color .18s ease";
-  const sectionLabelStyle = `flex:none;font-size:10px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;padding:14px 9px 4px;white-space:nowrap;overflow:hidden;display:${c ? 'none' : 'block'}`;
+  const sectionLabelStyle = `flex:none;font-size:10px;line-height:16px;letter-spacing:.08em;text-transform:uppercase;color:var(--tx-71717a);padding:14px 9px 4px;white-space:nowrap;overflow:hidden;display:${c ? 'none' : 'block'}`;
 
   // Live mode swaps the prototype's sample figures for Supabase data (same shapes).
   const D = this.live ? dashSource.call(this) : null;
@@ -47,8 +47,8 @@ export function renderVals(this: AppLogic) {
       outBarStyle: `${baseOut};height:${outPct}%;transform:${outHovered ? 'scaleY(1.015)' : 'none'};transform-origin:bottom;filter:${outHovered ? 'brightness(1.08) drop-shadow(0 4px 10px rgba(67,185,151,.35))' : 'none'}`,
       inRingStyle: ringStyle('#7C93FF', inPct),
       outRingStyle: ringStyle('#6FE3C4', outPct),
-      inTipStyle: `position:absolute;bottom:calc(${inPct}% + 14px);left:50%;transform:translateX(-50%);background:#111827;color:#FFFFFF;padding:6px 10px;border-radius:7px;font-size:11px;white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.2);z-index:5;pointer-events:none;animation:tooltipIn .12s ease-out`,
-      outTipStyle: `position:absolute;bottom:calc(${outPct}% + 14px);left:50%;transform:translateX(-50%);background:#111827;color:#FFFFFF;padding:6px 10px;border-radius:7px;font-size:11px;white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.2);z-index:5;pointer-events:none;animation:tooltipIn .12s ease-out`,
+      inTipStyle: `position:absolute;bottom:calc(${inPct}% + 14px);left:50%;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;padding:6px 10px;border-radius:7px;font-size:11px;white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.2);z-index:5;pointer-events:none;animation:tooltipIn .12s ease-out`,
+      outTipStyle: `position:absolute;bottom:calc(${outPct}% + 14px);left:50%;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;padding:6px 10px;border-radius:7px;font-size:11px;white-space:nowrap;box-shadow:0 10px 24px rgba(0,0,0,.2);z-index:5;pointer-events:none;animation:tooltipIn .12s ease-out`,
     };
   });
 
@@ -58,7 +58,7 @@ export function renderVals(this: AppLogic) {
       key: pd.key,
       label: pd.label,
       onClick: () => this.setState({ period: pd.key, hoverKey: null }),
-      style: `border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s;background:${active ? '#111827' : 'transparent'};color:${active ? '#FFFFFF' : 'var(--text-3)'}`,
+      style: `border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s;background:${active ? 'var(--ink)' : 'transparent'};color:${active ? '#FFFFFF' : 'var(--text-3)'}`,
     };
   });
 
@@ -84,7 +84,7 @@ export function renderVals(this: AppLogic) {
   const areaPago = nPts > 1 ? `${pathPago} L ${PX(nPts - 1).toFixed(1)} 158 L ${PX(0).toFixed(1)} 158 Z` : '';
   const linePts: any[] = [];
   finRows.forEach((r, i) => {
-    linePts.push({ cx: PX(i), cy: PY(r.pago, maxPago), color: '#4161FF', r: s.lineHover === i ? 5 : 3.2 });
+    linePts.push({ cx: PX(i), cy: PY(r.pago, maxPago), color: 'var(--accent-text)', r: s.lineHover === i ? 5 : 3.2 });
     linePts.push({ cx: PX(i), cy: PY(r.juros, maxSec), color: '#F59E0B', r: s.lineHover === i ? 5 : 3.2 });
     linePts.push({ cx: PX(i), cy: PY(r.desc, maxSec), color: '#43B997', r: s.lineHover === i ? 5 : 3.2 });
   });
@@ -98,7 +98,7 @@ export function renderVals(this: AppLogic) {
       leave: () => this.setState({ lineHover: null }),
       colStyle: `position:absolute;top:0;bottom:0;left:${i * colW}%;width:${colW}%;cursor:crosshair`,
       guideStyle: `position:absolute;top:6px;bottom:0;left:50%;width:1px;background:linear-gradient(#4161FF,rgba(65,97,255,0));opacity:${on ? 1 : 0};transition:opacity .15s`,
-      tipStyle: `position:absolute;left:50%;top:2px;transform:translateX(-50%);background:#111827;color:#FFFFFF;border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.6;white-space:nowrap;box-shadow:0 12px 28px rgba(0,0,0,.22);pointer-events:none;z-index:6;opacity:${on ? 1 : 0};transition:opacity .12s,transform .12s`,
+      tipStyle: `position:absolute;left:50%;top:2px;transform:translateX(-50%);background:var(--ink);color:#FFFFFF;border-radius:8px;padding:8px 10px;font-size:11px;line-height:1.6;white-space:nowrap;box-shadow:0 12px 28px rgba(0,0,0,.22);pointer-events:none;z-index:6;opacity:${on ? 1 : 0};transition:opacity .12s,transform .12s`,
       labelStyle: `flex:1;text-align:center;font-size:11px;color:${on ? 'var(--text)' : 'var(--text-4)'};font-weight:${on ? 600 : 400};transition:color .15s`,
     };
   });
@@ -169,16 +169,16 @@ export function renderVals(this: AppLogic) {
   }));
   const mkChip = i => `display:flex;flex-direction:column;gap:2px;padding:9px 12px;border-radius:9px;border:1px solid var(--border-soft);background:var(--surface-2);min-width:132px;cursor:default;transition:transform .18s ease,border-color .18s ease;opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:${340 + i * 70}ms`;
   const aiChips = [
-    { label: 'Total pago', value: this.fmtK(totPago), color: '#4161FF', style: mkChip(0) },
-    { label: 'Juros', value: this.fmtK(totJuros), color: '#D97706', style: mkChip(1) },
+    { label: 'Total pago', value: this.fmtK(totPago), color: 'var(--accent-text)', style: mkChip(0) },
+    { label: 'Juros', value: this.fmtK(totJuros), color: 'var(--warn-text)', style: mkChip(1) },
     { label: 'Descontos', value: this.fmtK(totDesc), color: '#35AD88', style: mkChip(2) },
-    { label: 'Vencendo em 7d', value: D ? D.vencendo7Label : '4 parcelas', color: '#EF4444', style: mkChip(3) },
+    { label: 'Vencendo em 7d', value: D ? D.vencendo7Label : '4 parcelas', color: 'var(--danger-text-2)', style: mkChip(3) },
   ];
 
   const parcelaCards = (D ? D.parcelas : this.parcelas).map((p, i) => ({
     d: p.d, m: p.m, wd: p.wd, emp: p.emp, desc: p.desc, st: p.st,
     valueFmt: this.fmtBRL(p.v),
-    cardStyle: `position:relative;flex:none;width:212px;padding:14px;border-radius:11px;background:var(--surface);border:1px solid ${p.urgent ? '#FCA5A5' : 'var(--border-soft)'};box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:${260 + i * 55}ms;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease`,
+    cardStyle: `position:relative;flex:none;width:212px;padding:14px;border-radius:11px;background:var(--surface);border:1px solid ${p.urgent ? 'var(--danger-border)' : 'var(--border-soft)'};box-shadow:0 1px 2px rgba(0,0,0,.03);cursor:pointer;opacity:0;animation:fadeInUp .5s ease-out both;animation-delay:${260 + i * 55}ms;transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease`,
     cardHover: `transform:translateY(-4px);border-color:${p.tone};box-shadow:0 12px 26px ${p.tone}22`,
     nodeStyle: `position:absolute;top:-14px;left:16px;width:11px;height:11px;border-radius:50%;background:${p.tone};box-shadow:0 0 0 3px var(--surface),0 0 0 4px ${p.tone}44;animation:${p.urgent ? 'pulseNode 1.8s ease-in-out infinite' : 'none'}`,
     dateStyle: `font-size:20px;font-weight:700;color:var(--text);line-height:1`,
@@ -326,13 +326,13 @@ export function renderVals(this: AppLogic) {
 
     empRanking,
     empFilterLabel: s.selectedEmpresa ? s.selectedEmpresa : 'Todas as empresas',
-    empClearStyle: `display:${s.selectedEmpresa ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:3px 10px;cursor:pointer`,
+    empClearStyle: `display:${s.selectedEmpresa ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:var(--accent-text);background:var(--tint-blue);border:none;border-radius:20px;padding:3px 10px;cursor:pointer`,
     clearEmpresa: () => this.setState({ selectedEmpresa: null }),
 
     grupoRows,
     grupoTotalFmt: this.fmtBRL(selTotal),
     grupoTotalLabel: anySel ? 'Total dos segmentos destacados' : 'Total de todos os segmentos',
-    grupoClearStyle: `display:${anySel ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:#4161FF;background:var(--tint-blue);border:none;border-radius:20px;padding:4px 11px;cursor:pointer`,
+    grupoClearStyle: `display:${anySel ? 'inline-flex' : 'none'};align-items:center;gap:5px;font-size:11px;color:var(--accent-text);background:var(--tint-blue);border:none;border-radius:20px;padding:4px 11px;cursor:pointer`,
     clearGrupos: () => this.setState({ selectedGrupos: [] }),
 
     aiWords, aiChips,

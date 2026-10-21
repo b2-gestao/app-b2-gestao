@@ -29,7 +29,7 @@ export function progInsights(app: AppLogic) {
       text: short.length === 1
         ? `${short[0].g.emp} não tem saldo inicial para cobrir os pagamentos do período — faltam ${brl(short[0].falta)}.`
         : `${short.length} empresas não têm saldo inicial para cobrir os pagamentos do período — faltam ${brl(total)} no total. A maior necessidade é ${short[0].g.emp}, com ${brl(short[0].falta)}.`,
-      color: '#EF4444', action: 'Ver saldos bancários', go: () => app.goSaldosFromIa(),
+      color: 'var(--danger-text-2)', action: 'Ver saldos bancários', go: () => app.goSaldosFromIa(),
     });
   }
 
@@ -80,7 +80,7 @@ export function fluxoInsights(app: AppLogic) {
     items.push({
       label: 'Saldo negativo projetado',
       text: `Em ${L.days[neg]} o saldo consolidado fica negativo em ${brl(-cons[neg])}${worst ? `, puxado por ${worst.g.name}` : ''}. Recomenda-se antecipar recebíveis ou negociar prazos.`,
-      color: '#EF4444',
+      color: 'var(--danger-text-2)',
     });
   }
 

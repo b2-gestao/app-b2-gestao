@@ -45,7 +45,7 @@ export default function BiPage({ v }: { v: any }) {
               {v.biTitle}
             </div>
             {p ? (
-              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '24px', padding: '0 10px', borderRadius: '20px', background: '#FEF7D6', color: '#8A6A00', fontSize: '11.5px', fontWeight: 600 }}>
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', height: '24px', padding: '0 10px', borderRadius: '20px', background: 'var(--bg-fef7d6)', color: 'var(--tx-8a6a00)', fontSize: '11.5px', fontWeight: 600 }}>
                 <BarsIcon size={12} color="#C9A200" />
                 Power BI
               </span>
@@ -102,7 +102,7 @@ export default function BiPage({ v }: { v: any }) {
             {!v.biLoaded ? (
               <div style={css('position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--surface)')}>
                 <div style={{ width: '46px', height: '46px', borderRadius: '13px', background: 'var(--tint-blue)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 0 6px rgba(65,97,255,.06)' }}>
-                  <BarsIcon size={22} color="#4161FF" />
+                  <BarsIcon size={22} color="var(--accent-text)" />
                 </div>
                 <div style={{ textAlign: 'center' }}>
                   <div style={{ fontWeight: 700, fontSize: '14px', color: 'var(--text)' }}>Carregando painel</div>

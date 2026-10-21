@@ -34,9 +34,9 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
   const dLabel = `${dd}/${mm}`;
 
   const statusMeta = {
-    ok: { label: 'Atualizado', color: '#258B6C', bg: '#E1F7EF', dot: '#43B997' },
-    missing: { label: 'Sem saldo do dia', color: '#B45309', bg: '#FFF0DD', dot: '#F59E0B' },
-    div: { label: 'Divergente do extrato', color: '#DC2626', bg: '#FEE9E9', dot: '#EF4444' },
+    ok: { label: 'Atualizado', color: 'var(--ok-text)', bg: 'var(--tint-green)', dot: '#43B997' },
+    missing: { label: 'Sem saldo do dia', color: 'var(--tx-b45309)', bg: 'var(--tint-amber)', dot: '#F59E0B' },
+    div: { label: 'Divergente do extrato', color: 'var(--danger-text)', bg: 'var(--tint-red)', dot: '#EF4444' },
   };
   const cols = 'display:grid;grid-template-columns:60px minmax(250px,1fr) 118px 160px 104px 176px 68px;gap:12px;align-items:center';
   const actBtn = 'width:27px;height:27px;flex:none;border-radius:7px;border:1px solid var(--border-soft);background:var(--surface);color:var(--text-4);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:border-color .15s,background .15s,color .15s';
@@ -50,24 +50,24 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     const bk = this.live ? { c: a.bankColor, s: a.bankShort } : this.sbBanks[a.bank];
     const i = idx++;
     const syncing = s.sbSyncing === a.id;
-    const tint = a.status === 'missing' ? '#FFFBF3' : (a.status === 'div' ? '#FFFAFA' : '#FFFFFF');
+    const tint = a.status === 'missing' ? 'var(--row-warn)' : (a.status === 'div' ? 'var(--row-danger)' : 'var(--surface)');
     return {
       isAcct: true, isGroup: false,
       cdLabel: a.cd, emp: a.emp,
       sub: `${a.bank} · Ag ${a.ag} · C/C ${a.cc}`,
       bankShort: bk.s,
       bankStyle: `width:30px;height:30px;flex:none;border-radius:8px;background:${bk.c}14;border:1px solid ${bk.c}33;color:${bk.c};display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;letter-spacing:.02em`,
-      uso: a.uso.map(u => ({ label: u, style: `font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;${u === 'Pag.' ? 'background:var(--tint-blue);color:#2445E8' : 'background:var(--tint-green);color:#258B6C'}` })),
+      uso: a.uso.map(u => ({ label: u, style: `font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px;white-space:nowrap;${u === 'Pag.' ? 'background:var(--tint-blue);color:var(--tx-2445e8)' : 'background:var(--tint-green);color:var(--ok-text)'}` })),
       usoEmptyStyle: `display:${a.uso.length ? 'none' : 'inline'};font-size:13px;color:#CBD5E1`,
       hasSaldo: a.saldo != null, missing: a.saldo == null,
       saldoFmt: a.saldo != null ? f2(a.saldo) : '',
-      saldoStyle: `font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:${a.status === 'div' ? '#DC2626' : 'var(--text)'}`,
+      saldoStyle: `font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;color:${a.status === 'div' ? 'var(--danger-text)' : 'var(--text)'}`,
       upd: a.upd,
       statusLabel: meta.label,
       statusStyle: `display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:600;color:${meta.color};background:${meta.bg};border-radius:20px;padding:3px 9px 3px 8px;white-space:nowrap`,
       dotStyle: `width:6px;height:6px;border-radius:50%;background:${meta.dot};${a.status === 'ok' ? '' : 'animation:blink 1.4s ease-in-out infinite'}`,
       rowStyle: `${cols};padding:10px 18px${grouped ? ' 10px 30px' : ''};background:${tint};box-shadow:inset 0 -1px 0 var(--surface-3);transition:background .15s;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
-      hoverStyle: `background:${a.status === 'missing' ? '#FFF7EB' : 'var(--surface-2)'}`,
+      hoverStyle: `background:${a.status === 'missing' ? 'var(--row-warn-hover)' : 'var(--surface-2)'}`,
       actStyle: actBtn,
       syncIconStyle: syncing ? 'animation:spin .7s linear infinite' : '',
       inform: () => openFor(a),
@@ -105,8 +105,8 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
         countLabel: accs.length === 1 ? '1 conta' : `${accs.length} contas`,
         subtotal: f2(accs.reduce((t2, a) => t2 + (a.saldo || 0), 0)),
         pendLabel: pend ? (pend === 1 ? '1 pendência' : `${pend} pendências`) : '',
-        pendStyle: `display:${pend ? 'inline-flex' : 'none'};font-size:11px;font-weight:600;color:#B45309;background:var(--tint-amber);border-radius:20px;padding:2px 8px`,
-        rowStyle: `${cols};padding:9px 18px;background:#F7F8FF;box-shadow:inset 0 -1px 0 var(--border-soft),inset 3px 0 0 #4161FF;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
+        pendStyle: `display:${pend ? 'inline-flex' : 'none'};font-size:11px;font-weight:600;color:var(--tx-b45309);background:var(--tint-amber);border-radius:20px;padding:2px 8px`,
+        rowStyle: `${cols};padding:9px 18px;background:var(--bg-f7f8ff);box-shadow:inset 0 -1px 0 var(--border-soft),inset 3px 0 0 #4161FF;animation:rowIn .35s ease-out both;animation-delay:${Math.min(i, 16) * 22}ms`,
       });
       accs.forEach(a => sbRows.push(mkAcct(a)));
     });
@@ -129,7 +129,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
   const patch = p => this.setState(st => ({ sbForm: Object.assign({}, st.sbForm, p) }));
   const parseBRL = v => { const n = parseFloat(String(v).replace(/[^\d,.-]/g, '').replace(/\./g, '').replace(',', '.')); return isNaN(n) ? null : n; };
   const hasFilters = q || sbEmp !== empAll || sbBank !== bankAll || sbStatus !== stAll;
-  const seg = on => `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${on ? '#111827' : 'transparent'};color:${on ? '#FFFFFF' : 'var(--text-3)'}`;
+  const seg = on => `border:none;border-radius:6px;padding:0 12px;height:30px;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;transition:background .15s,color .15s;background:${on ? 'var(--ink)' : 'transparent'};color:${on ? '#FFFFFF' : 'var(--text-3)'}`;
   const cardBase = 'display:flex;flex-direction:column;gap:8px;padding:16px 18px;border-radius:10px;background:var(--surface);opacity:0;animation:fadeInUp .45s ease-out both;animation-delay:200ms;transition:transform .2s ease,box-shadow .2s ease;cursor:pointer';
 
   return {
@@ -149,7 +149,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbTopEmpSub: 'R$ ' + f2(byEmp[top] || 0),
     sbMissingCount: missing.length,
     sbMissingSub: missing.length ? missing.slice(0, 12).map(a => `${short(a.emp)} (${bankShort(a.bank)})`).join(' · ') : 'Todas as contas estão atualizadas',
-    sbMissingCardStyle: cardBase + `;box-shadow:0 0 0 1px ${sbStatus === 'Sem saldo do dia' ? '#F59E0B' : '#EEEEF1'},0 1px 2px rgba(0,0,0,.03)`,
+    sbMissingCardStyle: cardBase + `;box-shadow:0 0 0 1px ${sbStatus === 'Sem saldo do dia' ? '#F59E0B' : 'var(--border-soft)'},0 1px 2px rgba(0,0,0,.03)`,
     sbFilterMissing: () => this.setState({ sbStatus: sbStatus === 'Sem saldo do dia' ? stAll : 'Sem saldo do dia' }),
 
     sbDate: s.sbDate || defDate,
@@ -161,7 +161,7 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     sbGroupTabs: [['conta', 'Conta'], ['empresa', 'Empresa']].map(([k, l]) => ({
       label: l, style: seg((s.sbGroup || 'conta') === k), onClick: () => this.setState({ sbGroup: k }),
     })),
-    sbClearStyle: `display:${hasFilters ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:#4161FF;font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;animation:popIn .18s ease-out both`,
+    sbClearStyle: `display:${hasFilters ? 'inline-flex' : 'none'};align-items:center;height:36px;padding:0 13px;border-radius:8px;border:1px solid var(--border);background:var(--surface);color:var(--accent-text);font-size:12px;font-weight:600;font-family:inherit;cursor:pointer;animation:popIn .18s ease-out both`,
     sbClearFilters: () => this.setState({ sbSearch: '', sbEmp: empAll, sbBank: bankAll, sbStatus: stAll }),
 
     sbSaldoHeader: `Saldo inicial ${dLabel}`,
@@ -200,12 +200,12 @@ export function saldosVals(this: AppLogic, subItemStyle: string) {
     onSbFDate: e => patch({ date: e.target.value }),
     sbFValue: form.value,
     onSbFValue: e => patch({ value: e.target.value.replace(/[^\d,.-]/g, '') }),
-    sbFValueStyle: `width:100%;height:38px;padding:0 12px 0 36px;border-radius:8px;background:var(--surface);font-size:14px;font-weight:600;font-family:inherit;color:var(--text);font-variant-numeric:tabular-nums;text-align:right;transition:border-color .15s,box-shadow .15s;border:1px solid ${s.sbErr && parseBRL(form.value) == null ? '#FCA5A5' : 'var(--border)'}`,
+    sbFValueStyle: `width:100%;height:38px;padding:0 12px 0 36px;border-radius:8px;background:var(--surface);font-size:14px;font-weight:600;font-family:inherit;color:var(--text);font-variant-numeric:tabular-nums;text-align:right;transition:border-color .15s,box-shadow .15s;border:1px solid ${s.sbErr && parseBRL(form.value) == null ? 'var(--danger-border)' : 'var(--border)'}`,
     sbFObs: form.obs,
     onSbFObs: e => patch({ obs: e.target.value }),
     sbOrigemTabs: ['Manual', 'Extrato bancário'].map(l => ({ label: l, style: seg(form.origem === l), onClick: () => patch({ origem: l }) })),
     sbErr: s.sbErr || '',
-    sbErrStyle: `display:${s.sbErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid #FCA5A5;color:#DC2626;font-size:12.5px;animation:popIn .18s ease-out both`,
+    sbErrStyle: `display:${s.sbErr ? 'flex' : 'none'};align-items:center;gap:8px;padding:10px 12px;border-radius:9px;background:var(--tint-red);border:1px solid var(--danger-border);color:var(--danger-text);font-size:12.5px;animation:popIn .18s ease-out both`,
     sbSave: async () => {
       const v = parseBRL(form.value);
       if (!formAcct || v == null) { this.setState({ sbErr: !formAcct ? 'Selecione a conta corrente.' : 'Informe um valor de saldo válido.' }); return; }
