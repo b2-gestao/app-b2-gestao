@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import {
   permutasApi,
-  type AnexoNovo, type EmpreendimentoFicha, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
+  type AnexoNovo, type EmpreendimentoFicha, type ImportacaoEscritura, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
   type PermutaUnidade, type UnidadeCatalogo, type UnidadeDireta,
 } from '../../lib/permutas';
 
@@ -88,6 +88,11 @@ export const permutasStore = {
   async link(a: PermutaAnexo): Promise<string | null> {
     if (!live || !a.storage_path) return null;
     return permutasApi.link(a);
+  },
+  /** Importar da escritura: precisa do Supabase (a leitura é feita na edge function app-permutas). */
+  async lerEscritura(f: File): Promise<ImportacaoEscritura> {
+    if (!live) throw new Error('No modo demonstração a leitura da escritura por IA não está disponível.');
+    return permutasApi.lerEscritura(f);
   },
 
   // ---------- Visão Geral ----------

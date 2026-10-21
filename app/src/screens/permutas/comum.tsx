@@ -85,6 +85,7 @@ export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta:
       permuta={permuta} empresas={empresas} negocios={d.negocios} catalogo={d.catalogo} podeEditar={ctx.podeEditar()}
       toast={ctx.toast} criarNegocio={n => permutasStore.criarNegocio(n)} renomearNegocio={(id, n) => permutasStore.renomearNegocio(id, n)}
       salvar={(...a) => permutasStore.salvar(...a)} excluir={p => permutasStore.excluir(p)} baixar={baixar} fechar={fechar}
+      permutas={d.permutas} lerEscritura={f => permutasStore.lerEscritura(f)}
     />
   );
 }

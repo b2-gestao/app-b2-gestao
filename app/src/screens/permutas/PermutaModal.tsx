@@ -1,17 +1,28 @@
 // Permutas › Cadastro: modal "Novo permutante" / "Editar permutante".
 // Resumo fixo no topo (quem é, área total e como ela se divide), cálculo em forma de equação
 // (o que se digita × o que é calculado) e unidades e documentos em seções recolhíveis.
+// No cadastro novo, "Importar da escritura" lê o PDF com IA (edge function app-permutas), preenche os campos
+// (marcados com "IA" até serem editados) e põe o arquivo na fila de documentos. Nada é gravado sem o Salvar.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SeletorBusca } from './busca';
 import {
-  calcular, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, TIPOS_ANEXO,
-  type AnexoNovo, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
+  calcular, digitos, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, MAX_ESCRITURA_IA, TIPOS_ANEXO,
+  type AnexoNovo, type AvisoImportacao, type ImportacaoEscritura, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
 } from '../../lib/permutas';
 
-export interface EmpresaOpcao { id: number; nome: string; emp: string | null }
+export interface EmpresaOpcao { id: number; nome: string; emp: string | null; cnpj?: string | null }
 type Origem = { k: 's'; id: number } | { k: 'n'; id: string } | null;
 type Linha = { enterprise_id: number | ''; unidade_id: number | ''; valor_unidade: number | null };
 type Fila = AnexoNovo & { chave: number; erro?: string };
+type Importacao =
+  | { fase: 'ocioso' }
+  | { fase: 'lendo'; arquivo: string }
+  | { fase: 'erro'; arquivo?: string; erro: string }
+  | { fase: 'ok'; arquivo: string; avisos: AvisoImportacao[]; campos: number; cache: boolean };
+
+const PASSOS_IA = ['Enviando o PDF', 'Lendo as páginas da escritura', 'Identificando permutantes e matrículas', 'Conferindo o cálculo da área'];
+const ORDEM_AVISO = { atencao: 0, ok: 1, info: 2 } as const;
+const fmtCnpj = (d: string) => (d.length === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : d);
 
 export interface PermutaModalProps {
   permuta: Permuta | null;
@@ -26,6 +37,10 @@ export interface PermutaModalProps {
   excluir: (p: Permuta) => Promise<void>;
   baixar: (a: PermutaAnexo) => Promise<void>;
   fechar: () => void;
+  /** Cadastro atual, para avisar matrícula já cadastrada na importação. */
+  permutas?: Permuta[];
+  /** Importar da escritura; sem ela o painel não aparece. */
+  lerEscritura?: (f: File) => Promise<ImportacaoEscritura>;
 }
 
 const Chev = () => (
@@ -33,6 +48,9 @@ const Chev = () => (
 );
 const IcX = ({ s = 14 }: { s?: number }) => (
   <svg width={s} height={s} viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.9" strokeLinecap="round" /></svg>
+);
+const IcIa = () => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9L12 3zM19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15z" fill="currentColor" /></svg>
 );
 const IcPlus = () => (
   <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" /></svg>
@@ -99,12 +117,25 @@ export default function PermutaModal(p: PermutaModalProps) {
   const [confirmaAnexo, setConfirmaAnexo] = useState<string | null>(null);
   const [arrastando, setArrastando] = useState(false);
   const chaveFila = useRef(0);
+  const [imp, setImp] = useState<Importacao>({ fase: 'ocioso' });
+  const [passo, setPasso] = useState(0);
+  const [arrastandoImp, setArrastandoImp] = useState(false);
+  const [ia, setIa] = useState<Set<string>>(new Set());
+  const chaveImportado = useRef<number | null>(null);
+  const lendo = imp.fase === 'lendo';
+
+  // Etapas da leitura: avançam no tempo (a função responde de uma vez) e param na última até a resposta.
+  useEffect(() => {
+    if (!lendo) return;
+    const t = window.setInterval(() => setPasso(n => Math.min(n + 1, PASSOS_IA.length - 1)), 6000);
+    return () => window.clearInterval(t);
+  }, [lendo]);
 
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !salvando) p.fechar(); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !salvando && !lendo) p.fechar(); };
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
-  }, [salvando]);
+  }, [salvando, lendo]);
 
   const c = calcular({ area_matricula: lerNumero(mat), coeficiente: lerNumero(coef), pct_permuta: (v => (v == null ? null : v / 100))(lerNumero(pctTxt)), area_propria: lerNumero(own), area_informada: lerNumero(inf) });
   const areaAnim = useTween(c.area);
@@ -146,6 +177,82 @@ export default function PermutaModal(p: PermutaModalProps) {
     if (grandes.length) p.toast(`Acima de 50 MB, não incluído: ${grandes.join(', ')}`);
     const ok = files.filter(f => f.size <= MAX_ANEXO).map(f => ({ file: f, tipo: '' as const, descricao: '', chave: ++chaveFila.current }));
     if (ok.length) { setFila(fi => [...fi, ...ok]); setCsA(true); }
+  };
+
+  /** Campo editado à mão deixa de ser marcado como "IA". */
+  const tirarIa = (k: string) => setIa(s => { if (!s.has(k)) return s; const n = new Set(s); n.delete(k); return n; });
+  const tagIa = (k: string) => (ia.has(k) ? <span className="pm-tagia" title="Preenchido pela IA a partir da escritura. Confira.">IA</span> : null);
+
+  const aplicarImportacao = (r: ImportacaoEscritura, file: File) => {
+    const s = r.sugestao;
+    const marcados: string[] = [];
+    const por = (k: string, v: string | null | undefined, set: (v: string) => void) => { if (v) { set(v); marcados.push(k); } };
+    por('perm', s.permutante, setPerm);
+    por('nmat', s.num_matricula, setNmat);
+    por('dtc', s.data_contrato, setDataCt);
+    por('mat', paraCampo(s.area_matricula), setMat);
+    por('coef', paraCampo(s.coeficiente), setCoef);
+    por('pct', paraCampo(s.pct_permuta, 6), setPctTxt);
+    por('own', paraCampo(s.area_propria), setOwn);
+    por('inf', paraCampo(s.area_informada), setInf);
+    por('obs', s.observacao, setObs);
+    por('pend', s.pendencia, setPend);
+
+    // Empresa do Sienge pelo CNPJ da Segunda Permutante (a lista já vem com o CNPJ de cada empresa).
+    const avisos: AvisoImportacao[] = [];
+    const cnpj = digitos(s.empresa.cnpj);
+    const nomeAdq = s.empresa.nome || 'A Segunda Permutante';
+    const empresa = cnpj ? p.empresas.find(e => digitos(e.cnpj) === cnpj) : undefined;
+    if (empresa && (!origem || (origem.k === 's' && origem.id === empresa.id))) {
+      setOrigem({ k: 's', id: empresa.id });
+      marcados.push('origem');
+      avisos.push({ nivel: 'ok', texto: `Empresa identificada pelo CNPJ: ${empresa.nome} (Sienge ${empresa.id}).` });
+    } else if (empresa) {
+      avisos.push({ nivel: 'atencao', texto: `A escritura é de ${empresa.nome} (Sienge ${empresa.id}), diferente da área selecionada. Confira.` });
+    } else if (cnpj) {
+      avisos.push({ nivel: 'atencao', texto: `${nomeAdq} (CNPJ ${fmtCnpj(cnpj)}) não está entre as empresas do Sienge. Selecione a empresa ou cadastre um negócio.` });
+    } else {
+      avisos.push({ nivel: 'atencao', texto: 'CNPJ da Segunda Permutante não encontrado: selecione a área / empreendimento.' });
+    }
+
+    // Matrícula já cadastrada em outro permutante.
+    const novas = s.matriculas.map(m => ({ m, d: digitos(m) })).filter(x => x.d);
+    for (const x of p.permutas || []) {
+      if (x.id === ed?.id || !x.num_matricula) continue;
+      const delas = x.num_matricula.split(/[^\d.-]+/).map(digitos).filter(Boolean);
+      const repetidas = novas.filter(n => delas.includes(n.d)).map(n => n.m);
+      if (repetidas.length) avisos.push({ nivel: 'atencao', texto: `Matrícula ${repetidas.join(', ')} já está no cadastro de ${x.permutante}. Confira se não é o mesmo terreno.` });
+    }
+
+    // O PDF entra na fila de documentos (troca o da importação anterior, se houver).
+    const tipo: TipoAnexo = r.tipoDocumento === 'COMPROMISSO_PERMUTA' ? 'Contrato' : 'Escritura';
+    const chave = ++chaveFila.current;
+    const anterior = chaveImportado.current;
+    chaveImportado.current = chave;
+    setFila(fi => [...fi.filter(f => f.chave !== anterior), { file, tipo, descricao: '', chave }]);
+    setCsA(true);
+
+    setIa(new Set(marcados));
+    setImp({
+      fase: 'ok', arquivo: file.name, cache: r.cache, campos: marcados.length,
+      avisos: [...avisos, ...r.avisos].sort((a, b) => ORDEM_AVISO[a.nivel] - ORDEM_AVISO[b.nivel]),
+    });
+  };
+
+  const importar = async (file: File | undefined) => {
+    if (!file || !p.lerEscritura || lendo) return;
+    if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') { setImp({ fase: 'erro', arquivo: file.name, erro: 'Envie a escritura em PDF.' }); return; }
+    if (file.size > MAX_ESCRITURA_IA) {
+      setImp({ fase: 'erro', arquivo: file.name, erro: `O PDF tem ${tamanho(file.size)} e a leitura por IA aceita até ${tamanho(MAX_ESCRITURA_IA)}. Comprima o arquivo ou anexe-o em Documentos e preencha à mão.` });
+      return;
+    }
+    setPasso(0);
+    setImp({ fase: 'lendo', arquivo: file.name });
+    try {
+      aplicarImportacao(await p.lerEscritura(file), file);
+    } catch (e: any) {
+      setImp({ fase: 'erro', arquivo: file.name, erro: e?.message || String(e) });
+    }
   };
 
   const salvar = async () => {
@@ -199,16 +306,18 @@ export default function PermutaModal(p: PermutaModalProps) {
     </>
   );
 
+  // A chave da marca "IA" é o id sem o prefixo pm- (pm-mat → mat).
   const campo = (id: string, rot: string, val: string, set: (v: string) => void, ph?: string, dica?: string) => (
     <div className="pm-f">
-      <label className="pm-cap" htmlFor={id}>{rot}</label>
-      <input id={id} className="pm-in" inputMode="decimal" value={val} placeholder={ph} disabled={ro} onChange={e => set(e.target.value)} />
+      <label className="pm-cap" htmlFor={id}>{rot}{tagIa(id.slice(3))}</label>
+      <input id={id} className={'pm-in' + (ia.has(id.slice(3)) ? ' ia' : '')} inputMode="decimal" value={val} placeholder={ph} disabled={ro}
+        onChange={e => { set(e.target.value); tirarIa(id.slice(3)); }} />
       {dica ? <span className="pm-hint">{dica}</span> : null}
     </div>
   );
 
   return (
-    <div className="pm-ov" onMouseDown={e => { if (e.target === e.currentTarget && !salvando) p.fechar(); }}>
+    <div className="pm-ov" onMouseDown={e => { if (e.target === e.currentTarget && !salvando && !lendo) p.fechar(); }}>
       <div className="pm-modal" role="dialog" aria-modal="true" aria-labelledby="pm-mt">
         <div className="pm-mh">
           <div className="pm-mic">
@@ -218,10 +327,55 @@ export default function PermutaModal(p: PermutaModalProps) {
             <div className="pm-mt" id="pm-mt">{ed ? 'Editar permutante' : 'Novo permutante'}</div>
             <div className="pm-ms">Área permutada, unidades dadas em troca e documentos.</div>
           </div>
-          <button type="button" className="pm-x" title="Fechar" onClick={p.fechar} disabled={salvando}><IcX /></button>
+          <button type="button" className="pm-x" title="Fechar" onClick={p.fechar} disabled={salvando || lendo}><IcX /></button>
         </div>
 
         <div className="pm-mb">
+          {!ed && !ro && p.lerEscritura ? (
+            <div className={'pm-imp' + (arrastandoImp ? ' over' : '')}
+              onDragOver={e => { e.preventDefault(); if (!lendo) setArrastandoImp(true); }} onDragLeave={() => setArrastandoImp(false)}
+              onDrop={e => { e.preventDefault(); setArrastandoImp(false); importar(e.dataTransfer.files[0]); }}>
+              <div className="pm-imp-h">
+                <span className="pm-ia-ic"><IcIa /></span>
+                <div className="tx">
+                  {imp.fase === 'lendo' ? (
+                    <><b>Lendo a escritura…</b><span className="s pm-ell" title={imp.arquivo}>{imp.arquivo} · pode levar até 1 minuto</span></>
+                  ) : imp.fase === 'ok' ? (
+                    <><b>Dados importados da escritura</b>
+                      <span className="s">{imp.campos} campo{imp.campos === 1 ? '' : 's'} preenchido{imp.campos === 1 ? '' : 's'} · confira os marcados com <span className="pm-tagia">IA</span> antes de salvar{imp.cache ? ' · leitura reaproveitada' : ''}</span></>
+                  ) : (
+                    <><b>Importar da escritura</b>
+                      <span className="s">Arraste o PDF da escritura de permuta ou escolha o arquivo: a IA preenche os dados abaixo e o PDF já entra em Documentos. Você revisa antes de salvar.</span></>
+                  )}
+                </div>
+                {lendo ? null : (
+                  <label className={'pm-btn sm' + (imp.fase === 'ok' ? '' : ' prim')}>
+                    {imp.fase === 'ok' ? 'Importar outro PDF' : imp.fase === 'erro' ? 'Tentar outro PDF' : 'Escolher PDF'}
+                    <input type="file" accept="application/pdf,.pdf" hidden onChange={e => { importar(e.target.files?.[0]); e.target.value = ''; }} />
+                  </label>
+                )}
+              </div>
+              {imp.fase === 'lendo' ? (
+                <>
+                  <div className="pm-imp-bar"><i /></div>
+                  <div className="pm-imp-steps">
+                    {PASSOS_IA.map((t, i) => (
+                      <div key={t} className={'pm-imp-step' + (i < passo ? ' ok' : i === passo ? ' on' : '')}>
+                        <i>{i < passo ? <svg width="10" height="10" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" /></svg> : null}</i>{t}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : null}
+              {imp.fase === 'erro' ? <div className="pm-err">{imp.erro}</div> : null}
+              {imp.fase === 'ok' && imp.avisos.length ? (
+                <div className="pm-imp-avs">
+                  {imp.avisos.map((a, i) => <div key={i} className={'pm-imp-av ' + a.nivel} style={{ animationDelay: i * 40 + 'ms' }}><i />{a.texto}</div>)}
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
           <div className="pm-sum">
             <div className="pm-sum-id">
               <div key={nomeIni} className={'pm-mono' + (nomeIni ? '' : ' vazio')}>{nomeIni || '—'}</div>
@@ -242,21 +396,21 @@ export default function PermutaModal(p: PermutaModalProps) {
 
           <div className="pm-g2">
             <div className="pm-f pm-full">
-              <span className="pm-cap">Nome da área / empreendimento <span className="pm-req">*</span></span>
-              <SeletorOrigem origem={origem} setOrigem={setOrigem} empresas={p.empresas} negocios={p.negocios} disabled={ro}
+              <span className="pm-cap">Nome da área / empreendimento <span className="pm-req">*</span>{tagIa('origem')}</span>
+              <SeletorOrigem origem={origem} setOrigem={o => { setOrigem(o); tirarIa('origem'); }} ia={ia.has('origem')} empresas={p.empresas} negocios={p.negocios} disabled={ro}
                 criarNegocio={p.criarNegocio} renomearNegocio={p.renomearNegocio} toast={p.toast} />
             </div>
             <div className="pm-f pm-full">
-              <label className="pm-cap" htmlFor="pm-perm">Permutante / vendedor <span className="pm-req">*</span></label>
-              <input id="pm-perm" className="pm-in" value={perm} disabled={ro} placeholder="Nome completo" onChange={e => setPerm(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-perm">Permutante / vendedor <span className="pm-req">*</span>{tagIa('perm')}</label>
+              <input id="pm-perm" className={'pm-in' + (ia.has('perm') ? ' ia' : '')} value={perm} disabled={ro} placeholder="Nome completo" onChange={e => { setPerm(e.target.value); tirarIa('perm'); }} />
             </div>
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-nmat">Nº da matrícula</label>
-              <input id="pm-nmat" className="pm-in" value={nmat} disabled={ro} placeholder="Ex.: 123.456" onChange={e => setNmat(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-nmat">Nº da matrícula{tagIa('nmat')}</label>
+              <input id="pm-nmat" className={'pm-in' + (ia.has('nmat') ? ' ia' : '')} value={nmat} disabled={ro} placeholder="Ex.: 123.456" onChange={e => { setNmat(e.target.value); tirarIa('nmat'); }} />
             </div>
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-dtc">Data do contrato</label>
-              <input id="pm-dtc" type="date" className="pm-in" value={dataCt} disabled={ro} onChange={e => setDataCt(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-dtc">Data do contrato{tagIa('dtc')}</label>
+              <input id="pm-dtc" type="date" className={'pm-in' + (ia.has('dtc') ? ' ia' : '')} value={dataCt} disabled={ro} onChange={e => { setDataCt(e.target.value); tirarIa('dtc'); }} />
             </div>
           </div>
 
@@ -433,12 +587,12 @@ export default function PermutaModal(p: PermutaModalProps) {
 
           <div className="pm-g2">
             <div className="pm-f pm-full">
-              <label className="pm-cap" htmlFor="pm-obs">Observação</label>
-              <textarea id="pm-obs" className="pm-in" value={obs} disabled={ro} onChange={e => setObs(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-obs">Observação{tagIa('obs')}</label>
+              <textarea id="pm-obs" className={'pm-in' + (ia.has('obs') ? ' ia' : '')} value={obs} disabled={ro} onChange={e => { setObs(e.target.value); tirarIa('obs'); }} />
             </div>
             <div className="pm-f pm-full">
-              <label className="pm-cap" htmlFor="pm-pend">Pendência (aparece como alerta)</label>
-              <input id="pm-pend" className="pm-in" value={pend} disabled={ro} placeholder="Ex.: confirmar m² com o comercial" onChange={e => setPend(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-pend">Pendência (aparece como alerta){tagIa('pend')}</label>
+              <input id="pm-pend" className={'pm-in' + (ia.has('pend') ? ' ia' : '')} value={pend} disabled={ro} placeholder="Ex.: confirmar m² com o comercial" onChange={e => { setPend(e.target.value); tirarIa('pend'); }} />
             </div>
           </div>
 
@@ -468,9 +622,9 @@ export default function PermutaModal(p: PermutaModalProps) {
             )
           ) : null}
           <div className="r">
-            <button type="button" className="pm-btn" onClick={p.fechar} disabled={salvando}>{ro ? 'Fechar' : 'Cancelar'}</button>
+            <button type="button" className="pm-btn" onClick={p.fechar} disabled={salvando || lendo}>{ro ? 'Fechar' : 'Cancelar'}</button>
             {ro ? null : (
-              <button type="button" className="pm-btn prim" onClick={salvar} disabled={salvando}>
+              <button type="button" className="pm-btn prim" onClick={salvar} disabled={salvando || lendo}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {salvando ? (fila.length ? 'Enviando documentos…' : 'Salvando…') : 'Salvar permutante'}
               </button>
@@ -484,7 +638,7 @@ export default function PermutaModal(p: PermutaModalProps) {
 
 /** Empresas do Sienge + negocios_permuta, com busca, "Cadastrar novo" e renomear com dois cliques. */
 function SeletorOrigem(p: {
-  origem: Origem; setOrigem: (o: Origem) => void; empresas: EmpresaOpcao[]; negocios: Negocio[]; disabled: boolean;
+  origem: Origem; setOrigem: (o: Origem) => void; empresas: EmpresaOpcao[]; negocios: Negocio[]; disabled: boolean; ia?: boolean;
   criarNegocio: (nome: string) => Promise<Negocio>; renomearNegocio: (id: string, nome: string) => Promise<void>; toast: (m: string) => void;
 }) {
   const [aberto, setAberto] = useState(false);
@@ -532,7 +686,7 @@ function SeletorOrigem(p: {
 
   return (
     <div className="pm-dd" ref={caixa}>
-      <button type="button" className={'pm-dd-btn' + (aberto ? ' open' : '')} disabled={p.disabled} aria-haspopup="listbox" aria-expanded={aberto}
+      <button type="button" className={'pm-dd-btn' + (aberto ? ' open' : '') + (p.ia ? ' ia' : '')} disabled={p.disabled} aria-haspopup="listbox" aria-expanded={aberto}
         onClick={() => { setAberto(!aberto); setCriando(false); setEditando(null); setQ(''); }}>
         <span className={'v' + (emp || neg ? '' : ' vazio')}>
           {emp ? <>{emp.nome}{emp.emp ? <span style={{ color: 'var(--text-4)' }}> – {emp.emp}</span> : null}</>

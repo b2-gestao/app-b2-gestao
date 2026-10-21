@@ -48,6 +48,32 @@ export type PermutaDados = Omit<Permuta, 'id' | 'unidades' | 'anexos'>;
 /** Arquivo escolhido na modal, enviado ao salvar. */
 export interface AnexoNovo { file: File; tipo: TipoAnexo | ''; descricao: string }
 
+// ---------- importar da escritura (edge function app-permutas) ----------
+/** Limite da leitura por IA (o anexo em si aceita até 50 MB). */
+export const MAX_ESCRITURA_IA = 15 * 1024 * 1024;
+export type NivelAviso = 'ok' | 'atencao' | 'info';
+export interface AvisoImportacao { nivel: NivelAviso; texto: string }
+/** Preenchimento sugerido a partir da escritura; pct_permuta em pontos percentuais (12 = 12%). */
+export interface SugestaoEscritura {
+  permutante: string | null; num_matricula: string | null; area_matricula: number | null; coeficiente: number | null;
+  pct_permuta: number | null; area_propria: number | null; area_informada: number | null; data_contrato: string | null;
+  observacao: string | null; pendencia: string | null;
+  empresa: { cnpj: string | null; nome: string | null };
+  matriculas: string[];
+}
+export interface ImportacaoEscritura {
+  tipoDocumento: 'ESCRITURA_PERMUTA' | 'COMPROMISSO_PERMUTA' | 'OUTRO';
+  sugestao: SugestaoEscritura; avisos: AvisoImportacao[]; modelo: string; cache: boolean;
+}
+const paraBase64 = (f: File) => new Promise<string>((ok, falha) => {
+  const r = new FileReader();
+  r.onload = () => ok(String(r.result).replace(/^data:[^,]*,/, ''));
+  r.onerror = () => falha(new Error('Não foi possível ler o arquivo.'));
+  r.readAsDataURL(f);
+});
+/** Só os dígitos, para comparar CNPJ e matrículas escritos de jeitos diferentes. */
+export const digitos = (s: string | null | undefined) => String(s ?? '').replace(/\D/g, '');
+
 // ---------- regras de cálculo (as mesmas do Painel de Permutas) ----------
 export interface Calculo { aprov: number | null; area: number | null; proprio: number; div: number | null; fonte: 'calc' | 'informada' }
 const num = (v: any): v is number => typeof v === 'number' && isFinite(v);
@@ -218,6 +244,17 @@ export const permutasApi = {
   async excluir(p: Permuta): Promise<void> {
     erro((await sb().from('app_permutas').delete().eq('id', p.id)).error);
     if (p.anexos.length) await sb().storage.from(BUCKET).remove(p.anexos.map(a => a.storage_path));
+  },
+
+  /** Lê a escritura com IA e devolve a sugestão de preenchimento. Nada é gravado. */
+  async lerEscritura(file: File): Promise<ImportacaoEscritura> {
+    const pdfBase64 = await paraBase64(file);
+    const { data, error } = await sb().functions.invoke('app-permutas', { body: { acao: 'ler_escritura', pdfBase64, nomeArquivo: file.name } });
+    if (error) {
+      const b = await (error as any).context?.json?.().catch(() => null);
+      throw new Error(b?.error || error.message);
+    }
+    return data as ImportacaoEscritura;
   },
 
   /** Link temporário (2 min) para baixar o anexo. */
