@@ -1,5 +1,5 @@
 // Permutas › Terrenos: contexto vindo da lógica do app, KPI, nomes e a modal ligada ao store.
-import { useEffect, useMemo, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
 import type { Permuta, PermutaAnexo, UnidadeCatalogo } from '../../lib/permutas';
 import PermutaModal, { type EmpresaOpcao } from './PermutaModal';
 import { permutasStore, usePermutas } from './store';
@@ -73,6 +73,7 @@ export function Kpi({ cor, fundo, rotulo, valor, un, sub, icone, onClick, ativo 
 /** Modal de permuta ligada ao store (usada em Cadastros e Visão Geral). */
 export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta: Permuta | null; ctx: PermutasCtx; empresas: EmpresaOpcao[]; fechar: () => void }) {
   const d = usePermutas();
+  const historico = useCallback((id: string) => permutasStore.historico(id), []);
   const baixar = async (a: PermutaAnexo) => {
     try {
       const url = await permutasStore.link(a);
@@ -80,11 +81,14 @@ export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta:
       window.open(url, '_blank', 'noopener');
     } catch (e: any) { ctx.toast(e?.message || String(e)); }
   };
+  // Versão atual do store: reflete inativação/reativação feita com a modal aberta.
+  const atual = permuta ? d.permutas.find(x => x.id === permuta.id) || permuta : null;
   return (
     <PermutaModal
-      permuta={permuta} empresas={empresas} negocios={d.negocios} catalogo={d.catalogo} podeEditar={ctx.podeEditar()}
-      toast={ctx.toast} criarNegocio={n => permutasStore.criarNegocio(n)} renomearNegocio={(id, n) => permutasStore.renomearNegocio(id, n)}
-      salvar={(...a) => permutasStore.salvar(...a)} excluir={p => permutasStore.excluir(p)} baixar={baixar} fechar={fechar}
+      permuta={atual} empresas={empresas} negocios={d.negocios} catalogo={d.catalogo} podeEditar={ctx.podeEditar()}
+      toast={ctx.toast} salvar={(...a) => permutasStore.salvar(...a)} excluir={p => permutasStore.excluir(p)} baixar={baixar}
+      definirStatus={(...a) => permutasStore.definirStatus(...a)} definirStatusUnidade={(...a) => permutasStore.definirStatusUnidade(...a)}
+      historico={historico} fechar={fechar}
     />
   );
 }

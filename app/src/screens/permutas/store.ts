@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import {
   permutasApi,
-  type AnexoNovo, type EmpreendimentoFicha, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
+  type AnexoNovo, type EmpreendimentoFicha, type HistoricoItem, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
   type PermutaUnidade, type UnidadeCatalogo, type UnidadeDireta,
 } from '../../lib/permutas';
 
@@ -69,21 +69,32 @@ export const permutasStore = {
     }));
     const atual = id ? estado.permutas.find(x => x.id === id) : null;
     const anexos = [...(atual?.anexos || []).filter(a => !removidos.some(r => r.id === a.id)), ...anexosNovos];
-    const novo: Permuta = { id: id || novoId(), ...dados, unidades, anexos };
+    const novo: Permuta = {
+      id: id || novoId(), ativo: atual?.ativo ?? true, motivo_inativacao: atual?.motivo_inativacao ?? null, ...dados, anexos,
+      unidades: unidades.map(u => {
+        const ant = atual?.unidades.find(x => x.unidade_id === u.unidade_id);
+        return { ...u, id: ant?.id || novoId(), ativo: ant?.ativo ?? true, motivo_inativacao: ant?.motivo_inativacao ?? null };
+      }),
+    };
     set({ permutas: id ? estado.permutas.map(x => (x.id === id ? novo : x)) : [...estado.permutas, novo] });
   },
   async excluir(p: Permuta) {
     if (live) { await permutasApi.excluir(p); await recarregarBase(); return; }
     set({ permutas: estado.permutas.filter(x => x.id !== p.id) });
   },
-  async criarNegocio(nome: string): Promise<Negocio> {
-    const n = live ? await permutasApi.criarNegocio(nome) : { id: novoId(), nome: nome.trim() };
-    set({ negocios: porNome([...estado.negocios, n]) });
-    return n;
+  /** Inativa/reativa o cadastro; no modo demonstração só em memória (sem histórico). */
+  async definirStatus(id: string, ativo: boolean, motivo: string) {
+    if (live) { await permutasApi.definirStatus(id, ativo, motivo); await recarregarBase(); return; }
+    set({ permutas: estado.permutas.map(x => (x.id === id ? { ...x, ativo, motivo_inativacao: ativo ? null : motivo.trim() } : x)) });
   },
-  async renomearNegocio(id: string, nome: string) {
-    if (live) await permutasApi.renomearNegocio(id, nome);
-    set({ negocios: porNome(estado.negocios.map(n => (n.id === id ? { ...n, nome: nome.trim() } : n))) });
+  /** Inativa/reativa uma unidade (pelo id da linha em app_permuta_unidades). */
+  async definirStatusUnidade(id: string, ativo: boolean, motivo: string) {
+    if (live) { await permutasApi.definirStatusUnidade(id, ativo, motivo); await recarregarBase(); return; }
+    const muda = (u: PermutaUnidade) => (u.id === id ? { ...u, ativo, motivo_inativacao: ativo ? null : motivo.trim() } : u);
+    set({ permutas: estado.permutas.map(x => ({ ...x, unidades: x.unidades.map(muda) })) });
+  },
+  async historico(permutaId: string): Promise<HistoricoItem[]> {
+    return live ? permutasApi.historico(permutaId) : [];
   },
   async link(a: PermutaAnexo): Promise<string | null> {
     if (!live || !a.storage_path) return null;
