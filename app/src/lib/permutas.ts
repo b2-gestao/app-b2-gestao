@@ -52,8 +52,9 @@ export interface Permuta {
 }
 /** O que o formulário grava; o status só muda por definirStatus (com motivo). */
 export type PermutaDados = Omit<Permuta, 'id' | 'unidades' | 'anexos' | 'ativo' | 'motivo_inativacao'>;
-/** Mínimo de caracteres do motivo de inativação/reativação (o banco confere o mesmo). */
+/** Limites do motivo de inativação/reativação (o banco confere os mesmos). */
 export const MOTIVO_MIN = 5;
+export const MOTIVO_MAX = 500;
 
 /** Item do histórico (tabela app_permutas_historico; mais recente primeiro). */
 export type AcaoHistorico = 'criado' | 'editado' | 'inativado' | 'reativado'

@@ -218,7 +218,7 @@ export default function PermutaModal(p: PermutaModalProps) {
       p.toast(pedido.ativo ? 'Cadastro reativado' : 'Cadastro inativado');
     } else {
       const l = linhas[pedido.i];
-      if (!l?.id) return;
+      if (!l?.id) { setPedido(null); return; }
       await p.definirStatusUnidade(l.id, pedido.ativo, motivo);
       const ativo = pedido.ativo;
       setLinhas(ls => ls.map(x => (x.id === l.id ? { ...x, ativo, motivo: ativo ? null : motivo.trim() } : x)));
@@ -393,15 +393,16 @@ export default function PermutaModal(p: PermutaModalProps) {
                       const a = areaDe(l);
                       const set = (patch: Partial<Linha>) => setLinhas(ls => ls.map((x, j) => (j === i ? { ...x, ...patch } : x)));
                       // Unidade inativa: só leitura; sai das somas, mas continua vinculada.
+                      // Trocar empreendimento/unidade solta o id: vira outra unidade (inativar só depois de salvar).
                       const bloq = ro || !l.ativo;
                       return (
                         <div key={l.id || i} className={'pm-u-r' + (fora ? ' fora' : '') + (l.ativo ? '' : ' inativa')}>
                           <SeletorBusca ariaLabel="Empreendimento" value={l.enterprise_id} disabled={bloq} placeholder="Buscar empreendimento…"
-                            onChange={id => set({ enterprise_id: id, unidade_id: '' })}
+                            onChange={id => set({ id: undefined, enterprise_id: id, unidade_id: '' })}
                             opcoes={opts.map(([id, e]) => ({ value: id, label: e.nome, sub: String(id), nota: proprios.includes(id) ? 'próprio' : undefined }))} />
                           <SeletorBusca ariaLabel="Unidade" value={l.unidade_id} disabled={bloq || !l.enterprise_id} buscaNoDetalhe={false}
                             placeholder={l.enterprise_id ? 'Buscar unidade…' : '—'} vazio="Nenhuma unidade com esse nome."
-                            onChange={id => set({ unidade_id: id })}
+                            onChange={id => set({ id: undefined, unidade_id: id })}
                             opcoes={[...(emp?.unidades || [])].sort((x, y) => x.unidade.localeCompare(y.unidade, 'pt-BR', { numeric: true })).map(u => {
                               const tomada = usadas.has(u.unidade_id) && u.unidade_id !== l.unidade_id;
                               return { value: u.unidade_id, label: u.unidade, sub: u.area_privativa != null ? m2(u.area_privativa) + ' m²' : undefined, nota: tomada ? 'já incluída' : undefined, disabled: tomada };

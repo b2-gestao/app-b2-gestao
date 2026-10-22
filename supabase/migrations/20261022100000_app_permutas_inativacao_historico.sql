@@ -9,7 +9,8 @@
 --   Negócio: só empresas do Sienge. negocios_permuta fica só para os cadastros antigos (sem novos negócios).
 --
 -- Inativar/reativar só pelas funções app_permuta_status / app_permuta_unidade_status, que exigem motivo
--- (mínimo 5 caracteres). O motivo chega às triggers pela configuração local da transação app.permutas_motivo.
+-- (5 a 500 caracteres). Cadastro inativo (e suas unidades) fica só para leitura até ser reativado.
+-- O motivo chega às triggers pela configuração local da transação app.permutas_motivo.
 
 -- ---------- colunas ----------
 alter table public.app_permutas
@@ -52,11 +53,12 @@ revoke all on table public.app_permutas_historico from anon, authenticated;
 grant select on table public.app_permutas_historico to authenticated;
 
 -- ---------- negócio: só empresas do Sienge ----------
--- Não se criam mais negócios avulsos; os existentes continuam valendo para os cadastros antigos.
+-- Não se criam nem renomeiam negócios avulsos; os existentes continuam valendo para os cadastros antigos.
 drop policy if exists negocios_permuta_insert on public.negocios_permuta;
-revoke insert on table public.negocios_permuta from authenticated;
+drop policy if exists negocios_permuta_update on public.negocios_permuta;
+revoke insert, update on table public.negocios_permuta from authenticated;
 
--- Normaliza textos e valida a origem: empresa existente no Sienge; negócio avulso só se já estava gravado.
+-- Normaliza textos, bloqueia edição de cadastro inativo e valida a origem: empresa existente no Sienge; negócio avulso só se já estava gravado.
 create or replace function public.app_permutas_valida()
 returns trigger
 language plpgsql
@@ -64,6 +66,10 @@ security definer
 set search_path = public
 as $$
 begin
+  -- Cadastro inativo é só leitura: a única mudança aceita é a reativação.
+  if tg_op = 'UPDATE' and not old.ativo and not new.ativo then
+    raise exception 'Cadastro inativo: reative para editar.' using errcode = '55000';
+  end if;
   new.cidade := nullif(btrim(new.cidade), '');
   new.inscricao_iptu := nullif(btrim(new.inscricao_iptu), '');
   new.inscricao_equatorial := nullif(btrim(new.inscricao_equatorial), '');
@@ -83,6 +89,27 @@ revoke all on function public.app_permutas_valida() from public, anon, authentic
 drop trigger if exists app_permutas_valida on public.app_permutas;
 create trigger app_permutas_valida before insert or update on public.app_permutas
   for each row execute function public.app_permutas_valida();
+
+-- Unidades de cadastro inativo também ficam só para leitura (na exclusão em cascata a permuta já saiu).
+create or replace function public.app_permuta_unidades_ck()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  if exists (select 1 from app_permutas p
+             where p.id in (new.permuta_id, old.permuta_id) and not p.ativo) then
+    raise exception 'Cadastro inativo: reative para alterar as unidades.' using errcode = '55000';
+  end if;
+  return coalesce(new, old);
+end;
+$$;
+revoke all on function public.app_permuta_unidades_ck() from public, anon, authenticated;
+
+drop trigger if exists app_permuta_unidades_ck on public.app_permuta_unidades;
+create trigger app_permuta_unidades_ck before insert or update or delete on public.app_permuta_unidades
+  for each row execute function public.app_permuta_unidades_ck();
 
 -- ---------- status (cadastro e unidades) ----------
 -- Mudar "ativo" exige o motivo da transação; motivo_inativacao só muda junto com o status.
@@ -198,8 +225,11 @@ begin
   if not app_permutas_pode(true) then
     raise exception 'Sem permissão para alterar permutas.' using errcode = '42501';
   end if;
-  if length(v_motivo) < 5 then
-    raise exception 'Informe o motivo (mínimo de 5 caracteres).' using errcode = '22023';
+  if p_ativo is null then
+    raise exception 'Informe se é para inativar ou reativar.' using errcode = '22004';
+  end if;
+  if length(v_motivo) not between 5 and 500 then
+    raise exception 'Informe o motivo (de 5 a 500 caracteres).' using errcode = '22023';
   end if;
   perform set_config('app.permutas_motivo', v_motivo, true);
   update app_permutas set ativo = p_ativo where id = p_id and ativo is distinct from p_ativo;
@@ -225,8 +255,11 @@ begin
   if not app_permutas_pode(true) then
     raise exception 'Sem permissão para alterar permutas.' using errcode = '42501';
   end if;
-  if length(v_motivo) < 5 then
-    raise exception 'Informe o motivo (mínimo de 5 caracteres).' using errcode = '22023';
+  if p_ativo is null then
+    raise exception 'Informe se é para inativar ou reativar.' using errcode = '22004';
+  end if;
+  if length(v_motivo) not between 5 and 500 then
+    raise exception 'Informe o motivo (de 5 a 500 caracteres).' using errcode = '22023';
   end if;
   perform set_config('app.permutas_motivo', v_motivo, true);
   update app_permuta_unidades set ativo = p_ativo where id = p_id and ativo is distinct from p_ativo;

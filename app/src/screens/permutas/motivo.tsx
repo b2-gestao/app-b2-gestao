@@ -1,7 +1,7 @@
 // Permutas › Terrenos: modal que pede o motivo antes de inativar/reativar (cadastro ou unidade).
-// Botão só libera com MOTIVO_MIN caracteres; o banco confere de novo.
+// Botão só libera com MOTIVO_MIN a MOTIVO_MAX caracteres; o banco confere de novo.
 import { useEffect, useState, type ReactNode } from 'react';
-import { MOTIVO_MIN } from '../../lib/permutas';
+import { MOTIVO_MAX, MOTIVO_MIN } from '../../lib/permutas';
 
 export function ModalMotivo({ titulo, descricao, confirmar, perigo, onConfirmar, fechar }: {
   titulo: string; descricao: ReactNode; confirmar: string; perigo?: boolean;
@@ -41,7 +41,7 @@ export function ModalMotivo({ titulo, descricao, confirmar, perigo, onConfirmar,
         <div className="pm-mb">
           <div className="pm-f">
             <label className="pm-cap" htmlFor="pm-mot">Motivo <span className="pm-req">*</span></label>
-            <textarea id="pm-mot" className="pm-in" autoFocus value={motivo} disabled={enviando} placeholder="Descreva o motivo (fica no histórico)"
+            <textarea id="pm-mot" className="pm-in" autoFocus value={motivo} disabled={enviando} maxLength={MOTIVO_MAX} placeholder="Descreva o motivo (fica no histórico)"
               onChange={e => setMotivo(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) enviar(); }} />
             <span className="pm-hint">{n < MOTIVO_MIN ? `Mínimo de ${MOTIVO_MIN} caracteres (faltam ${MOTIVO_MIN - n}).` : 'Ctrl + Enter confirma.'}</span>
