@@ -89,6 +89,7 @@ export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta:
       toast={ctx.toast} salvar={(...a) => permutasStore.salvar(...a)} excluir={p => permutasStore.excluir(p)} baixar={baixar}
       definirStatus={(...a) => permutasStore.definirStatus(...a)} definirStatusUnidade={(...a) => permutasStore.definirStatusUnidade(...a)}
       historico={historico} fechar={fechar}
+      permutas={d.permutas} lerContrato={f => permutasStore.lerContrato(f)} precos={(i, dt) => permutasStore.precos(i, dt)}
     />
   );
 }

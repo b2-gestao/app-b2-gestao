@@ -85,6 +85,12 @@ Supabase
       excluídas no Sienge): migration `20261006110000_app_nf_sync_segredo.sql` aplicada (06/10). Usa um segredo próprio
       gerado no banco (Vault `app_nf_sync_key`) no cabeçalho `x-app-nf-sync`; a service_role não fica no Vault. Os
       segredos `app_nf_sync_url` e `app_nf_sync_anon` (chave anon) já estão no Vault.
+- [x] **Permutas › Cadastros › Importar do contrato** (modal do permutante: a IA lê o PDF do contrato de permuta ou da
+      escritura, preenche os campos, vincula as unidades com o valor da tabela de vendas e anexa o PDF): migration
+      `20261023100000_app_permutas_importacao_contrato.sql` aplicada (23/10; a `20261022100000` já estava aplicada) e edge
+      function `app-permutas` publicada (23/10, verify_jwt ligado). Usa o `OPENAI_API_KEY` da `app-nf`; opcional
+      `PERMUTAS_OPENAI_MODEL`. Cache em `app_ia_cache` (tela `permutas_contrato`). Limite de 15 MB por PDF.
+      No primeiro uso, conferir com um contrato real empresa pelo CNPJ, unidades e valores.
 - [ ] **Chamado de conferência no TomTicket** (botão na tela de nota cadastrada): publicar a edge function
       `app-tomticket` e criar os segredos. `TOMTICKET_TOKEN` vem do TomTicket em Administração › Configurações da
       Conta › API › Novo Token, com "Pode criar e modificar dados" e sem restrição de IP. Opcionais:

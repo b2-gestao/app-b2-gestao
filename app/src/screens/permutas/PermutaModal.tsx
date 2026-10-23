@@ -2,19 +2,24 @@
 // Resumo fixo no topo (quem é, área total e como ela se divide), cálculo em forma de equação
 // (o que se digita × o que é calculado) e unidades e documentos em seções recolhíveis.
 // Aba Histórico: alterações do cadastro e das unidades. Inativar/reativar (cadastro ou unidade) pede motivo.
+// "Importar do contrato" (importar.tsx): a IA lê o PDF (edge function app-permutas), os campos vêm marcados com "IA"
+// até serem editados, a empresa sai do CNPJ, as unidades do catálogo do Sienge com o valor da tabela de vendas do mês
+// do contrato e o PDF entra na fila de documentos. Na edição, só os campos vazios são preenchidos.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SeletorBusca } from './busca';
 import { HistoricoPermuta } from './historico';
 import { ModalMotivo } from './motivo';
+import { PainelImportacao, PASSOS_IA, type FaseImportacao, type ModoCadastro } from './importar';
 import {
-  calcular, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, TIPOS_ANEXO,
-  type AnexoNovo, type HistoricoItem, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
+  calcular, cpfCnpjValido, digitos, formatarCpfCnpj, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, MAX_CONTRATO_IA, TIPOS_ANEXO,
+  type AnexoNovo, type AvisoImportacao, type HistoricoItem, type ImportacaoContrato, type PrecoUnidade, type UnidadeContrato, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
 } from '../../lib/permutas';
 
-export interface EmpresaOpcao { id: number; nome: string; emp: string | null }
+export interface EmpresaOpcao { id: number; nome: string; emp: string | null; cnpj?: string | null }
 /** Origem: empresa do Sienge ('s'); 'n' só nos cadastros antigos ligados a um negócio avulso. */
 type Origem = { k: 's'; id: number } | { k: 'n'; id: string } | null;
-type Linha = { id?: string; enterprise_id: number | ''; unidade_id: number | ''; valor_unidade: number | null; ativo: boolean; motivo: string | null };
+/** valorTxt: valor da unidade como digitado; mes: mês da tabela de vendas quando o valor veio da importação. */
+type Linha = { id?: string; enterprise_id: number | ''; unidade_id: number | ''; valorTxt: string; ativo: boolean; motivo: string | null; ia?: boolean; mes?: string };
 type Fila = AnexoNovo & { chave: number; erro?: string };
 /** Pedido de motivo em aberto: inativar/reativar o cadastro ou a unidade da linha i. */
 type PedidoMotivo = { alvo: 'permuta'; ativo: boolean } | { alvo: 'unidade'; ativo: boolean; i: number };
@@ -33,7 +38,19 @@ export interface PermutaModalProps {
   definirStatusUnidade: (id: string, ativo: boolean, motivo: string) => Promise<void>;
   historico: (id: string) => Promise<HistoricoItem[]>;
   fechar: () => void;
+  /** Cadastro atual, para avisar matrícula já cadastrada na importação. */
+  permutas?: Permuta[];
+  /** Importar do contrato; sem ela o painel não aparece. */
+  lerContrato?: (f: File) => Promise<ImportacaoContrato>;
+  precos?: (itens: { enterprise_id: number; unidade: string }[], data: string | null) => Promise<PrecoUnidade[]>;
 }
+
+const ORDEM_AVISO = { atencao: 0, ok: 1, info: 2 } as const;
+const fmtCnpj = (d: string) => (d.length === 14 ? d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5') : d);
+const fmtValor = (v: number) => v.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const mesAno = (iso: string) => new Date(iso.slice(0, 10) + 'T12:00:00').toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' }).replace('. de ', '/').replace(' de ', '/');
+// Palavras que não distinguem empreendimento ("CASA LAGUNA" ↔ "Laguna", "ZOE HABITAT" ↔ "Zoe").
+const GENERICAS = new Set(['casa', 'habitat', 'residencial', 'edificio', 'condominio', 'empreendimento', 'torre', 'spe']);
 
 const Chev = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M6 9l6 6 6-6" stroke="#94A3B8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
@@ -101,8 +118,10 @@ export default function PermutaModal(p: PermutaModalProps) {
   const [iptu, setIptu] = useState(ed?.inscricao_iptu || '');
   const [equatorial, setEquatorial] = useState(ed?.inscricao_equatorial || '');
   const [saneago, setSaneago] = useState(ed?.inscricao_saneago || '');
+  const [cpf, setCpf] = useState(formatarCpfCnpj(ed?.cpf_cnpj));
   const [linhas, setLinhas] = useState<Linha[]>((ed?.unidades || []).map(u => ({
-    id: u.id, enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, valor_unidade: u.valor_unidade, ativo: u.ativo !== false, motivo: u.motivo_inativacao ?? null,
+    id: u.id, enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, valorTxt: u.valor_unidade != null ? fmtValor(u.valor_unidade) : '',
+    ativo: u.ativo !== false, motivo: u.motivo_inativacao ?? null,
   })));
   const [aba, setAba] = useState<'dados' | 'historico'>('dados');
   const [pedido, setPedido] = useState<PedidoMotivo | null>(null);
@@ -117,13 +136,27 @@ export default function PermutaModal(p: PermutaModalProps) {
   const [confirmaAnexo, setConfirmaAnexo] = useState<string | null>(null);
   const [arrastando, setArrastando] = useState(false);
   const chaveFila = useRef(0);
+  // Importar do contrato: no cadastro novo abre no modo importar; na edição, no manual.
+  const [modo, setModo] = useState<ModoCadastro>(ed ? 'manual' : 'importar');
+  const [imp, setImp] = useState<FaseImportacao>({ fase: 'ocioso' });
+  const [passo, setPasso] = useState(0);
+  const [ia, setIa] = useState<Set<string>>(new Set());
+  const chaveImportado = useRef<number | null>(null);
+  const lendo = imp.fase === 'lendo';
+
+  // Etapas da leitura: avançam no tempo enquanto a IA responde e param antes da última (unidades e valores).
+  useEffect(() => {
+    if (!lendo) return;
+    const t = window.setInterval(() => setPasso(n => (n === 0 || n >= PASSOS_IA.length - 2 ? n : n + 1)), 5000);
+    return () => window.clearInterval(t);
+  }, [lendo]);
 
   useEffect(() => {
     // Com a modal de motivo aberta, o Esc é dela.
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !salvando && !pedido) p.fechar(); };
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !salvando && !pedido && !lendo) p.fechar(); };
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
-  }, [salvando, pedido]);
+  }, [salvando, pedido, lendo]);
 
   const c = calcular({ area_matricula: lerNumero(mat), coeficiente: lerNumero(coef), pct_permuta: (v => (v == null ? null : v / 100))(lerNumero(pctTxt)), area_propria: lerNumero(own), area_informada: lerNumero(inf) });
   const areaAnim = useTween(c.area);
@@ -151,7 +184,9 @@ export default function PermutaModal(p: PermutaModalProps) {
   const ativas = completas.filter(l => l.ativo);
   const somaOwn = ativas.filter(l => proprios.includes(l.enterprise_id as number)).reduce((s, l) => s + (areaDe(l) || 0), 0);
   const somaDiv = ativas.filter(l => !proprios.includes(l.enterprise_id as number)).reduce((s, l) => s + (areaDe(l) || 0), 0);
-  const tom = (x: number, alvo: number | null) => (alvo == null ? 'info' : Math.abs(x - alvo) < 0.01 ? 'ok' : x > alvo ? 'err' : 'warn');
+  // Acima da área é excedente aceito no contrato (pago pelo permutante): aviso, não erro.
+  const tom = (x: number, alvo: number | null) => (alvo == null ? 'info' : Math.abs(x - alvo) < 0.01 ? 'ok' : 'warn');
+  const excedente = (x: number, alvo: number | null) => (alvo != null && x - alvo > 0.01 ? ` · excedente ${m2(x - alvo)} m²` : '');
 
   const empresa = origem?.k === 's' ? p.empresas.find(e => e.id === origem.id) : null;
   const negocio = origem?.k === 'n' ? p.negocios.find(n => n.id === origem.id) : null;
@@ -169,10 +204,166 @@ export default function PermutaModal(p: PermutaModalProps) {
     if (ok.length) { setFila(fi => [...fi, ...ok]); setCsA(true); }
   };
 
+  // ---------- importar do contrato ----------
+  /** Campo editado à mão deixa de ser marcado como "IA". */
+  const tirarIa = (k: string) => setIa(st => { if (!st.has(k)) return st; const n = new Set(st); n.delete(k); return n; });
+  const tagIa = (k: string) => (ia.has(k) ? <span className="pm-tagia" title="Preenchido pela IA a partir do contrato. Confira.">IA</span> : null);
+  const clsIa = (k: string) => 'pm-in' + (ia.has(k) ? ' ia' : '');
+
+  /** Unidade do contrato no catálogo do Sienge: pelo CNPJ da dona do empreendimento e/ou pelo nome do empreendimento. */
+  const acharUnidade = (u: UnidadeContrato): UnidadeCatalogo | null => {
+    const norm = (t: string) => semAcento(t).replace(/\s+/g, '');
+    const alvo = norm(u.unidade);
+    const mesmas = p.catalogo.filter(c => { const n = norm(c.unidade); return n === alvo || n.split('-')[0] === alvo; });
+    const dona = u.cnpj ? p.empresas.find(e => digitos(e.cnpj) === u.cnpj) : undefined;
+    const palavras = semAcento(u.empreendimento).split(/[^a-z0-9]+/).filter(w => w.length >= 3 && !GENERICAS.has(w));
+    const porNome = mesmas.filter(c => palavras.some(w => semAcento(nomeEmpreendimento(c)).includes(w)));
+    const porEmpresa = dona ? mesmas.filter(c => c.company_id === dona.id) : [];
+    for (const lista of [porEmpresa.filter(c => porNome.includes(c)), porEmpresa, porNome]) if (lista.length === 1) return lista[0];
+    return null;
+  };
+
+  const aplicarImportacao = async (r: ImportacaoContrato, file: File, chave: number) => {
+    const s = r.sugestao;
+    const marcados: string[] = [];
+    const avisos: AvisoImportacao[] = [];
+    // Na edição, só os campos vazios recebem o que veio do contrato.
+    const por = (k: string, atual: string, v: string | null | undefined, set: (v: string) => void) => {
+      if (!v || (ed && atual.trim())) return;
+      set(v);
+      marcados.push(k);
+    };
+    por('perm', perm, s.permutante, setPerm);
+    por('cpf', cpf, s.cpf_cnpj ? formatarCpfCnpj(s.cpf_cnpj) : null, setCpf);
+    por('nmat', nmat, s.num_matricula, setNmat);
+    por('dtc', dataCt, s.data_contrato, setDataCt);
+    por('cid', cidade, s.cidade, setCidade);
+    por('iptu', iptu, s.inscricao_iptu, setIptu);
+    por('eqt', equatorial, s.inscricao_equatorial, setEquatorial);
+    por('san', saneago, s.inscricao_saneago, setSaneago);
+    por('mat', mat, paraCampo(s.area_matricula), setMat);
+    por('coef', coef, paraCampo(s.coeficiente), setCoef);
+    por('pct', pctTxt, paraCampo(s.pct_permuta, 6), setPctTxt);
+    por('own', own, paraCampo(s.area_propria), setOwn);
+    por('inf', inf, paraCampo(s.area_informada), setInf);
+    if (s.observacao) {
+      // Na edição, o texto do contrato entra abaixo da observação que já existe.
+      setObs(o => (o.trim() ? `${o.trim()}\n\n${s.observacao}` : s.observacao!));
+      marcados.push('obs');
+    }
+
+    // Negócio: a Segunda Permutante, pelo CNPJ na tabela de empresas.
+    const cnpj = digitos(s.empresa.cnpj);
+    const empresa = cnpj ? p.empresas.find(e => digitos(e.cnpj) === cnpj) : undefined;
+    const nomeAdq = s.empresa.nome || 'A Segunda Permutante';
+    if (empresa && (!origem || (origem.k === 's' && origem.id === empresa.id))) {
+      setOrigem({ k: 's', id: empresa.id });
+      marcados.push('origem');
+      avisos.push({ nivel: 'ok', texto: `Empresa identificada pelo CNPJ ${fmtCnpj(cnpj)}: ${empresa.nome} (Sienge ${empresa.id}).` });
+    } else if (empresa) {
+      avisos.push({ nivel: 'atencao', texto: `O contrato é de ${empresa.nome} (Sienge ${empresa.id}), diferente do negócio selecionado. Confira.` });
+    } else if (cnpj) {
+      avisos.push({ nivel: 'atencao', texto: `${nomeAdq} (CNPJ ${fmtCnpj(cnpj)}) não está na tabela de empresas. Selecione o negócio à mão.` });
+    } else {
+      avisos.push({ nivel: 'atencao', texto: 'CNPJ da Segunda Permutante não encontrado no contrato: selecione o negócio.' });
+    }
+
+    // Matrícula já cadastrada em outro permutante.
+    const novas = s.matriculas.map(m => ({ m, d: digitos(m) })).filter(x => x.d);
+    for (const x of p.permutas || []) {
+      if (x.id === ed?.id || !x.num_matricula) continue;
+      const delas = x.num_matricula.split(/[^\d.-]+/).map(digitos).filter(Boolean);
+      const repetidas = novas.filter(n => delas.includes(n.d)).map(n => n.m);
+      if (repetidas.length) avisos.push({ nivel: 'atencao', texto: `Matrícula ${repetidas.join(', ')} já está no cadastro de ${x.permutante}. Confira se não é o mesmo terreno.` });
+    }
+
+    // Unidades principais: catálogo do Sienge + valor da tabela de vendas do mês do contrato.
+    setPasso(PASSOS_IA.length - 1);
+    const jaTem = new Set(linhas.map(l => l.unidade_id).filter(Boolean));
+    const achadas: UnidadeCatalogo[] = [];
+    const faltando: string[] = [];
+    for (const x of s.unidades) {
+      const u = acharUnidade(x);
+      if (!u) { faltando.push(`${x.empreendimento} ${x.unidade}`); continue; }
+      if (jaTem.has(u.unidade_id) || achadas.some(a => a.unidade_id === u.unidade_id)) continue;
+      achadas.push(u);
+      if (x.area_m2 != null && u.area_privativa != null && Math.abs(x.area_m2 - u.area_privativa) > 0.01) {
+        avisos.push({ nivel: 'atencao', texto: `${nomeEmpreendimento(u)} ${u.unidade}: o contrato fala em ${m2(x.area_m2)} m² e o Sienge tem ${m2(u.area_privativa)} m².` });
+      }
+    }
+    const dataRef = s.data_contrato || dataCt || null;
+    let precos: PrecoUnidade[] = [];
+    if (achadas.length && p.precos) {
+      try {
+        precos = await p.precos(achadas.map(u => ({ enterprise_id: u.enterprise_id, unidade: u.unidade })), dataRef);
+      } catch (e: any) {
+        avisos.push({ nivel: 'atencao', texto: `Não foi possível buscar os valores na tabela de vendas: ${e?.message || e}` });
+      }
+    }
+    const preco = (u: UnidadeCatalogo) => precos.find(x => x.enterprise_id === u.enterprise_id && x.unidade.trim() === u.unidade.trim());
+    if (achadas.length) {
+      setLinhas(ls => [...ls.filter(l => l.enterprise_id || l.unidade_id), ...achadas.map(u => {
+        const pr = preco(u);
+        return { enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, valorTxt: pr ? fmtValor(pr.preco) : '', ativo: true, motivo: null, ia: true, mes: pr?.mes_tabela } as Linha;
+      })]);
+      setCsU(true);
+      const soma = achadas.reduce((t, u) => t + (u.area_privativa || 0), 0);
+      avisos.push({ nivel: 'ok', texto: `${achadas.length === 1 ? '1 unidade vinculada' : `${achadas.length} unidades vinculadas`}: ${achadas.map(u => `${nomeEmpreendimento(u)} ${u.unidade}`).join(', ')} (${m2(soma)} m²).` });
+      // Valor só da tabela vigente na data do contrato; sem ela, a unidade fica sem valor.
+      const semPreco = achadas.filter(u => !preco(u));
+      const ref = dataRef ? ` até ${mesAno(dataRef)}` : '';
+      if (semPreco.length && p.precos) {
+        avisos.push({ nivel: 'atencao', texto: `Sem tabela de vendas${ref} para ${semPreco.map(u => `${nomeEmpreendimento(u)} ${u.unidade}`).join(', ')}: valor em branco. Informe à mão se precisar.` });
+      }
+      const meses = [...new Set(precos.map(x => x.mes_tabela.slice(0, 7)))].sort();
+      if (meses.length) avisos.push({ nivel: 'info', texto: `Valores da tabela de vendas de ${meses.map(mm => mesAno(mm + '-01')).join(', ')}, vigente na data do contrato.` });
+    }
+    if (faltando.length) avisos.push({ nivel: 'atencao', texto: `Não ${faltando.length === 1 ? 'encontrada' : 'encontradas'} no Sienge: ${faltando.join(', ')}. Vincule à mão.` });
+
+    // O PDF já está na fila; a escritura troca o tipo do anexo.
+    if (r.tipoDocumento === 'ESCRITURA_PERMUTA') setFila(fi => fi.map(f => (f.chave === chave ? { ...f, tipo: 'Escritura' } : f)));
+
+    setIa(new Set(marcados));
+    setImp({
+      fase: 'ok', arquivo: file.name, cache: r.cache, paginas: r.paginas,
+      campos: marcados.length, unidades: achadas.length,
+      avisos: [...avisos, ...r.avisos].sort((a, b) => ORDEM_AVISO[a.nivel] - ORDEM_AVISO[b.nivel]),
+    });
+  };
+
+  const importar = async (file: File | undefined) => {
+    if (!file || !p.lerContrato || lendo) return;
+    if (!/\.pdf$/i.test(file.name) && file.type !== 'application/pdf') { setImp({ fase: 'erro', erro: 'Envie o contrato em PDF.' }); return; }
+    if (file.size > MAX_CONTRATO_IA) {
+      setImp({ fase: 'erro', erro: `O PDF tem ${tamanho(file.size)} e a leitura por IA aceita até ${tamanho(MAX_CONTRATO_IA)}. Comprima o arquivo ou preencha à mão.` });
+      return;
+    }
+    // O contrato entra na fila de documentos na hora (troca o da importação anterior) e é enviado ao salvar.
+    const chave = ++chaveFila.current;
+    const anterior = chaveImportado.current;
+    chaveImportado.current = chave;
+    setFila(fi => [...fi.filter(f => f.chave !== anterior), { file, tipo: 'Contrato', descricao: '', chave }]);
+    setPasso(0);
+    setImp({ fase: 'lendo', arquivo: file });
+    const envio = window.setTimeout(() => setPasso(n => Math.max(n, 1)), 900);
+    try {
+      const r = await p.lerContrato(file);
+      setPasso(n => Math.max(n, PASSOS_IA.length - 2));
+      await aplicarImportacao(r, file, chave);
+    } catch (e: any) {
+      setImp({ fase: 'erro', erro: (e?.message || String(e)) + ' O PDF continua na fila dos documentos.' });
+      setCsA(true);
+    } finally {
+      window.clearTimeout(envio);
+    }
+  };
+
   const salvar = async () => {
     setErro('');
     if (!origem) { setErro('Selecione o negócio (empresa do Sienge).'); return; }
     if (!perm.trim()) { setErro('Informe o nome do permutante.'); return; }
+    const doc = digitos(cpf);
+    if (doc && !cpfCnpjValido(doc)) { setErro('CPF/CNPJ do permutante inválido. Confira os dígitos.'); return; }
     let filaOk = true;
     const nf = fila.map(f => {
       const e = !f.tipo ? 'Escolha do que se trata.' : f.tipo === 'Outro' && !f.descricao.trim() ? 'Em Outro, descreva o documento.' : '';
@@ -185,12 +376,12 @@ export default function PermutaModal(p: PermutaModalProps) {
     const validas = completas.filter(l => c.div !== 0 || proprios.includes(l.enterprise_id as number));
     const unidades: PermutaUnidade[] = validas.map(l => {
       const u = unidadePorId.get(l.unidade_id as number)!;
-      return { enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, unidade_nome: u.unidade, area_privativa: u.area_privativa, valor_unidade: l.valor_unidade };
+      return { enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, unidade_nome: u.unidade, area_privativa: u.area_privativa, valor_unidade: lerNumero(l.valorTxt) };
     });
     const pctNum = lerNumero(pctTxt);
     const dados: PermutaDados = {
       empresa_id: origem.k === 's' ? origem.id : null, negocio_id: origem.k === 'n' ? origem.id : null,
-      permutante: perm.trim(), num_matricula: nmat.trim() || null, data_contrato: dataCt || null,
+      permutante: perm.trim(), cpf_cnpj: doc || null, num_matricula: nmat.trim() || null, data_contrato: dataCt || null,
       area_matricula: lerNumero(mat), coeficiente: lerNumero(coef), pct_permuta: pctNum == null ? null : pctNum / 100,
       area_propria: lerNumero(own), area_informada: lerNumero(inf),
       observacao: obs.trim() || null, pendencia: pend.trim() || null,
@@ -245,16 +436,18 @@ export default function PermutaModal(p: PermutaModalProps) {
     </>
   );
 
+  // A chave da marca "IA" é o id sem o prefixo pm- (pm-mat → mat).
   const campo = (id: string, rot: string, val: string, set: (v: string) => void, ph?: string, dica?: string) => (
     <div className="pm-f">
-      <label className="pm-cap" htmlFor={id}>{rot}</label>
-      <input id={id} className="pm-in" inputMode="decimal" value={val} placeholder={ph} disabled={ro} onChange={e => set(e.target.value)} />
+      <label className="pm-cap" htmlFor={id}>{rot}{tagIa(id.slice(3))}</label>
+      <input id={id} className={clsIa(id.slice(3))} inputMode="decimal" value={val} placeholder={ph} disabled={ro}
+        onChange={e => { set(e.target.value); tirarIa(id.slice(3)); }} />
       {dica ? <span className="pm-hint">{dica}</span> : null}
     </div>
   );
 
   return (
-    <div className="pm-ov" onMouseDown={e => { if (e.target === e.currentTarget && !salvando) p.fechar(); }}>
+    <div className="pm-ov" onMouseDown={e => { if (e.target === e.currentTarget && !salvando && !lendo) p.fechar(); }}>
       <div className="pm-modal" role="dialog" aria-modal="true" aria-labelledby="pm-mt">
         <div className="pm-mh">
           <div className="pm-mic">
@@ -264,7 +457,7 @@ export default function PermutaModal(p: PermutaModalProps) {
             <div className="pm-mt" id="pm-mt">{ed ? 'Editar permutante' : 'Novo permutante'}</div>
             <div className="pm-ms">Área permutada, unidades dadas em troca e documentos.</div>
           </div>
-          <button type="button" className="pm-x" title="Fechar" onClick={p.fechar} disabled={salvando}><IcX /></button>
+          <button type="button" className="pm-x" title="Fechar" onClick={p.fechar} disabled={salvando || lendo}><IcX /></button>
         </div>
         <div className="pm-abas" role="tablist">
           <button type="button" role="tab" aria-selected={aba === 'dados'} className={'pm-seg' + (aba === 'dados' ? ' on' : '')} onClick={() => setAba('dados')}>Dados</button>
@@ -284,6 +477,10 @@ export default function PermutaModal(p: PermutaModalProps) {
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', marginTop: '1px' }}><circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeWidth="1.7" /><path d="M8.5 15.5l7-7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
               <div><b>Cadastro inativo.</b> {ed?.motivo_inativacao ? <>Motivo: {ed.motivo_inativacao}</> : null}<div className="pm-hint">Reative para editar. Inativo, fica fora da Visão Geral e dos Insights.</div></div>
             </div>
+          ) : null}
+          {!ro && p.lerContrato ? (
+            <PainelImportacao modo={modo} setModo={setModo} imp={imp} passo={passo} editando={!!ed}
+              importar={importar} recomecar={() => setImp({ fase: 'ocioso' })} />
           ) : null}
           <div className="pm-sum">
             <div className="pm-sum-id">
@@ -306,40 +503,45 @@ export default function PermutaModal(p: PermutaModalProps) {
 
           <div className="pm-g2">
             <div className="pm-f pm-full">
-              <span className="pm-cap">Negócio (empresa do Sienge) <span className="pm-req">*</span></span>
-              <SeletorNegocio origem={origem} setOrigem={setOrigem} empresas={p.empresas} negocios={p.negocios} disabled={ro} />
+              <span className="pm-cap">Negócio (empresa do Sienge) <span className="pm-req">*</span>{tagIa('origem')}</span>
+              <SeletorNegocio origem={origem} setOrigem={o => { setOrigem(o); tirarIa('origem'); }} ia={ia.has('origem')} empresas={p.empresas} negocios={p.negocios} disabled={ro} />
               {origem?.k === 'n' && !ro ? <span className="pm-hint">Negócio avulso de um cadastro antigo: pode ser mantido, mas novos vínculos só com empresas do Sienge.</span> : null}
             </div>
-            <div className="pm-f pm-full">
-              <label className="pm-cap" htmlFor="pm-perm">Permutante / vendedor <span className="pm-req">*</span></label>
-              <input id="pm-perm" className="pm-in" value={perm} disabled={ro} placeholder="Nome completo" onChange={e => setPerm(e.target.value)} />
+            <div className="pm-f">
+              <label className="pm-cap" htmlFor="pm-perm">Permutante principal <span className="pm-req">*</span>{tagIa('perm')}</label>
+              <input id="pm-perm" className={clsIa('perm')} value={perm} disabled={ro} placeholder="Nome ou razão social" onChange={e => { setPerm(e.target.value); tirarIa('perm'); }} />
             </div>
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-nmat">Nº da matrícula</label>
-              <input id="pm-nmat" className="pm-in" value={nmat} disabled={ro} placeholder="Ex.: 123.456" onChange={e => setNmat(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-cpf">CPF / CNPJ{tagIa('cpf')}</label>
+              <input id="pm-cpf" className={clsIa('cpf')} value={cpf} disabled={ro} inputMode="numeric" placeholder="000.000.000-00" maxLength={18}
+                onChange={e => { setCpf(formatarCpfCnpj(e.target.value)); tirarIa('cpf'); }} />
             </div>
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-dtc">Data do contrato</label>
-              <input id="pm-dtc" type="date" className="pm-in" value={dataCt} disabled={ro} onChange={e => setDataCt(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-nmat">Nº da matrícula{tagIa('nmat')}</label>
+              <input id="pm-nmat" className={clsIa('nmat')} value={nmat} disabled={ro} placeholder="Ex.: 123.456" onChange={e => { setNmat(e.target.value); tirarIa('nmat'); }} />
+            </div>
+            <div className="pm-f">
+              <label className="pm-cap" htmlFor="pm-dtc">Data do contrato{tagIa('dtc')}</label>
+              <input id="pm-dtc" type="date" className={clsIa('dtc')} value={dataCt} disabled={ro} onChange={e => { setDataCt(e.target.value); tirarIa('dtc'); }} />
             </div>
             <div className="pm-f pm-full">
-              <label className="pm-cap" htmlFor="pm-cid">Cidade</label>
-              <input id="pm-cid" className="pm-in" value={cidade} disabled={ro} placeholder="Ex.: Goiânia" onChange={e => setCidade(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-cid">Cidade{tagIa('cid')}</label>
+              <input id="pm-cid" className={clsIa('cid')} value={cidade} disabled={ro} placeholder="Ex.: Goiânia" onChange={e => { setCidade(e.target.value); tirarIa('cid'); }} />
             </div>
           </div>
 
           <div className="pm-g3">
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-iptu">Inscrição IPTU</label>
-              <input id="pm-iptu" className="pm-in" value={iptu} disabled={ro} onChange={e => setIptu(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-iptu">Inscrição IPTU{tagIa('iptu')}</label>
+              <input id="pm-iptu" className={clsIa('iptu')} value={iptu} disabled={ro} onChange={e => { setIptu(e.target.value); tirarIa('iptu'); }} />
             </div>
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-eqt">Inscrição Equatorial</label>
-              <input id="pm-eqt" className="pm-in" value={equatorial} disabled={ro} onChange={e => setEquatorial(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-eqt">Inscrição Equatorial{tagIa('eqt')}</label>
+              <input id="pm-eqt" className={clsIa('eqt')} value={equatorial} disabled={ro} onChange={e => { setEquatorial(e.target.value); tirarIa('eqt'); }} />
             </div>
             <div className="pm-f">
-              <label className="pm-cap" htmlFor="pm-san">Inscrição Saneago/BRK</label>
-              <input id="pm-san" className="pm-in" value={saneago} disabled={ro} onChange={e => setSaneago(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-san">Inscrição Saneago/BRK{tagIa('san')}</label>
+              <input id="pm-san" className={clsIa('san')} value={saneago} disabled={ro} onChange={e => { setSaneago(e.target.value); tirarIa('san'); }} />
             </div>
           </div>
 
@@ -384,7 +586,7 @@ export default function PermutaModal(p: PermutaModalProps) {
                     <div className="pm-u-hd">
                       <span className="pm-cap">Empreendimento</span><span className="pm-cap">Unidade</span>
                       <span className="pm-cap" style={{ textAlign: 'right' }}>Área privativa</span>
-                      <span className="pm-cap">Valor da unidade<span className="pm-tagdef">a definir</span></span><span />
+                      <span className="pm-cap" style={{ textAlign: 'right' }}>Valor da unidade</span><span />
                     </div>
                     {linhas.map((l, i) => {
                       const fora = soProprio && !!l.enterprise_id && !proprios.includes(l.enterprise_id as number);
@@ -408,7 +610,12 @@ export default function PermutaModal(p: PermutaModalProps) {
                               return { value: u.unidade_id, label: u.unidade, sub: u.area_privativa != null ? m2(u.area_privativa) + ' m²' : undefined, nota: tomada ? 'já incluída' : undefined, disabled: tomada };
                             })} />
                           <div className={'pm-ro' + (a == null ? ' vazio' : '')} title="Área privativa da base de unidades">{a == null ? '— m²' : m2(a) + ' m²'}</div>
-                          <div className="pm-money" title="Fonte do valor ainda a definir"><span>R$</span><input className="pm-in" disabled placeholder="a definir" aria-label="Valor da unidade" /></div>
+                          <div className="pm-money" title={l.mes ? `Tabela de vendas de ${mesAno(l.mes)}` : 'Valor da unidade'}>
+                            <span>R$</span>
+                            <input className={'pm-in' + (l.ia ? ' ia' : '')} value={l.valorTxt} disabled={bloq} inputMode="decimal" placeholder="0,00" aria-label="Valor da unidade"
+                              onChange={e => set({ valorTxt: e.target.value, ia: false })}
+                              onBlur={() => { const v = lerNumero(l.valorTxt); if (v != null) set({ valorTxt: fmtValor(v) }); }} />
+                          </div>
                           <span className="pm-u-acs">
                             {/* Inativar/reativar só para unidades já gravadas (têm id). */}
                             {!ro && l.id ? (
@@ -420,6 +627,7 @@ export default function PermutaModal(p: PermutaModalProps) {
                             {ro ? null : <button type="button" className="pm-rm" title="Remover unidade" aria-label="Remover unidade" onClick={() => setLinhas(ls => ls.filter((_, j) => j !== i))}><IcX s={13} /></button>}
                           </span>
                           {fora ? <span className="pm-chip err msg"><i />Fora da regra: será removida ao salvar</span> : null}
+                          {l.ia ? <span className="pm-u-ia msg"><span className="pm-tagia">IA</span>Vinculada pelo contrato · {l.mes ? `valor da tabela de vendas de ${mesAno(l.mes)}` : 'sem tabela de vendas na data do contrato'}</span> : null}
                           {!l.ativo ? <span className="pm-chip err msg" title={l.motivo || undefined}><i />Inativa{l.motivo ? ` · ${l.motivo}` : ''}</span> : null}
                         </div>
                       );
@@ -428,13 +636,13 @@ export default function PermutaModal(p: PermutaModalProps) {
                 ) : <div className="pm-vazio">Nenhuma unidade vinculada.</div>}
                 <div className="pm-u-ft">
                   {ro ? <span /> : (
-                    <button type="button" className="pm-btn sm" onClick={() => setLinhas(ls => [...ls, { enterprise_id: soProprio && proprios.length === 1 ? proprios[0] : '', unidade_id: '', valor_unidade: null, ativo: true, motivo: null }])}>
+                    <button type="button" className="pm-btn sm" onClick={() => setLinhas(ls => [...ls, { enterprise_id: soProprio && proprios.length === 1 ? proprios[0] : '', unidade_id: '', valorTxt: '', ativo: true, motivo: null }])}>
                       <IcPlus />Adicionar unidade
                     </button>
                   )}
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
-                    <span className={'pm-chip ' + tom(somaOwn, c.proprio)}><i />Próprio {m2(somaOwn)} de {m2(c.proprio)} m²</span>
-                    <span className={'pm-chip ' + tom(somaDiv, c.div)}><i />Diversos {m2(somaDiv)} de {c.div == null ? '—' : m2(c.div)} m²</span>
+                    <span className={'pm-chip ' + tom(somaOwn, c.proprio)}><i />Próprio {m2(somaOwn)} de {m2(c.proprio)} m²{excedente(somaOwn, c.proprio)}</span>
+                    <span className={'pm-chip ' + tom(somaDiv, c.div)}><i />Diversos {m2(somaDiv)} de {c.div == null ? '—' : m2(c.div)} m²{excedente(somaDiv, c.div)}</span>
                   </div>
                 </div>
               </div>
@@ -529,8 +737,8 @@ export default function PermutaModal(p: PermutaModalProps) {
 
           <div className="pm-g2">
             <div className="pm-f pm-full">
-              <label className="pm-cap" htmlFor="pm-obs">Observação</label>
-              <textarea id="pm-obs" className="pm-in" value={obs} disabled={ro} onChange={e => setObs(e.target.value)} />
+              <label className="pm-cap" htmlFor="pm-obs">Observação{tagIa('obs')}</label>
+              <textarea id="pm-obs" className={clsIa('obs')} value={obs} disabled={ro} onChange={e => { setObs(e.target.value); tirarIa('obs'); }} />
             </div>
             <div className="pm-f pm-full">
               <label className="pm-cap" htmlFor="pm-pend">Pendência (aparece como alerta)</label>
@@ -571,9 +779,9 @@ export default function PermutaModal(p: PermutaModalProps) {
             )
           ) : null}
           <div className="r">
-            <button type="button" className="pm-btn" onClick={p.fechar} disabled={salvando}>{ro ? 'Fechar' : 'Cancelar'}</button>
+            <button type="button" className="pm-btn" onClick={p.fechar} disabled={salvando || lendo}>{ro ? 'Fechar' : 'Cancelar'}</button>
             {ro || aba !== 'dados' ? null : (
-              <button type="button" className="pm-btn prim" onClick={salvar} disabled={salvando}>
+              <button type="button" className="pm-btn prim" onClick={salvar} disabled={salvando || lendo}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {salvando ? (fila.length ? 'Enviando documentos…' : 'Salvando…') : 'Salvar permutante'}
               </button>
@@ -606,7 +814,7 @@ const IcReativar = () => (
 );
 
 /** Negócio: só empresas do Sienge, com busca. Um negócio avulso antigo aparece como escolhido, mas não na lista. */
-function SeletorNegocio(p: { origem: Origem; setOrigem: (o: Origem) => void; empresas: EmpresaOpcao[]; negocios: Negocio[]; disabled: boolean }) {
+function SeletorNegocio(p: { origem: Origem; setOrigem: (o: Origem) => void; empresas: EmpresaOpcao[]; negocios: Negocio[]; disabled: boolean; ia?: boolean }) {
   const [aberto, setAberto] = useState(false);
   const [q, setQ] = useState('');
   const caixa = useRef<HTMLDivElement>(null);
@@ -626,7 +834,7 @@ function SeletorNegocio(p: { origem: Origem; setOrigem: (o: Origem) => void; emp
 
   return (
     <div className="pm-dd" ref={caixa}>
-      <button type="button" className={'pm-dd-btn' + (aberto ? ' open' : '')} disabled={p.disabled} aria-haspopup="listbox" aria-expanded={aberto}
+      <button type="button" className={'pm-dd-btn' + (aberto ? ' open' : '') + (p.ia ? ' ia' : '')} disabled={p.disabled} aria-haspopup="listbox" aria-expanded={aberto}
         onClick={() => { setAberto(!aberto); setQ(''); }}>
         <span className={'v' + (emp || neg ? '' : ' vazio')}>
           {emp ? <>{emp.nome}{emp.emp ? <span style={{ color: 'var(--text-4)' }}> – {emp.emp}</span> : null}</>

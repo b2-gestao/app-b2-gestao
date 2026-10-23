@@ -9,7 +9,7 @@ const ROTULOS: Record<string, string> = {
   data_contrato: 'Data do contrato', cidade: 'Cidade', area_matricula: 'Área de matrícula', coeficiente: 'Coeficiente',
   pct_permuta: '% permuta', area_propria: 'Próprio empreendimento', area_informada: 'Área de permuta informada',
   observacao: 'Observação', pendencia: 'Pendência', inscricao_iptu: 'Inscrição IPTU', inscricao_equatorial: 'Inscrição Equatorial',
-  inscricao_saneago: 'Inscrição Saneago/BRK', enterprise_id: 'Empreendimento', unidade_nome: 'Unidade',
+  inscricao_saneago: 'Inscrição Saneago/BRK', cpf_cnpj: 'CPF/CNPJ', enterprise_id: 'Empreendimento', unidade_nome: 'Unidade',
   area_privativa: 'Área privativa', valor_unidade: 'Valor da unidade',
 };
 const TITULOS: Record<HistoricoItem['acao'], string> = {

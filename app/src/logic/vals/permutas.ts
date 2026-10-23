@@ -27,7 +27,7 @@ export function permutasVals(this: AppLogic, subItemStyle: string) {
     toast: (m: string) => this.toast(m),
     podeEditar: () => !!atual && this.pode(atual.perm, true),
     empresas: () => (s.dbEmpresas || []).map((e: any) => ({
-      id: e.id, nome: (e.nome_fantasia || e.nome || '').trim(), emp: e.empreendimentos || null,
+      id: e.id, nome: (e.nome_fantasia || e.nome || '').trim(), emp: e.empreendimentos || null, cnpj: e.cnpj || null,
     })),
     ir: (p: PaginaPermutas) => ir(p),
   };

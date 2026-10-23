@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import {
   permutasApi,
-  type AnexoNovo, type EmpreendimentoFicha, type HistoricoItem, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
+  type AnexoNovo, type EmpreendimentoFicha, type HistoricoItem, type ImportacaoContrato, type PrecoUnidade, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
   type PermutaUnidade, type UnidadeCatalogo, type UnidadeDireta,
 } from '../../lib/permutas';
 
@@ -99,6 +99,15 @@ export const permutasStore = {
   async link(a: PermutaAnexo): Promise<string | null> {
     if (!live || !a.storage_path) return null;
     return permutasApi.link(a);
+  },
+  /** Importar do contrato: precisa do Supabase (a leitura é feita na edge function app-permutas). */
+  async lerContrato(f: File): Promise<ImportacaoContrato> {
+    if (!live) throw new Error('No modo demonstração a leitura do contrato por IA não está disponível.');
+    return permutasApi.lerContrato(f);
+  },
+  /** Preço das unidades na tabela de vendas do mês do contrato (modo demonstração: sem preços). */
+  async precos(itens: { enterprise_id: number; unidade: string }[], data: string | null): Promise<PrecoUnidade[]> {
+    return live ? permutasApi.precos(itens, data) : [];
   },
 
   // ---------- Visão Geral ----------

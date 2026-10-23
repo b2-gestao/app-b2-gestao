@@ -37,7 +37,10 @@ export interface PermutaAnexo {
 export interface Permuta {
   id: string;
   empresa_id: number | null; negocio_id: string | null;
-  permutante: string; num_matricula: string | null;
+  permutante: string;
+  /** CPF/CNPJ do permutante principal, só dígitos. */
+  cpf_cnpj: string | null;
+  num_matricula: string | null;
   area_matricula: number | null; coeficiente: number | null;
   /** Fração: 0,12 = 12%. */
   pct_permuta: number | null;
@@ -71,6 +74,61 @@ export const soAtivas = (l: Permuta[]): Permuta[] =>
   l.filter(p => p.ativo !== false).map(p => (p.unidades.every(u => u.ativo !== false) ? p : { ...p, unidades: p.unidades.filter(u => u.ativo !== false) }));
 /** Arquivo escolhido na modal, enviado ao salvar. */
 export interface AnexoNovo { file: File; tipo: TipoAnexo | ''; descricao: string }
+
+// ---------- importar do contrato (edge function app-permutas) ----------
+/** Limite da leitura por IA (o anexo em si aceita até 50 MB). */
+export const MAX_CONTRATO_IA = 15 * 1024 * 1024;
+export type NivelAviso = 'ok' | 'atencao' | 'info';
+export interface AvisoImportacao { nivel: NivelAviso; texto: string }
+/** Unidade principal citada no contrato (vagas e escaninhos vão na observação). */
+export interface UnidadeContrato { empreendimento: string; cnpj: string | null; unidade: string; area_m2: number | null; extras: string | null }
+/** Preenchimento sugerido a partir do contrato; pct_permuta em pontos percentuais (12 = 12%). */
+export interface SugestaoContrato {
+  permutante: string | null; cpf_cnpj: string | null; num_matricula: string | null; area_matricula: number | null; coeficiente: number | null;
+  pct_permuta: number | null; area_propria: number | null; area_informada: number | null; data_contrato: string | null;
+  cidade: string | null; inscricao_iptu: string | null; inscricao_equatorial: string | null; inscricao_saneago: string | null;
+  observacao: string | null;
+  empresa: { cnpj: string | null; nome: string | null };
+  matriculas: string[];
+  unidades: UnidadeContrato[];
+}
+export interface ImportacaoContrato {
+  tipoDocumento: 'COMPROMISSO_PERMUTA' | 'ESCRITURA_PERMUTA' | 'OUTRO';
+  sugestao: SugestaoContrato; avisos: AvisoImportacao[]; modelo: string; cache: boolean;
+  /** "14 de 79" quando só o corpo do contrato foi lido; null no PDF escaneado ou no cache. */
+  paginas: string | null;
+}
+/** Preço da unidade na tabela de vendas do mês do contrato (ou a mais próxima). */
+export interface PrecoUnidade { enterprise_id: number; unidade: string; preco: number; mes_tabela: string }
+const paraBase64 = (f: File) => new Promise<string>((ok, falha) => {
+  const r = new FileReader();
+  r.onload = () => ok(String(r.result).replace(/^data:[^,]*,/, ''));
+  r.onerror = () => falha(new Error('Não foi possível ler o arquivo.'));
+  r.readAsDataURL(f);
+});
+/** Só os dígitos, para comparar CNPJ e matrículas escritos de jeitos diferentes. */
+export const digitos = (s: string | null | undefined) => String(s ?? '').replace(/\D/g, '');
+/** Máscara de CPF (até 11 dígitos) ou CNPJ (12 a 14) enquanto se digita. */
+export function formatarCpfCnpj(v: string | null | undefined): string {
+  const d = digitos(v).slice(0, 14);
+  if (d.length <= 11) return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
+  return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+/** Dígitos verificadores de CPF (11 dígitos) ou CNPJ (14). */
+export function cpfCnpjValido(v: string): boolean {
+  const d = digitos(v);
+  if (d.length === 11) {
+    if (/^(\d)\1{10}$/.test(d)) return false;
+    const dv = (n: number) => { let s = 0; for (let i = 0; i < n; i++) s += Number(d[i]) * (n + 1 - i); const r = (s * 10) % 11; return r === 10 ? 0 : r; };
+    return dv(9) === Number(d[9]) && dv(10) === Number(d[10]);
+  }
+  if (d.length === 14) {
+    if (/^(\d)\1{13}$/.test(d)) return false;
+    const dv = (b: string) => { let s = 0, w = b.length - 7; for (const c of b) { s += Number(c) * w--; if (w < 2) w = 9; } const r = s % 11; return r < 2 ? 0 : 11 - r; };
+    return dv(d.slice(0, 12)) === Number(d[12]) && dv(d.slice(0, 13)) === Number(d[13]);
+  }
+  return false;
+}
 
 // ---------- regras de cálculo (as mesmas do Painel de Permutas) ----------
 export interface Calculo { aprov: number | null; area: number | null; proprio: number; div: number | null; fonte: 'calc' | 'informada' }
@@ -121,7 +179,7 @@ const uuid = () => (crypto as any).randomUUID ? crypto.randomUUID() : 'xxxxxxxx-
   const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
 });
 
-const SEL = 'id, empresa_id, negocio_id, permutante, num_matricula, area_matricula, coeficiente, pct_permuta, area_propria, area_informada, observacao, pendencia, data_contrato, '
+const SEL = 'id, empresa_id, negocio_id, permutante, cpf_cnpj, num_matricula, area_matricula, coeficiente, pct_permuta, area_propria, area_informada, observacao, pendencia, data_contrato, '
   + 'cidade, inscricao_iptu, inscricao_equatorial, inscricao_saneago, ativo, motivo_inativacao, '
   + 'unidades:app_permuta_unidades(id, enterprise_id, unidade_id, unidade_nome, area_privativa, valor_unidade, ordem, ativo, motivo_inativacao), '
   + 'anexos:app_permuta_anexos(id, tipo, descricao, nome, mime, tamanho, storage_path, adicionado_em)';
@@ -246,6 +304,26 @@ export const permutasApi = {
   async excluir(p: Permuta): Promise<void> {
     erro((await sb().from('app_permutas').delete().eq('id', p.id)).error);
     if (p.anexos.length) await sb().storage.from(BUCKET).remove(p.anexos.map(a => a.storage_path));
+  },
+
+  /** Lê o contrato com IA e devolve a sugestão de preenchimento. Nada é gravado. */
+  async lerContrato(file: File): Promise<ImportacaoContrato> {
+    const pdfBase64 = await paraBase64(file);
+    const { data, error } = await sb().functions.invoke('app-permutas', { body: { acao: 'ler_contrato', pdfBase64, nomeArquivo: file.name } });
+    if (error) {
+      const b = await (error as any).context?.json?.().catch(() => null);
+      throw new Error(b?.error || error.message);
+    }
+    return data as ImportacaoContrato;
+  },
+  /** Preços da tabela de vendas no mês do contrato (unidades sem preço não voltam). */
+  async precos(itens: { enterprise_id: number; unidade: string }[], data: string | null): Promise<PrecoUnidade[]> {
+    if (!itens.length) return [];
+    const { data: linhas, error } = await sb().rpc('app_permutas_precos', {
+      p_enterprise: itens.map(i => i.enterprise_id), p_unidade: itens.map(i => i.unidade), p_data: data,
+    });
+    erro(error);
+    return ((linhas || []) as any[]).map(l => ({ ...l, preco: Number(l.preco) }));
   },
 
   /** Link temporário (2 min) para baixar o anexo. */
