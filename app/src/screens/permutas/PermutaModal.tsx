@@ -1,17 +1,23 @@
 // Permutas › Cadastro: modal "Novo permutante" / "Editar permutante".
 // Resumo fixo no topo (quem é, área total e como ela se divide), cálculo em forma de equação
 // (o que se digita × o que é calculado) e unidades e documentos em seções recolhíveis.
+// Aba Histórico: alterações do cadastro e das unidades. Inativar/reativar (cadastro ou unidade) pede motivo.
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SeletorBusca } from './busca';
+import { HistoricoPermuta } from './historico';
+import { ModalMotivo } from './motivo';
 import {
   calcular, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, TIPOS_ANEXO,
-  type AnexoNovo, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
+  type AnexoNovo, type HistoricoItem, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados, type PermutaUnidade, type TipoAnexo, type UnidadeCatalogo,
 } from '../../lib/permutas';
 
 export interface EmpresaOpcao { id: number; nome: string; emp: string | null }
+/** Origem: empresa do Sienge ('s'); 'n' só nos cadastros antigos ligados a um negócio avulso. */
 type Origem = { k: 's'; id: number } | { k: 'n'; id: string } | null;
-type Linha = { enterprise_id: number | ''; unidade_id: number | ''; valor_unidade: number | null };
+type Linha = { id?: string; enterprise_id: number | ''; unidade_id: number | ''; valor_unidade: number | null; ativo: boolean; motivo: string | null };
 type Fila = AnexoNovo & { chave: number; erro?: string };
+/** Pedido de motivo em aberto: inativar/reativar o cadastro ou a unidade da linha i. */
+type PedidoMotivo = { alvo: 'permuta'; ativo: boolean } | { alvo: 'unidade'; ativo: boolean; i: number };
 
 export interface PermutaModalProps {
   permuta: Permuta | null;
@@ -20,11 +26,12 @@ export interface PermutaModalProps {
   catalogo: UnidadeCatalogo[];
   podeEditar: boolean;
   toast: (m: string) => void;
-  criarNegocio: (nome: string) => Promise<Negocio>;
-  renomearNegocio: (id: string, nome: string) => Promise<void>;
   salvar: (id: string | null, dados: PermutaDados, unidades: PermutaUnidade[], novos: AnexoNovo[], removidos: PermutaAnexo[]) => Promise<void>;
   excluir: (p: Permuta) => Promise<void>;
   baixar: (a: PermutaAnexo) => Promise<void>;
+  definirStatus: (id: string, ativo: boolean, motivo: string) => Promise<void>;
+  definirStatusUnidade: (id: string, ativo: boolean, motivo: string) => Promise<void>;
+  historico: (id: string) => Promise<HistoricoItem[]>;
   fechar: () => void;
 }
 
@@ -76,7 +83,9 @@ function useTween(alvo: number | null) {
 
 export default function PermutaModal(p: PermutaModalProps) {
   const ed = p.permuta;
-  const ro = !p.podeEditar;
+  const inativo = !!ed && !ed.ativo;
+  // Cadastro inativo fica só para leitura até ser reativado.
+  const ro = !p.podeEditar || inativo;
   const [origem, setOrigem] = useState<Origem>(ed ? (ed.empresa_id != null ? { k: 's', id: ed.empresa_id } : { k: 'n', id: ed.negocio_id! }) : null);
   const [perm, setPerm] = useState(ed?.permutante || '');
   const [nmat, setNmat] = useState(ed?.num_matricula || '');
@@ -88,7 +97,16 @@ export default function PermutaModal(p: PermutaModalProps) {
   const [inf, setInf] = useState(paraCampo(ed?.area_informada));
   const [obs, setObs] = useState(ed?.observacao || '');
   const [pend, setPend] = useState(ed?.pendencia || '');
-  const [linhas, setLinhas] = useState<Linha[]>((ed?.unidades || []).map(u => ({ enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, valor_unidade: u.valor_unidade })));
+  const [cidade, setCidade] = useState(ed?.cidade || '');
+  const [iptu, setIptu] = useState(ed?.inscricao_iptu || '');
+  const [equatorial, setEquatorial] = useState(ed?.inscricao_equatorial || '');
+  const [saneago, setSaneago] = useState(ed?.inscricao_saneago || '');
+  const [linhas, setLinhas] = useState<Linha[]>((ed?.unidades || []).map(u => ({
+    id: u.id, enterprise_id: u.enterprise_id, unidade_id: u.unidade_id, valor_unidade: u.valor_unidade, ativo: u.ativo !== false, motivo: u.motivo_inativacao ?? null,
+  })));
+  const [aba, setAba] = useState<'dados' | 'historico'>('dados');
+  const [pedido, setPedido] = useState<PedidoMotivo | null>(null);
+  const [versaoHist, setVersaoHist] = useState(0);
   const [removidos, setRemovidos] = useState<string[]>([]);
   const [fila, setFila] = useState<Fila[]>([]);
   const [csU, setCsU] = useState(!ed);
@@ -101,10 +119,11 @@ export default function PermutaModal(p: PermutaModalProps) {
   const chaveFila = useRef(0);
 
   useEffect(() => {
-    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !salvando) p.fechar(); };
+    // Com a modal de motivo aberta, o Esc é dela.
+    const esc = (e: KeyboardEvent) => { if (e.key === 'Escape' && !salvando && !pedido) p.fechar(); };
     window.addEventListener('keydown', esc);
     return () => window.removeEventListener('keydown', esc);
-  }, [salvando]);
+  }, [salvando, pedido]);
 
   const c = calcular({ area_matricula: lerNumero(mat), coeficiente: lerNumero(coef), pct_permuta: (v => (v == null ? null : v / 100))(lerNumero(pctTxt)), area_propria: lerNumero(own), area_informada: lerNumero(inf) });
   const areaAnim = useTween(c.area);
@@ -128,8 +147,10 @@ export default function PermutaModal(p: PermutaModalProps) {
   const usadas = new Set(linhas.map(l => l.unidade_id).filter(Boolean));
   const areaDe = (l: Linha) => (l.unidade_id ? unidadePorId.get(l.unidade_id)?.area_privativa ?? null : null);
   const completas = linhas.filter(l => l.enterprise_id && l.unidade_id);
-  const somaOwn = completas.filter(l => proprios.includes(l.enterprise_id as number)).reduce((s, l) => s + (areaDe(l) || 0), 0);
-  const somaDiv = completas.filter(l => !proprios.includes(l.enterprise_id as number)).reduce((s, l) => s + (areaDe(l) || 0), 0);
+  // Unidades inativas ficam no cadastro, mas fora das somas.
+  const ativas = completas.filter(l => l.ativo);
+  const somaOwn = ativas.filter(l => proprios.includes(l.enterprise_id as number)).reduce((s, l) => s + (areaDe(l) || 0), 0);
+  const somaDiv = ativas.filter(l => !proprios.includes(l.enterprise_id as number)).reduce((s, l) => s + (areaDe(l) || 0), 0);
   const tom = (x: number, alvo: number | null) => (alvo == null ? 'info' : Math.abs(x - alvo) < 0.01 ? 'ok' : x > alvo ? 'err' : 'warn');
 
   const empresa = origem?.k === 's' ? p.empresas.find(e => e.id === origem.id) : null;
@@ -150,7 +171,7 @@ export default function PermutaModal(p: PermutaModalProps) {
 
   const salvar = async () => {
     setErro('');
-    if (!origem) { setErro('Selecione a área / empreendimento.'); return; }
+    if (!origem) { setErro('Selecione o negócio (empresa do Sienge).'); return; }
     if (!perm.trim()) { setErro('Informe o nome do permutante.'); return; }
     let filaOk = true;
     const nf = fila.map(f => {
@@ -173,6 +194,8 @@ export default function PermutaModal(p: PermutaModalProps) {
       area_matricula: lerNumero(mat), coeficiente: lerNumero(coef), pct_permuta: pctNum == null ? null : pctNum / 100,
       area_propria: lerNumero(own), area_informada: lerNumero(inf),
       observacao: obs.trim() || null, pendencia: pend.trim() || null,
+      cidade: cidade.trim() || null,
+      inscricao_iptu: iptu.trim() || null, inscricao_equatorial: equatorial.trim() || null, inscricao_saneago: saneago.trim() || null,
     };
     setSalvando(true);
     try {
@@ -185,6 +208,29 @@ export default function PermutaModal(p: PermutaModalProps) {
     } finally {
       setSalvando(false);
     }
+  };
+
+  /** Inativa/reativa já no banco (não depende de "Salvar"); o histórico recarrega em seguida. */
+  const confirmarMotivo = async (motivo: string) => {
+    if (!pedido || !ed) return;
+    if (pedido.alvo === 'permuta') {
+      await p.definirStatus(ed.id, pedido.ativo, motivo);
+      p.toast(pedido.ativo ? 'Cadastro reativado' : 'Cadastro inativado');
+    } else {
+      const l = linhas[pedido.i];
+      if (!l?.id) { setPedido(null); return; }
+      await p.definirStatusUnidade(l.id, pedido.ativo, motivo);
+      const ativo = pedido.ativo;
+      setLinhas(ls => ls.map(x => (x.id === l.id ? { ...x, ativo, motivo: ativo ? null : motivo.trim() } : x)));
+      p.toast(ativo ? 'Unidade reativada' : 'Unidade inativada');
+    }
+    setPedido(null);
+    setVersaoHist(v => v + 1);
+  };
+  const linhaPedido = pedido?.alvo === 'unidade' ? linhas[pedido.i] : null;
+  const nomeLinha = (l: Linha | null) => {
+    const u = l?.unidade_id ? unidadePorId.get(l.unidade_id) : null;
+    return u ? `${nomeEmpreendimento(u)} · ${u.unidade}` : 'a unidade';
   };
 
   const nomeIni = iniciais(perm);
@@ -220,15 +266,33 @@ export default function PermutaModal(p: PermutaModalProps) {
           </div>
           <button type="button" className="pm-x" title="Fechar" onClick={p.fechar} disabled={salvando}><IcX /></button>
         </div>
+        <div className="pm-abas" role="tablist">
+          <button type="button" role="tab" aria-selected={aba === 'dados'} className={'pm-seg' + (aba === 'dados' ? ' on' : '')} onClick={() => setAba('dados')}>Dados</button>
+          <button type="button" role="tab" aria-selected={aba === 'historico'} className={'pm-seg' + (aba === 'historico' ? ' on' : '')} onClick={() => setAba('historico')}>Histórico</button>
+          {inativo ? <span className="pm-chip err" style={{ marginLeft: 'auto' }}><i />Inativo</span> : null}
+        </div>
 
+        {aba === 'historico' ? (
+          <div className="pm-mb">
+            <HistoricoPermuta permutaId={ed?.id || null} versao={versaoHist} carregar={p.historico}
+              empresas={p.empresas} negocios={p.negocios} catalogo={p.catalogo} />
+          </div>
+        ) : (
         <div className="pm-mb">
+          {inativo ? (
+            <div className="pm-inativo">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" style={{ flex: 'none', marginTop: '1px' }}><circle cx="12" cy="12" r="8.6" stroke="currentColor" strokeWidth="1.7" /><path d="M8.5 15.5l7-7" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+              <div><b>Cadastro inativo.</b> {ed?.motivo_inativacao ? <>Motivo: {ed.motivo_inativacao}</> : null}<div className="pm-hint">Reative para editar. Inativo, fica fora da Visão Geral e dos Insights.</div></div>
+            </div>
+          ) : null}
           <div className="pm-sum">
             <div className="pm-sum-id">
               <div key={nomeIni} className={'pm-mono' + (nomeIni ? '' : ' vazio')}>{nomeIni || '—'}</div>
               <div style={{ minWidth: 0 }}>
                 <div className={'pm-sum-n pm-ell' + (perm.trim() ? '' : ' vazio')}>{perm.trim() || 'Nome do permutante'}</div>
                 <div className="pm-sum-o pm-ell">
-                  {origemNome ? `${origemNome} · ${origem?.k === 's' ? 'Sienge ' + origem.id : 'Negócio'}` : 'Área / empreendimento'}
+                  {origemNome ? `${origemNome} · ${origem?.k === 's' ? 'Sienge ' + origem.id : 'Negócio'}` : 'Negócio'}
+                  {cidade.trim() ? ` · ${cidade.trim()}` : ''}
                   {nmat.trim() ? ` · Matr. ${nmat.trim()}` : ''}
                 </div>
               </div>
@@ -242,9 +306,9 @@ export default function PermutaModal(p: PermutaModalProps) {
 
           <div className="pm-g2">
             <div className="pm-f pm-full">
-              <span className="pm-cap">Nome da área / empreendimento <span className="pm-req">*</span></span>
-              <SeletorOrigem origem={origem} setOrigem={setOrigem} empresas={p.empresas} negocios={p.negocios} disabled={ro}
-                criarNegocio={p.criarNegocio} renomearNegocio={p.renomearNegocio} toast={p.toast} />
+              <span className="pm-cap">Negócio (empresa do Sienge) <span className="pm-req">*</span></span>
+              <SeletorNegocio origem={origem} setOrigem={setOrigem} empresas={p.empresas} negocios={p.negocios} disabled={ro} />
+              {origem?.k === 'n' && !ro ? <span className="pm-hint">Negócio avulso de um cadastro antigo: pode ser mantido, mas novos vínculos só com empresas do Sienge.</span> : null}
             </div>
             <div className="pm-f pm-full">
               <label className="pm-cap" htmlFor="pm-perm">Permutante / vendedor <span className="pm-req">*</span></label>
@@ -257,6 +321,25 @@ export default function PermutaModal(p: PermutaModalProps) {
             <div className="pm-f">
               <label className="pm-cap" htmlFor="pm-dtc">Data do contrato</label>
               <input id="pm-dtc" type="date" className="pm-in" value={dataCt} disabled={ro} onChange={e => setDataCt(e.target.value)} />
+            </div>
+            <div className="pm-f pm-full">
+              <label className="pm-cap" htmlFor="pm-cid">Cidade</label>
+              <input id="pm-cid" className="pm-in" value={cidade} disabled={ro} placeholder="Ex.: Goiânia" onChange={e => setCidade(e.target.value)} />
+            </div>
+          </div>
+
+          <div className="pm-g3">
+            <div className="pm-f">
+              <label className="pm-cap" htmlFor="pm-iptu">Inscrição IPTU</label>
+              <input id="pm-iptu" className="pm-in" value={iptu} disabled={ro} onChange={e => setIptu(e.target.value)} />
+            </div>
+            <div className="pm-f">
+              <label className="pm-cap" htmlFor="pm-eqt">Inscrição Equatorial</label>
+              <input id="pm-eqt" className="pm-in" value={equatorial} disabled={ro} onChange={e => setEquatorial(e.target.value)} />
+            </div>
+            <div className="pm-f">
+              <label className="pm-cap" htmlFor="pm-san">Inscrição Saneago/BRK</label>
+              <input id="pm-san" className="pm-in" value={saneago} disabled={ro} onChange={e => setSaneago(e.target.value)} />
             </div>
           </div>
 
@@ -285,8 +368,8 @@ export default function PermutaModal(p: PermutaModalProps) {
           <div className={'pm-cs' + (csU ? ' open' : '')}>
             <button type="button" className="pm-cs-h" aria-expanded={csU} onClick={() => setCsU(!csU)}>
               <span className="t">Unidades / empreendimentos</span>
-              <span className="n">{completas.length}</span>
-              <span className="s">{completas.length ? `Próprio ${m2(somaOwn)} de ${m2(c.proprio)} m² · Diversos ${m2(somaDiv)} de ${c.div == null ? '—' : m2(c.div)} m²` : 'Nenhuma unidade vinculada'}</span>
+              <span className="n">{ativas.length}</span>
+              <span className="s">{completas.length ? `${completas.length > ativas.length ? `${completas.length - ativas.length} inativa(s) · ` : ''}Próprio ${m2(somaOwn)} de ${m2(c.proprio)} m² · Diversos ${m2(somaDiv)} de ${c.div == null ? '—' : m2(c.div)} m²` : 'Nenhuma unidade vinculada'}</span>
               <Chev />
             </button>
             {csU ? (
@@ -309,22 +392,35 @@ export default function PermutaModal(p: PermutaModalProps) {
                       const opts = l.enterprise_id && !empOpcoes.some(([id]) => id === l.enterprise_id) && emp ? [[l.enterprise_id, emp] as const, ...empOpcoes] : empOpcoes;
                       const a = areaDe(l);
                       const set = (patch: Partial<Linha>) => setLinhas(ls => ls.map((x, j) => (j === i ? { ...x, ...patch } : x)));
+                      // Unidade inativa: só leitura; sai das somas, mas continua vinculada.
+                      // Trocar empreendimento/unidade solta o id: vira outra unidade (inativar só depois de salvar).
+                      const bloq = ro || !l.ativo;
                       return (
-                        <div key={i} className={'pm-u-r' + (fora ? ' fora' : '')}>
-                          <SeletorBusca ariaLabel="Empreendimento" value={l.enterprise_id} disabled={ro} placeholder="Buscar empreendimento…"
-                            onChange={id => set({ enterprise_id: id, unidade_id: '' })}
+                        <div key={l.id || i} className={'pm-u-r' + (fora ? ' fora' : '') + (l.ativo ? '' : ' inativa')}>
+                          <SeletorBusca ariaLabel="Empreendimento" value={l.enterprise_id} disabled={bloq} placeholder="Buscar empreendimento…"
+                            onChange={id => set({ id: undefined, enterprise_id: id, unidade_id: '' })}
                             opcoes={opts.map(([id, e]) => ({ value: id, label: e.nome, sub: String(id), nota: proprios.includes(id) ? 'próprio' : undefined }))} />
-                          <SeletorBusca ariaLabel="Unidade" value={l.unidade_id} disabled={ro || !l.enterprise_id} buscaNoDetalhe={false}
+                          <SeletorBusca ariaLabel="Unidade" value={l.unidade_id} disabled={bloq || !l.enterprise_id} buscaNoDetalhe={false}
                             placeholder={l.enterprise_id ? 'Buscar unidade…' : '—'} vazio="Nenhuma unidade com esse nome."
-                            onChange={id => set({ unidade_id: id })}
+                            onChange={id => set({ id: undefined, unidade_id: id })}
                             opcoes={[...(emp?.unidades || [])].sort((x, y) => x.unidade.localeCompare(y.unidade, 'pt-BR', { numeric: true })).map(u => {
                               const tomada = usadas.has(u.unidade_id) && u.unidade_id !== l.unidade_id;
                               return { value: u.unidade_id, label: u.unidade, sub: u.area_privativa != null ? m2(u.area_privativa) + ' m²' : undefined, nota: tomada ? 'já incluída' : undefined, disabled: tomada };
                             })} />
                           <div className={'pm-ro' + (a == null ? ' vazio' : '')} title="Área privativa da base de unidades">{a == null ? '— m²' : m2(a) + ' m²'}</div>
                           <div className="pm-money" title="Fonte do valor ainda a definir"><span>R$</span><input className="pm-in" disabled placeholder="a definir" aria-label="Valor da unidade" /></div>
-                          {ro ? <span /> : <button type="button" className="pm-rm" aria-label="Remover unidade" onClick={() => setLinhas(ls => ls.filter((_, j) => j !== i))}><IcX s={13} /></button>}
+                          <span className="pm-u-acs">
+                            {/* Inativar/reativar só para unidades já gravadas (têm id). */}
+                            {!ro && l.id ? (
+                              <button type="button" className={'pm-rm' + (l.ativo ? '' : ' on')} title={l.ativo ? 'Inativar unidade' : 'Reativar unidade'}
+                                aria-label={l.ativo ? 'Inativar unidade' : 'Reativar unidade'} onClick={() => setPedido({ alvo: 'unidade', ativo: !l.ativo, i })}>
+                                {l.ativo ? <IcInativar /> : <IcReativar />}
+                              </button>
+                            ) : null}
+                            {ro ? null : <button type="button" className="pm-rm" title="Remover unidade" aria-label="Remover unidade" onClick={() => setLinhas(ls => ls.filter((_, j) => j !== i))}><IcX s={13} /></button>}
+                          </span>
                           {fora ? <span className="pm-chip err msg"><i />Fora da regra: será removida ao salvar</span> : null}
+                          {!l.ativo ? <span className="pm-chip err msg" title={l.motivo || undefined}><i />Inativa{l.motivo ? ` · ${l.motivo}` : ''}</span> : null}
                         </div>
                       );
                     })}
@@ -332,7 +428,7 @@ export default function PermutaModal(p: PermutaModalProps) {
                 ) : <div className="pm-vazio">Nenhuma unidade vinculada.</div>}
                 <div className="pm-u-ft">
                   {ro ? <span /> : (
-                    <button type="button" className="pm-btn sm" onClick={() => setLinhas(ls => [...ls, { enterprise_id: soProprio && proprios.length === 1 ? proprios[0] : '', unidade_id: '', valor_unidade: null }])}>
+                    <button type="button" className="pm-btn sm" onClick={() => setLinhas(ls => [...ls, { enterprise_id: soProprio && proprios.length === 1 ? proprios[0] : '', unidade_id: '', valor_unidade: null, ativo: true, motivo: null }])}>
                       <IcPlus />Adicionar unidade
                     </button>
                   )}
@@ -449,8 +545,15 @@ export default function PermutaModal(p: PermutaModalProps) {
             </div>
           ) : null}
         </div>
+        )}
 
         <div className="pm-mf">
+          {ed && p.podeEditar ? (
+            <button type="button" className={'pm-btn' + (inativo ? '' : ' danger')} disabled={salvando} onClick={() => setPedido({ alvo: 'permuta', ativo: inativo })}>
+              {inativo ? <IcReativar /> : <IcInativar />}
+              {inativo ? 'Reativar' : 'Inativar'}
+            </button>
+          ) : null}
           {ed && !ro ? (
             confirmaExcluir ? (
               <span className="pm-confirm">Excluir {ed.permutante} e os documentos?
@@ -469,7 +572,7 @@ export default function PermutaModal(p: PermutaModalProps) {
           ) : null}
           <div className="r">
             <button type="button" className="pm-btn" onClick={p.fechar} disabled={salvando}>{ro ? 'Fechar' : 'Cancelar'}</button>
-            {ro ? null : (
+            {ro || aba !== 'dados' ? null : (
               <button type="button" className="pm-btn prim" onClick={salvar} disabled={salvando}>
                 <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><path d="M5 12.5l4.5 4.5L19 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>
                 {salvando ? (fila.length ? 'Enviando documentos…' : 'Salvando…') : 'Salvar permutante'}
@@ -478,120 +581,74 @@ export default function PermutaModal(p: PermutaModalProps) {
           </div>
         </div>
       </div>
+
+      {pedido ? (
+        <ModalMotivo
+          titulo={`${pedido.ativo ? 'Reativar' : 'Inativar'} ${pedido.alvo === 'permuta' ? 'cadastro' : 'unidade'}`}
+          descricao={pedido.alvo === 'permuta'
+            ? <>{pedido.ativo ? 'Reativa' : 'Inativa'} o cadastro de <b>{ed?.permutante}</b>.{pedido.ativo ? '' : ' Ele deixa de contar na Visão Geral e nos Insights e fica só para leitura.'}</>
+            : <>{pedido.ativo ? 'Reativa' : 'Inativa'} <b>{nomeLinha(linhaPedido)}</b>.{pedido.ativo ? '' : ' Ela continua vinculada, mas sai das somas e das outras telas.'}</>}
+          confirmar={pedido.ativo ? 'Reativar' : 'Inativar'}
+          perigo={!pedido.ativo}
+          onConfirmar={confirmarMotivo}
+          fechar={() => setPedido(null)}
+        />
+      ) : null}
     </div>
   );
 }
 
-/** Empresas do Sienge + negocios_permuta, com busca, "Cadastrar novo" e renomear com dois cliques. */
-function SeletorOrigem(p: {
-  origem: Origem; setOrigem: (o: Origem) => void; empresas: EmpresaOpcao[]; negocios: Negocio[]; disabled: boolean;
-  criarNegocio: (nome: string) => Promise<Negocio>; renomearNegocio: (id: string, nome: string) => Promise<void>; toast: (m: string) => void;
-}) {
+const IcInativar = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="8" stroke="currentColor" strokeWidth="1.7" /><path d="M6.5 17.5l11-11" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" /></svg>
+);
+const IcReativar = () => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M4.5 12a7.5 7.5 0 1 0 2.2-5.3M4.5 4.5v3.8h3.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" /></svg>
+);
+
+/** Negócio: só empresas do Sienge, com busca. Um negócio avulso antigo aparece como escolhido, mas não na lista. */
+function SeletorNegocio(p: { origem: Origem; setOrigem: (o: Origem) => void; empresas: EmpresaOpcao[]; negocios: Negocio[]; disabled: boolean }) {
   const [aberto, setAberto] = useState(false);
   const [q, setQ] = useState('');
-  const [criando, setCriando] = useState(false);
-  const [novo, setNovo] = useState('');
-  const [editando, setEditando] = useState<string | null>(null);
-  const [nomeEd, setNomeEd] = useState('');
-  const [ocupado, setOcupado] = useState(false);
   const caixa = useRef<HTMLDivElement>(null);
-  const clique = useRef<number>(0);
 
   useEffect(() => {
     if (!aberto) return;
-    const fora = (e: MouseEvent) => { if (!caixa.current?.contains(e.target as Node)) { setAberto(false); setCriando(false); setEditando(null); } };
+    const fora = (e: MouseEvent) => { if (!caixa.current?.contains(e.target as Node)) setAberto(false); };
     document.addEventListener('mousedown', fora);
     return () => document.removeEventListener('mousedown', fora);
   }, [aberto]);
 
   const termo = semAcento(q.trim());
-  const bate = (t: string) => !termo || semAcento(t).includes(termo);
-  const es = p.empresas.filter(e => bate(`${e.nome} ${e.emp || ''} ${e.id}`));
-  const ns = p.negocios.filter(n => bate(n.nome));
+  const es = p.empresas.filter(e => !termo || semAcento(`${e.nome} ${e.emp || ''} ${e.id}`).includes(termo));
   const emp = p.origem?.k === 's' ? p.empresas.find(e => e.id === (p.origem as any).id) : null;
   const neg = p.origem?.k === 'n' ? p.negocios.find(n => n.id === (p.origem as any).id) : null;
-
-  const escolher = (o: Origem) => { p.setOrigem(o); setAberto(false); setQ(''); };
-  const criar = async () => {
-    const n = novo.trim();
-    if (!n) { p.toast('Digite o nome do negócio.'); return; }
-    if ([...p.negocios.map(x => x.nome), ...p.empresas.map(x => x.nome)].some(x => x.toLowerCase() === n.toLowerCase())) { p.toast('Já existe um item com esse nome.'); return; }
-    setOcupado(true);
-    try { const r = await p.criarNegocio(n); escolher({ k: 'n', id: r.id }); setCriando(false); setNovo(''); p.toast(`“${n}” cadastrado em negócios de permuta`); }
-    catch (e: any) { p.toast(e?.message || String(e)); }
-    finally { setOcupado(false); }
-  };
-  const renomear = async () => {
-    const n = nomeEd.trim();
-    if (!n || !editando) { p.toast('O nome não pode ficar vazio.'); return; }
-    setOcupado(true);
-    try { await p.renomearNegocio(editando, n); setEditando(null); p.toast('Nome do negócio atualizado'); }
-    catch (e: any) { p.toast(e?.message || String(e)); }
-    finally { setOcupado(false); }
-  };
+  const escolher = (id: number) => { p.setOrigem({ k: 's', id }); setAberto(false); setQ(''); };
 
   return (
     <div className="pm-dd" ref={caixa}>
       <button type="button" className={'pm-dd-btn' + (aberto ? ' open' : '')} disabled={p.disabled} aria-haspopup="listbox" aria-expanded={aberto}
-        onClick={() => { setAberto(!aberto); setCriando(false); setEditando(null); setQ(''); }}>
+        onClick={() => { setAberto(!aberto); setQ(''); }}>
         <span className={'v' + (emp || neg ? '' : ' vazio')}>
           {emp ? <>{emp.nome}{emp.emp ? <span style={{ color: 'var(--text-4)' }}> – {emp.emp}</span> : null}</>
             : neg ? <>{neg.nome} <span className="pm-tagn" style={{ marginLeft: '6px' }}>Negócio</span></>
-              : 'Selecione a empresa ou o negócio'}
+              : p.origem?.k === 's' ? `Empresa ${p.origem.id}` : 'Selecione a empresa do Sienge'}
         </span>
         <Chev />
       </button>
       {aberto ? (
         <div className="pm-dd-pan">
-          <input className="pm-dd-q" autoFocus placeholder="Buscar empresa ou negócio..." value={q} onChange={e => setQ(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Escape') { e.stopPropagation(); setAberto(false); } }} />
+          <input className="pm-dd-q" autoFocus placeholder="Buscar empresa, empreendimento ou código…" value={q} onChange={e => setQ(e.target.value)}
+            onKeyDown={e => {
+              if (e.key === 'Escape') { e.stopPropagation(); setAberto(false); }
+              else if (e.key === 'Enter' && es.length) { e.preventDefault(); escolher(es[0].id); }
+            }} />
           <div className="pm-dd-list" role="listbox">
-            <div className="pm-dd-g"><span>Empresas do Sienge</span></div>
             {es.length ? es.map(e => (
-              <div key={'s' + e.id} role="option" aria-selected={emp?.id === e.id} className={'pm-dd-i' + (emp?.id === e.id ? ' sel' : '')} onClick={() => escolher({ k: 's', id: e.id })}>
+              <div key={e.id} role="option" aria-selected={emp?.id === e.id} className={'pm-dd-i' + (emp?.id === e.id ? ' sel' : '')} onClick={() => escolher(e.id)}>
                 <span className="nm">{e.nome}{e.emp ? <span className="sub"> – {e.emp}</span> : null}</span>
+                <span className="pm-code">{e.id}</span>
               </div>
             )) : <div className="pm-hint" style={{ padding: '6px 10px' }}>Nenhuma empresa encontrada.</div>}
-            <div className="pm-dd-g"><span>Negócios de permuta</span><em>2 cliques para renomear</em></div>
-            {ns.length ? ns.map(n => editando === n.id ? (
-              <div key={n.id} className="pm-row-in" style={{ padding: '4px' }}>
-                <input className="pm-in" autoFocus value={nomeEd} aria-label="Novo nome do negócio" onChange={e => setNomeEd(e.target.value)}
-                  onKeyDown={e => { if (e.key === 'Enter') renomear(); if (e.key === 'Escape') { e.stopPropagation(); setEditando(null); } }} />
-                <button type="button" className="pm-btn sm" onClick={() => setEditando(null)}>Cancelar</button>
-                <button type="button" className="pm-btn sm prim" disabled={ocupado} onClick={renomear}>Salvar</button>
-              </div>
-            ) : (
-              <div key={n.id} role="option" aria-selected={neg?.id === n.id} title="Clique duas vezes para renomear"
-                className={'pm-dd-i' + (neg?.id === n.id ? ' sel' : '')}
-                onClick={e => {
-                  // um clique escolhe; dois cliques abrem a edição do nome
-                  window.clearTimeout(clique.current);
-                  if (e.detail >= 2) return;
-                  clique.current = window.setTimeout(() => escolher({ k: 'n', id: n.id }), 230);
-                }}
-                onDoubleClick={() => { window.clearTimeout(clique.current); setEditando(n.id); setNomeEd(n.nome); }}>
-                <span className="pm-tagn">Negócio</span>
-                <span className="nm">{n.nome}</span>
-                <span className="pen">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none"><path d="M4 20h4L19 9l-4-4L4 16v4z" stroke="currentColor" strokeWidth="1.7" strokeLinejoin="round" /></svg>
-                </span>
-              </div>
-            )) : <div className="pm-hint" style={{ padding: '6px 10px' }}>Nenhum negócio encontrado.</div>}
-          </div>
-          <div className="pm-dd-f">
-            {criando ? (
-              <>
-                <span className="pm-cap">Novo negócio / empreendimento</span>
-                <div className="pm-row-in">
-                  <input className="pm-in" autoFocus placeholder="Ex.: Área Chácara São José" value={novo} onChange={e => setNovo(e.target.value)}
-                    onKeyDown={e => { if (e.key === 'Enter') criar(); if (e.key === 'Escape') { e.stopPropagation(); setCriando(false); } }} />
-                  <button type="button" className="pm-btn sm" onClick={() => setCriando(false)}>Cancelar</button>
-                  <button type="button" className="pm-btn sm prim" disabled={ocupado} onClick={criar}>Cadastrar</button>
-                </div>
-              </>
-            ) : (
-              <button type="button" className="pm-btn sm dashed" onClick={() => setCriando(true)}><IcPlus />Cadastrar novo negócio / empreendimento</button>
-            )}
           </div>
         </div>
       ) : null}
