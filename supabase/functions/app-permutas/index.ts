@@ -63,7 +63,7 @@ function limparPdf(valor: unknown): string {
 }
 
 const nomeSeguro = (v: unknown) =>
-  (typeof v === "string" ? v : "contrato.pdf").normalize("NFD").replace(/[̀-ͯ]/g, "")
+  (typeof v === "string" ? v : "contrato.pdf").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[^\w.\-]+/g, "_").slice(-100).replace(/(\.pdf)?$/i, ".pdf");
 
 // ---------- leitura com cache ----------
