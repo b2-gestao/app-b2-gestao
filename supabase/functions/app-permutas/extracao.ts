@@ -44,6 +44,7 @@ export const contratoSchema = z.object({
     extras: z.string().nullable(),
   })),
   excedente: z.object({ areaM2: z.number().nullable(), valor: z.number().nullable(), condicoes: z.string().nullable() }).nullable(),
+  clausulaDiferenca: z.string().nullable(),
   dataContrato: dataIso,
   dataEscritura: dataIso,
   registroEscritura: z.string().nullable(),
@@ -83,6 +84,9 @@ Extraia os campos abaixo e responda SOMENTE com JSON no schema pedido.
   unidades próprias. Lista vazia se o contrato só define percentual sem unidades.
 - excedente: quando as unidades somam mais m² que o devido e o permutante paga a diferença: areaM2, valor em reais e
   condicoes (parcelas, preço do m², prazo) numa frase. null se não houver.
+- clausulaDiferenca: se o contrato tiver cláusula sobre diferença entre a área das unidades e a área devida (devolução
+  de área ou de valor, pagamento por fora, torna, complemento, ajuste de metragem após topografia ou aprovação), resuma
+  numa ou duas frases com valores, prazos e o número da cláusula. null se não houver.
 - dataContrato: data de assinatura do contrato (yyyy-MM-dd), normalmente no fim, antes das assinaturas.
 - dataEscritura: só em escritura pública, a data da lavratura (yyyy-MM-dd). null no compromisso.
 - registroEscritura: só em escritura pública, cartório, livro, folhas e protocolo numa linha. null no compromisso.
@@ -116,6 +120,7 @@ const SCHEMA_OPENAI = objeto({
     }),
   },
   excedente: { anyOf: [objeto({ areaM2: nulavel("number"), valor: nulavel("number"), condicoes: nulavel("string") }), { type: "null" }] },
+  clausulaDiferenca: nulavel("string"),
   dataContrato: nulavel("string"),
   dataEscritura: nulavel("string"),
   registroEscritura: nulavel("string"),

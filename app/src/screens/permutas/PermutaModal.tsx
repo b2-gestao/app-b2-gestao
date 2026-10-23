@@ -309,12 +309,14 @@ export default function PermutaModal(p: PermutaModalProps) {
       setCsU(true);
       const soma = achadas.reduce((t, u) => t + (u.area_privativa || 0), 0);
       avisos.push({ nivel: 'ok', texto: `${achadas.length === 1 ? '1 unidade vinculada' : `${achadas.length} unidades vinculadas`}: ${achadas.map(u => `${nomeEmpreendimento(u)} ${u.unidade}`).join(', ')} (${m2(soma)} m²).` });
+      // Valor só da tabela vigente na data do contrato; sem ela, a unidade fica sem valor.
       const semPreco = achadas.filter(u => !preco(u));
-      if (semPreco.length && p.precos) avisos.push({ nivel: 'atencao', texto: `Sem preço na tabela de vendas: ${semPreco.map(u => `${nomeEmpreendimento(u)} ${u.unidade}`).join(', ')}. Informe o valor à mão.` });
+      const ref = dataRef ? ` até ${mesAno(dataRef)}` : '';
+      if (semPreco.length && p.precos) {
+        avisos.push({ nivel: 'atencao', texto: `Sem tabela de vendas${ref} para ${semPreco.map(u => `${nomeEmpreendimento(u)} ${u.unidade}`).join(', ')}: valor em branco. Informe à mão se precisar.` });
+      }
       const meses = [...new Set(precos.map(x => x.mes_tabela.slice(0, 7)))].sort();
-      const depois = dataRef ? meses.filter(mm => mm > dataRef.slice(0, 7)) : [];
-      if (depois.length && dataRef) avisos.push({ nivel: 'info', texto: `Não há tabela de vendas de ${mesAno(dataRef)} ou anterior: valores da tabela de ${depois.map(mm => mesAno(mm + '-01')).join(', ')}.` });
-      else if (meses.length) avisos.push({ nivel: 'info', texto: `Valores da tabela de vendas de ${meses.map(mm => mesAno(mm + '-01')).join(', ')}.` });
+      if (meses.length) avisos.push({ nivel: 'info', texto: `Valores da tabela de vendas de ${meses.map(mm => mesAno(mm + '-01')).join(', ')}, vigente na data do contrato.` });
     }
     if (faltando.length) avisos.push({ nivel: 'atencao', texto: `Não ${faltando.length === 1 ? 'encontrada' : 'encontradas'} no Sienge: ${faltando.join(', ')}. Vincule à mão.` });
 
@@ -625,7 +627,7 @@ export default function PermutaModal(p: PermutaModalProps) {
                             {ro ? null : <button type="button" className="pm-rm" title="Remover unidade" aria-label="Remover unidade" onClick={() => setLinhas(ls => ls.filter((_, j) => j !== i))}><IcX s={13} /></button>}
                           </span>
                           {fora ? <span className="pm-chip err msg"><i />Fora da regra: será removida ao salvar</span> : null}
-                          {l.ia && l.mes ? <span className="pm-u-ia msg"><span className="pm-tagia">IA</span>Vinculada pelo contrato · valor da tabela de vendas de {mesAno(l.mes)}</span> : null}
+                          {l.ia ? <span className="pm-u-ia msg"><span className="pm-tagia">IA</span>Vinculada pelo contrato · {l.mes ? `valor da tabela de vendas de ${mesAno(l.mes)}` : 'sem tabela de vendas na data do contrato'}</span> : null}
                           {!l.ativo ? <span className="pm-chip err msg" title={l.motivo || undefined}><i />Inativa{l.motivo ? ` · ${l.motivo}` : ''}</span> : null}
                         </div>
                       );

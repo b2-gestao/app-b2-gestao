@@ -31,7 +31,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const admin = SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } }) : null;
 
 // Mudou o prompt ou o schema? Suba a versão: as leituras antigas do cache deixam de valer.
-const PROMPT_VERSAO = "contrato-v1";
+const PROMPT_VERSAO = "contrato-v2";
 const CACHE_DIAS = 30;
 /** PDF de até 15 MB (base64 cresce ~33%). A tela confere antes de enviar. */
 const MAX_PDF_BYTES = 15 * 1024 * 1024;

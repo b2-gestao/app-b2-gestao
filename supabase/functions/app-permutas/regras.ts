@@ -124,15 +124,20 @@ export function montarSugestao(d: ContratoExtraido): { sugestao: Sugestao; aviso
       area_m2: positivo(u.areaM2) ? u.areaM2 : null,
       extras: texto(u.extras),
     }));
-  const somaUnidades = unidades.every((u) => u.area_m2 != null) ? r4(unidades.reduce((s, u) => s + (u.area_m2 as number), 0)) : null;
-  if (somaUnidades != null && unidades.length && areaContrato != null && somaUnidades - areaContrato > 0.01) {
-    avisos.push({ nivel: "atencao", texto: `As unidades somam ${m2(somaUnidades)}, ${m2(somaUnidades - areaContrato)} acima dos ${m2(areaContrato)} do contrato. Excedente registrado na observação.` });
+  const somaUnidades = unidades.length && unidades.every((u) => u.area_m2 != null) ? r4(unidades.reduce((s, u) => s + (u.area_m2 as number), 0)) : null;
+  // Unidades × área permutada (sem % e coeficiente, o próprio terreno; com %, a área de permuta calculada).
+  const base = coef != null && pct != null ? "à área de permuta" : "ao terreno permutado";
+  let diferenca: string | null = null;
+  if (somaUnidades != null && areaPermuta != null && Math.abs(somaUnidades - areaPermuta) > 0.01) {
+    const sentido = somaUnidades > areaPermuta ? "superior" : "inferior";
+    diferenca = `Área das unidades vinculadas (${m2(somaUnidades)}) ${sentido} ${base} (${m2(areaPermuta)}) em ${m2(Math.abs(somaUnidades - areaPermuta))}.`;
+    avisos.push({ nivel: "atencao", texto: `${diferenca} Registrado na observação.` });
   }
 
   const empresaCnpj = digitos(d.segundaPermutante.cnpj) || null;
 
   // Observação: o que o contrato traz e o cadastro não tem campo para guardar.
-  const linhas: string[] = ["Importado do contrato por IA — revisar."];
+  const linhas: string[] = ["Importado do contrato por IA."];
   const tipo = d.tipoDocumento === "ESCRITURA_PERMUTA" ? "Escritura pública de permuta" : "Compromisso particular de permuta";
   const data = d.tipoDocumento === "ESCRITURA_PERMUTA" ? d.dataEscritura || d.dataContrato : d.dataContrato;
   linhas.push(`${tipo}${data ? ` de ${dataBr(data)}` : ""}${d.registroEscritura ? ` · ${d.registroEscritura.trim()}` : ""}.`);
@@ -147,10 +152,13 @@ export function montarSugestao(d: ContratoExtraido): { sugestao: Sugestao; aviso
   }
   const extras = unidades.filter((u) => u.extras).map((u) => `${u.unidade} – ${u.extras}`);
   if (extras.length) linhas.push(`Vagas e extras: ${extras.join("; ")}.`);
+  if (diferenca) linhas.push(diferenca);
   if (d.excedente && (positivo(d.excedente.areaM2) || positivo(d.excedente.valor))) {
     const e = d.excedente;
     linhas.push(`Excedente pago pelo permutante: ${[positivo(e.areaM2) ? m2(e.areaM2) : "", positivo(e.valor) ? brl(e.valor) : ""].filter(Boolean).join(", ")}${e.condicoes ? ` – ${e.condicoes.trim()}` : ""}.`);
   }
+  const clausula = texto(d.clausulaDiferenca);
+  if (clausula) linhas.push(`Cláusula da diferença: ${clausula.replace(/\.$/, "")}.`);
 
   return {
     sugestao: {
