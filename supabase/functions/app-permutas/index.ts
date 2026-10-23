@@ -1,9 +1,9 @@
 // Edge Function: app-permutas
 //
-// Permutas › Terrenos › Cadastros: "Importar da escritura". Recebe o PDF da escritura (ou do compromisso) de
-// permuta, lê com a OpenAI (extracao.ts) e devolve a sugestão de preenchimento da modal "Novo permutante",
-// com as conferências feitas aqui (soma das matrículas, matrícula × coeficiente × % contra a área declarada,
-// CNPJ). Nada é gravado: o usuário revisa na tela e salva; o PDF vai junto como anexo "Escritura".
+// Permutas › Terrenos › Cadastros: "Importar do contrato". Recebe o PDF do contrato de permuta (compromisso
+// particular ou escritura), lê com a OpenAI (extracao.ts) e devolve a sugestão de preenchimento da modal do
+// permutante, com as conferências feitas aqui (regras.ts). PDF com texto: só o corpo do contrato vai para a IA
+// (leitura.ts); escaneado: vai o arquivo. Nada é gravado: o usuário revisa na tela e salva; o PDF vai junto como anexo.
 // Chamada com o token do usuário logado (verify_jwt = true). Exige editar em Permutas (app_permutas_pode(true)).
 //
 // Segredos (Edge Functions › Secrets), os mesmos da app-nf:
@@ -11,15 +11,18 @@
 //   PERMUTAS_OPENAI_MODEL     opcional; sem ele usa OPENAI_MODEL e, por fim, gpt-4.1-mini
 //   OPENAI_REASONING_EFFORT   opcional, para modelos de raciocínio (padrão low)
 //
-// Cache (tabela app_ia_cache, tela "permutas_escritura"): a chave é o hash do PDF + versão do prompt + modelo.
-// O mesmo arquivo lido de novo em até 30 dias não chama a OpenAI. Guarda só o JSON extraído (sem CPF/RG).
+// Cache (tabela app_ia_cache, tela "permutas_contrato", só a service_role lê): a chave é o hash do PDF + versão do
+// prompt + modelo. O mesmo arquivo lido de novo em até 30 dias não chama a OpenAI. Guarda o JSON extraído
+// (nome e CPF/CNPJ do permutante principal; nada de RG, endereço ou contatos).
 //
 // Ações ({ acao, ... }):
-//   ler_escritura  { pdfBase64, nomeArquivo } → { tipoDocumento, sugestao, avisos, modelo, cache }
+//   ler_contrato  { pdfBase64, nomeArquivo } → { tipoDocumento, sugestao, avisos, modelo, cache, paginas }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
-import { ErroExtracao, extrairEscritura, modeloExtracao, type EscrituraExtraida } from "./extracao.ts";
+import { ErroExtracao, extrairContrato, modeloExtracao, type ContratoExtraido } from "./extracao.ts";
+import { textoDoContrato } from "./leitura.ts";
+import { decodeBase64 } from "jsr:@std/encoding@1/base64";
 import { montarSugestao } from "./regras.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
@@ -28,7 +31,7 @@ const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
 const admin = SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } }) : null;
 
 // Mudou o prompt ou o schema? Suba a versão: as leituras antigas do cache deixam de valer.
-const PROMPT_VERSAO = "escritura-v1";
+const PROMPT_VERSAO = "contrato-v1";
 const CACHE_DIAS = 30;
 /** PDF de até 15 MB (base64 cresce ~33%). A tela confere antes de enviar. */
 const MAX_PDF_BYTES = 15 * 1024 * 1024;
@@ -60,12 +63,14 @@ function limparPdf(valor: unknown): string {
 }
 
 const nomeSeguro = (v: unknown) =>
-  (typeof v === "string" ? v : "escritura.pdf").normalize("NFD").replace(/[̀-ͯ]/g, "")
+  (typeof v === "string" ? v : "contrato.pdf").normalize("NFD").replace(/[̀-ͯ]/g, "")
     .replace(/[^\w.\-]+/g, "_").slice(-100).replace(/(\.pdf)?$/i, ".pdf");
 
 // ---------- leitura com cache ----------
 
-async function lerComCache(pdfBase64: string, nomeArquivo: string): Promise<{ dados: EscrituraExtraida; cache: boolean }> {
+interface Resultado { dados: ContratoExtraido; cache: boolean; paginas: string | null }
+
+async function lerComCache(pdfBase64: string, nomeArquivo: string): Promise<Resultado> {
   const modelo = modeloExtracao();
   const hash = await sha256(`${PROMPT_VERSAO}|${modelo}|${pdfBase64}`);
   if (admin) {
@@ -73,20 +78,22 @@ async function lerComCache(pdfBase64: string, nomeArquivo: string): Promise<{ da
       .eq("hash", hash).gt("criado_em", new Date(Date.now() - CACHE_DIAS * 86_400_000).toISOString()).maybeSingle();
     if (hit) {
       await admin.from("app_ia_cache").update({ hits: hit.hits + 1, ultimo_uso: new Date().toISOString() }).eq("hash", hash);
-      return { dados: hit.resposta as EscrituraExtraida, cache: true };
+      return { dados: hit.resposta as ContratoExtraido, cache: true, paginas: null };
     }
   }
-  const leitura = await extrairEscritura(pdfBase64, nomeArquivo);
-  console.log(JSON.stringify({ app_permutas: "ler_escritura", modelo, tokens_entrada: leitura.tokensEntrada, tokens_saida: leitura.tokensSaida }));
+  const corpo = await textoDoContrato(decodeBase64(pdfBase64));
+  const leitura = await extrairContrato(corpo ? { texto: corpo.texto } : { pdfBase64, nomeArquivo });
+  const paginas = corpo ? `${corpo.paginasLidas} de ${corpo.totalPaginas}` : null;
+  console.log(JSON.stringify({ app_permutas: "ler_contrato", modelo, paginas, tokens_entrada: leitura.tokensEntrada, tokens_saida: leitura.tokensSaida }));
   if (admin) {
     const { error } = await admin.from("app_ia_cache").upsert({
-      hash, tela: "permutas_escritura", modelo, resposta: leitura.dados,
+      hash, tela: "permutas_contrato", modelo, resposta: leitura.dados,
       tokens_entrada: leitura.tokensEntrada, tokens_saida: leitura.tokensSaida,
       criado_em: new Date().toISOString(), ultimo_uso: new Date().toISOString(), hits: 0,
     });
     if (error) console.error("app-permutas: cache", error.message);
   }
-  return { dados: leitura.dados, cache: false };
+  return { dados: leitura.dados, cache: false, paginas };
 }
 
 Deno.serve(async (req) => {
@@ -108,14 +115,14 @@ Deno.serve(async (req) => {
     const corpo = await req.json().catch(() => null) as Record<string, unknown> | null;
     if (!corpo || typeof corpo !== "object" || Array.isArray(corpo)) return json({ error: "O corpo da requisição deve ser um objeto JSON." }, 400);
 
-    if (corpo.acao !== "ler_escritura") return json({ error: "Ação inválida." }, 400);
+    if (corpo.acao !== "ler_contrato") return json({ error: "Ação inválida." }, 400);
     const pdf = limparPdf(corpo.pdfBase64);
-    const { dados, cache } = await lerComCache(pdf, nomeSeguro(corpo.nomeArquivo));
+    const { dados, cache, paginas } = await lerComCache(pdf, nomeSeguro(corpo.nomeArquivo));
     const { sugestao, avisos } = montarSugestao(dados);
-    return json({ tipoDocumento: dados.tipoDocumento, sugestao, avisos, modelo: modeloExtracao(), cache });
+    return json({ tipoDocumento: dados.tipoDocumento, sugestao, avisos, modelo: modeloExtracao(), cache, paginas });
   } catch (e) {
     if (e instanceof ErroExtracao) return json({ error: e.message }, e.status);
     console.error("app-permutas:", e instanceof Error ? e.message : e);
-    return json({ error: "Erro inesperado ao ler a escritura." }, 500);
+    return json({ error: "Erro inesperado ao ler o contrato." }, 500);
   }
 });

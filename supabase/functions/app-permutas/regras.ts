@@ -1,14 +1,30 @@
-// Sugestão de preenchimento da modal "Novo permutante" a partir da escritura lida (extracao.ts) e as
-// conferências feitas sem IA: soma das matrículas, matrícula × coeficiente × % contra a área declarada e CNPJ.
+// Sugestão de preenchimento da modal do permutante a partir do contrato lido (extracao.ts) e as conferências feitas
+// sem IA: CPF/CNPJ, matrícula × coeficiente × % contra a área do contrato e unidades contra a área devida.
+// A tela ainda confere a empresa (CNPJ na tabela de empresas), localiza as unidades no catálogo do Sienge e busca
+// o valor de cada uma na tabela de vendas do mês do contrato.
 
-import type { EscrituraExtraida } from "./extracao.ts";
+import type { ContratoExtraido } from "./extracao.ts";
 
 const fmt2 = new Intl.NumberFormat("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const pctFmt = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 4 });
 const m2 = (v: number) => `${fmt2.format(v)} m²`;
 const brl = (v: number) => `R$ ${fmt2.format(v)}`;
 const dataBr = (iso: string | null) => (iso ? iso.split("-").reverse().join("/") : "");
 const positivo = (v: number | null | undefined): v is number => typeof v === "number" && Number.isFinite(v) && v > 0;
 const r4 = (v: number) => Math.round(v * 10_000) / 10_000;
+const digitos = (s: string | null | undefined) => (s || "").replace(/\D/g, "");
+const texto = (s: string | null | undefined) => (s || "").trim().replace(/\s+/g, " ") || null;
+
+function cpfValido(d: string): boolean {
+  if (!/^\d{11}$/.test(d) || /^(\d)\1{10}$/.test(d)) return false;
+  const dv = (n: number) => {
+    let soma = 0;
+    for (let i = 0; i < n; i++) soma += Number(d[i]) * (n + 1 - i);
+    const r = (soma * 10) % 11;
+    return r === 10 ? 0 : r;
+  };
+  return dv(9) === Number(d[9]) && dv(10) === Number(d[10]);
+}
 
 export function cnpjValido(d: string): boolean {
   if (!/^\d{14}$/.test(d) || /^(\d)\1{13}$/.test(d)) return false;
@@ -21,13 +37,18 @@ export function cnpjValido(d: string): boolean {
   return dv(d.slice(0, 12)) === Number(d[12]) && dv(d.slice(0, 13)) === Number(d[13]);
 }
 
-const fmtCnpj = (d: string) => d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-const juntarNomes = (n: string[]) => (n.length <= 1 ? n.join("") : `${n.slice(0, -1).join(", ")} e ${n[n.length - 1]}`);
+export const cpfCnpjValido = (d: string) => (d.length === 11 ? cpfValido(d) : cnpjValido(d));
+const fmtDoc = (d: string) => (d.length === 11
+  ? d.replace(/^(\d{3})(\d{3})(\d{3})(\d{2})$/, "$1.$2.$3-$4")
+  : d.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5"));
 
 export type Aviso = { nivel: "ok" | "atencao" | "info"; texto: string };
 
+export interface UnidadeContrato { empreendimento: string; cnpj: string | null; unidade: string; area_m2: number | null; extras: string | null }
+
 export interface Sugestao {
   permutante: string | null;
+  cpf_cnpj: string | null;
   num_matricula: string | null;
   area_matricula: number | null;
   coeficiente: number | null;
@@ -36,95 +57,120 @@ export interface Sugestao {
   area_propria: number | null;
   area_informada: number | null;
   data_contrato: string | null;
+  cidade: string | null;
+  inscricao_iptu: string | null;
+  inscricao_equatorial: string | null;
+  inscricao_saneago: string | null;
   observacao: string | null;
-  pendencia: string | null;
   empresa: { cnpj: string | null; nome: string | null };
   matriculas: string[];
+  unidades: UnidadeContrato[];
 }
 
-export function montarSugestao(d: EscrituraExtraida): { sugestao: Sugestao; avisos: Aviso[] } {
+export function montarSugestao(d: ContratoExtraido): { sugestao: Sugestao; avisos: Aviso[] } {
   const avisos: Aviso[] = [];
-  const nomes = d.permutantes.map((n) => n.trim().replace(/\s+/g, " ")).filter(Boolean);
   const imoveis = d.imoveis.filter((i) => i.matricula.trim());
   const matriculas = imoveis.map((i) => i.matricula.trim());
 
   if (d.tipoDocumento === "OUTRO") avisos.push({ nivel: "atencao", texto: "O documento não parece um contrato de permuta de terreno. Confira os dados antes de salvar." });
-  if (d.tipoDocumento === "COMPROMISSO_PERMUTA") avisos.push({ nivel: "info", texto: "É um compromisso particular de permuta, não a escritura pública. O anexo foi marcado como Contrato." });
-  if (!nomes.length) avisos.push({ nivel: "atencao", texto: "Não foi possível identificar os permutantes (donos do terreno)." });
-  if (nomes.length > 1) avisos.push({ nivel: "info", texto: `${nomes.length} permutantes no mesmo cadastro (${juntarNomes(nomes)}).` });
-  if (!matriculas.length) avisos.push({ nivel: "atencao", texto: "Nenhuma matrícula encontrada no documento." });
+  if (d.tipoDocumento === "ESCRITURA_PERMUTA") avisos.push({ nivel: "info", texto: "Lida uma escritura pública. O PDF entra nos documentos como Escritura." });
 
-  // Área da matrícula: soma dos terrenos; sem todas as áreas, vale a área total declarada.
-  const todasAreas = imoveis.length > 0 && imoveis.every((i) => positivo(i.areaM2));
-  const soma = todasAreas ? r4(imoveis.reduce((s, i) => s + (i.areaM2 as number), 0)) : null;
-  const areaMatricula = soma ?? (positivo(d.areaTotalM2) ? d.areaTotalM2 : null);
-  if (soma != null && positivo(d.areaTotalM2) && Math.abs(soma - d.areaTotalM2) > 0.01) {
-    avisos.push({ nivel: "atencao", texto: `A soma das matrículas (${m2(soma)}) difere da área total declarada (${m2(d.areaTotalM2)}). Usada a soma.` });
+  const nome = texto(d.permutante.nome);
+  if (!nome) avisos.push({ nivel: "atencao", texto: "Não foi possível identificar o permutante principal." });
+  let doc = digitos(d.permutante.cpfCnpj) || null;
+  if (doc && !cpfCnpjValido(doc)) {
+    avisos.push({ nivel: "atencao", texto: `O CPF/CNPJ lido do permutante (${doc}) é inválido e ficou em branco. Confira no contrato.` });
+    doc = null;
   }
-  if (imoveis.length > 1 && soma != null) {
-    avisos.push({ nivel: "info", texto: `${imoveis.length} matrículas somadas: ${imoveis.map((i) => `${i.matricula} (${m2(i.areaM2 as number)})`).join(" + ")} = ${m2(soma)}.` });
-  }
+  if (!matriculas.length) avisos.push({ nivel: "atencao", texto: "Nenhuma matrícula encontrada no contrato." });
+
+  // Área da matrícula: soma dos terrenos do permutante.
+  const areaMatricula = imoveis.length && imoveis.every((i) => positivo(i.areaM2)) ? r4(imoveis.reduce((s, i) => s + (i.areaM2 as number), 0)) : null;
+  if (areaMatricula == null && matriculas.length) avisos.push({ nivel: "atencao", texto: "Área do terreno não encontrada na descrição do imóvel." });
 
   const coef = positivo(d.coeficiente) ? d.coeficiente : null;
   const pct = positivo(d.percentualPermuta) && d.percentualPermuta <= 100 ? d.percentualPermuta : null;
-  if (coef == null) avisos.push({ nivel: "atencao", texto: "Coeficiente de aproveitamento não encontrado." });
-  if (pct == null) avisos.push({ nivel: "atencao", texto: "% de permuta não encontrado." });
-
-  const calculada = areaMatricula != null && coef != null && pct != null ? areaMatricula * coef * (pct / 100) : null;
-  const declarada = positivo(d.areaPermutaM2) ? d.areaPermutaM2 : null;
-  if (calculada != null && declarada != null) {
-    if (Math.abs(calculada - declarada) <= 0.05) {
-      avisos.push({ nivel: "ok", texto: `Cálculo conferido: ${m2(areaMatricula!)} × ${fmt2.format(coef!)} × ${fmt2.format(pct!)}% = ${m2(calculada)}, igual ao declarado na escritura.` });
-    } else {
-      avisos.push({ nivel: "atencao", texto: `Matrícula × coeficiente × % dá ${m2(calculada)}, mas a escritura declara ${m2(declarada)}. Confira os números.` });
+  const areaContrato = positivo(d.areaPermutaM2) ? d.areaPermutaM2 : null;
+  let areaInformada: number | null = null;
+  let areaPermuta: number | null;
+  if (coef != null && pct != null) {
+    // Contrato por percentual: a tela calcula matrícula × coeficiente × %.
+    areaPermuta = areaMatricula != null ? areaMatricula * coef * (pct / 100) : null;
+    if (areaPermuta != null && areaContrato != null) {
+      avisos.push(Math.abs(areaPermuta - areaContrato) <= 0.05
+        ? { nivel: "ok", texto: `Cálculo conferido: ${m2(areaMatricula!)} × ${pctFmt.format(coef)} × ${pctFmt.format(pct)}% = ${m2(areaPermuta)}, igual ao contrato.` }
+        : { nivel: "atencao", texto: `Matrícula × coeficiente × % dá ${m2(areaPermuta)}, mas o contrato fala em ${m2(areaContrato)}. Confira os números.` });
+    }
+  } else {
+    // Sem % e coeficiente: a área de permuta informada é a própria área da matrícula (regra do cadastro).
+    areaInformada = areaMatricula;
+    areaPermuta = areaMatricula;
+    if (areaMatricula != null) {
+      avisos.push({ nivel: "info", texto: `Contrato sem % e coeficiente: ${m2(areaMatricula)} em área de matrícula e em área de permuta informada.` });
     }
   }
-  const areaPermuta = calculada ?? declarada;
-  // Sem matrícula, coeficiente ou %, a área declarada entra como "informada" (regra do cadastro).
-  const areaInformada = calculada == null && declarada != null ? declarada : null;
 
   let areaPropria: number | null = null;
   if (d.pagamento === "PROPRIO" && areaPermuta != null) areaPropria = r4(areaPermuta);
+  else if (d.pagamento === "DIVERSOS") areaPropria = 0;
   else if (d.pagamento === "MISTO") avisos.push({ nivel: "info", texto: "Pagamento em parte no próprio empreendimento e em parte em outros: informe a área própria." });
-  else if (d.pagamento == null) avisos.push({ nivel: "info", texto: "Não ficou claro onde as unidades são entregues; a área no próprio empreendimento ficou em branco." });
 
-  const cnpj = (d.adquirenteCnpj || "").replace(/\D/g, "") || null;
-  if (cnpj && !cnpjValido(cnpj)) avisos.push({ nivel: "atencao", texto: `O CNPJ lido da Segunda Permutante (${fmtCnpj(cnpj)}) é inválido. Selecione a empresa manualmente.` });
-
-  const linhas: string[] = ["Importado da escritura por IA — revisar."];
-  const ato = [d.cartorio, d.registroCartorio, d.dataEscritura ? `lavrada em ${dataBr(d.dataEscritura)}` : ""].filter(Boolean).join(" · ");
-  if (ato) linhas.push(`${d.tipoDocumento === "COMPROMISSO_PERMUTA" ? "Compromisso" : "Escritura"}: ${ato}.`);
-  if (d.dataCompromisso && d.dataCompromisso !== d.dataEscritura) linhas.push(`Compromisso particular de ${dataBr(d.dataCompromisso)}.`);
-  if (d.adquirenteNome) linhas.push(`Segunda Permutante: ${d.adquirenteNome}${cnpj ? ` (CNPJ ${fmtCnpj(cnpj)})` : ""}.`);
-  if (imoveis.length) {
-    linhas.push("Imóveis:");
-    imoveis.forEach((i) => linhas.push(`- Matr. ${i.matricula}${positivo(i.areaM2) ? ` – ${m2(i.areaM2)}` : ""}${i.descricao ? ` – ${i.descricao}` : ""}`));
+  const unidades: UnidadeContrato[] = d.unidades
+    .filter((u) => u.unidade.trim())
+    .map((u) => ({
+      empreendimento: u.empreendimento.trim(),
+      cnpj: digitos(u.cnpjProprietaria) || null,
+      unidade: u.unidade.trim(),
+      area_m2: positivo(u.areaM2) ? u.areaM2 : null,
+      extras: texto(u.extras),
+    }));
+  const somaUnidades = unidades.every((u) => u.area_m2 != null) ? r4(unidades.reduce((s, u) => s + (u.area_m2 as number), 0)) : null;
+  if (somaUnidades != null && unidades.length && areaContrato != null && somaUnidades - areaContrato > 0.01) {
+    avisos.push({ nivel: "atencao", texto: `As unidades somam ${m2(somaUnidades)}, ${m2(somaUnidades - areaContrato)} acima dos ${m2(areaContrato)} do contrato. Excedente registrado na observação.` });
   }
-  const valores = [
-    positivo(d.valorFiscal) ? `Valor fiscal dos imóveis: ${brl(d.valorFiscal)}` : "",
-    positivo(d.precoM2Tabela) ? `Preço de tabela previsto: ${brl(d.precoM2Tabela)}/m²` : "",
-    declarada != null ? `Área mínima declarada: ${m2(declarada)}` : "",
-  ].filter(Boolean);
-  if (valores.length) linhas.push(valores.join(" · ") + ".");
-  if (d.prazos.length) { linhas.push("Prazos:"); d.prazos.forEach((p) => linhas.push(`- ${p.trim()}`)); }
-  if (d.outrosPontos.length) { linhas.push("Outros pontos:"); d.outrosPontos.slice(0, 6).forEach((p) => linhas.push(`- ${p.trim()}`)); }
 
-  const pend = d.condicoesPendentes.map((c) => c.trim().replace(/\.$/, "")).filter(Boolean).join("; ");
+  const empresaCnpj = digitos(d.segundaPermutante.cnpj) || null;
+
+  // Observação: o que o contrato traz e o cadastro não tem campo para guardar.
+  const linhas: string[] = ["Importado do contrato por IA — revisar."];
+  const tipo = d.tipoDocumento === "ESCRITURA_PERMUTA" ? "Escritura pública de permuta" : "Compromisso particular de permuta";
+  const data = d.tipoDocumento === "ESCRITURA_PERMUTA" ? d.dataEscritura || d.dataContrato : d.dataContrato;
+  linhas.push(`${tipo}${data ? ` de ${dataBr(data)}` : ""}${d.registroEscritura ? ` · ${d.registroEscritura.trim()}` : ""}.`);
+  if (d.segundaPermutante.nome) linhas.push(`Segunda Permutante: ${d.segundaPermutante.nome.trim()}${empresaCnpj ? ` (CNPJ ${fmtDoc(empresaCnpj)})` : ""}.`);
+  imoveis.forEach((i) => linhas.push(`Terreno: matr. ${i.matricula}${positivo(i.areaM2) ? ` – ${m2(i.areaM2)}` : ""}${i.descricao ? ` – ${i.descricao.trim()}` : ""}.`));
+  if (areaContrato != null) {
+    const porEmp = new Map<string, number>();
+    unidades.forEach((u) => porEmp.set(u.empreendimento, (porEmp.get(u.empreendimento) || 0) + (u.area_m2 || 0)));
+    const emps = [...porEmp].filter(([, a]) => a > 0);
+    const onde = emps.length === 1 ? ` no ${emps[0][0]}` : emps.length ? `: ${emps.map(([e, a]) => `${m2(a)} no ${e}`).join(" e ")}` : "";
+    linhas.push(`Pagamento: ${m2(areaContrato)}${pct != null ? ` (${pctFmt.format(pct)}% de área privativa)` : ""}${onde}.`);
+  }
+  const extras = unidades.filter((u) => u.extras).map((u) => `${u.unidade} – ${u.extras}`);
+  if (extras.length) linhas.push(`Vagas e extras: ${extras.join("; ")}.`);
+  if (d.excedente && (positivo(d.excedente.areaM2) || positivo(d.excedente.valor))) {
+    const e = d.excedente;
+    linhas.push(`Excedente pago pelo permutante: ${[positivo(e.areaM2) ? m2(e.areaM2) : "", positivo(e.valor) ? brl(e.valor) : ""].filter(Boolean).join(", ")}${e.condicoes ? ` – ${e.condicoes.trim()}` : ""}.`);
+  }
 
   return {
     sugestao: {
-      permutante: nomes.length ? juntarNomes(nomes).slice(0, 300) : null,
+      permutante: nome ? nome.slice(0, 300) : null,
+      cpf_cnpj: doc,
       num_matricula: matriculas.length ? matriculas.join(" / ").slice(0, 200) : null,
       area_matricula: areaMatricula,
       coeficiente: coef,
       pct_permuta: pct,
       area_propria: areaPropria,
       area_informada: areaInformada,
-      data_contrato: d.dataEscritura || d.dataCompromisso || null,
+      data_contrato: d.dataContrato || d.dataEscritura || null,
+      cidade: texto(d.cidade),
+      inscricao_iptu: texto(d.inscricaoIptu),
+      inscricao_equatorial: texto(d.ucEquatorial),
+      inscricao_saneago: texto(d.ucSaneago),
       observacao: linhas.join("\n").slice(0, 4000),
-      pendencia: pend ? (pend.length > 300 ? pend.slice(0, 297) + "…" : pend) : null,
-      empresa: { cnpj, nome: d.adquirenteNome?.trim() || null },
+      empresa: { cnpj: empresaCnpj, nome: texto(d.segundaPermutante.nome) },
       matriculas,
+      unidades,
     },
     avisos,
   };

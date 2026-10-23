@@ -4,7 +4,7 @@
 // Áreas/empreendimentos nascem no cadastro do permutante; esta tela só lê, não cria empreendimento.
 import { useEffect, useMemo, useState } from 'react';
 import './permutas.css';
-import { m2, type Permuta, type UnidadeDireta } from '../../lib/permutas';
+import { m2, soAtivas, type Permuta, type UnidadeDireta } from '../../lib/permutas';
 import { analisar, chaveOrigem, montarUnidades, type LinhaUnidade } from './analise';
 import { SeletorBusca } from './busca';
 import { FiltroBusca, Paginacao, useColunas, usePaginacao, exportarExcel, IcExcel, type Coluna } from './ui';
@@ -25,7 +25,9 @@ const GRAFICO_INICIAL = 12;
 
 export default function PermutasVisaoPage({ v }: { v: any }) {
   const { ctx, ativo, dados, empresas, nomeOrigem, nomeEmp } = useBasePermutas(v, 'visao');
-  const { permutas, diretas, catalogo, carregado, erro } = dados;
+  const { diretas, catalogo, carregado, erro } = dados;
+  // Cadastros e unidades inativos ficam fora do resumo.
+  const permutas = useMemo(() => soAtivas(dados.permutas), [dados.permutas]);
   const [fEmp, setFEmp] = useState('');
   const [fOrigem, setFOrigem] = useState('');
   const [fPerm, setFPerm] = useState('');

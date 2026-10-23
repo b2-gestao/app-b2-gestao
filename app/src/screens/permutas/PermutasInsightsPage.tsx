@@ -3,7 +3,7 @@
 // recebe esses dados e devolve os pontos de atenção. Sem IA configurada, a tela mostra os alertas das regras.
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './permutas.css';
-import { m2 } from '../../lib/permutas';
+import { m2, soAtivas } from '../../lib/permutas';
 import { apoioApi, type IaResposta } from '../../lib/api';
 import { useBasePermutas, Kpi, dataBr } from './comum';
 import { analisar, type Nivel } from './analise';
@@ -24,7 +24,9 @@ const pctTxt = (v: number | null) => (v == null ? '—' : `${Math.round(v * 100)
 
 export default function PermutasInsightsPage({ v }: { v: any }) {
   const { ctx, ativo, live, dados, nomeOrigem, nomeEmp } = useBasePermutas(v, 'insights');
-  const { permutas, diretas, catalogo, carregado, erro } = dados;
+  const { diretas, catalogo, carregado, erro } = dados;
+  // Cadastros e unidades inativos ficam fora do resumo.
+  const permutas = useMemo(() => soAtivas(dados.permutas), [dados.permutas]);
   const a = useMemo(() => analisar(permutas, diretas, catalogo, nomeOrigem, nomeEmp), [permutas, diretas, catalogo, dados.negocios, nomeOrigem]);
   const [ia, setIa] = useState<{ estado: 'ocioso' | 'carregando' | 'ok' | 'erro'; r?: IaResposta; msg?: string }>({ estado: 'ocioso' });
   const [fTipo, setFTipo] = useState('');

@@ -10,6 +10,7 @@ import { useBasePermutas, Kpi, ModalPermutaStore, dataBr, semAcento } from './co
 const COLUNAS: Coluna[] = [
   { key: 'origem', label: 'Área / empreendimento', w: 240, min: 120 },
   { key: 'perm', label: 'Permutante', w: 200, min: 100 },
+  { key: 'cid', label: 'Cidade', w: 130, min: 80 },
   { key: 'nmat', label: 'Nº matrícula', w: 100 },
   { key: 'mat', label: 'Matrícula (m²)', w: 120, num: true },
   { key: 'coef', label: 'Coef.', w: 70, num: true },
@@ -20,6 +21,10 @@ const COLUNAS: Coluna[] = [
 ];
 
 const POR_PAGINA = [30, 60, 100] as const;
+/** Na lista, só as unidades ativas (as inativas aparecem na modal). */
+const unidadesAtivas = (p: Permuta) => p.unidades.filter(u => u.ativo !== false);
+type FiltroStatus = '' | 'ativos' | 'inativos';
+const STATUS: [FiltroStatus, string][] = [['', 'Todos'], ['ativos', 'Ativos'], ['inativos', 'Inativos']];
 
 export default function PermutasCadastroPage({ v }: { v: any }) {
   const { ctx, ativo, dados, empresas, nomeOrigem, nomeEmp, empDaOrigem } = useBasePermutas(v, 'cadastros');
@@ -27,6 +32,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
   const [busca, setBusca] = useState('');
   const [fOrigem, setFOrigem] = useState('');
   const [soPend, setSoPend] = useState(false);
+  const [fStatus, setFStatus] = useState<FiltroStatus>('');
   const [modal, setModal] = useState<{ p: Permuta | null } | null>(null);
   const cols = useColunas('cadastros', COLUNAS);
   const empNome = (u: { enterprise_id: number }) => nomeEmp(u.enterprise_id);
@@ -37,14 +43,15 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
       .map(p => ({ p, c: calcular(p), origem: nomeOrigem(p), emp: empDaOrigem(p) }))
       .filter(({ p, c, origem, emp }) => {
         if (fOrigem && (p.empresa_id != null ? 's' + p.empresa_id : 'n' + p.negocio_id) !== fOrigem) return false;
+        if (fStatus && p.ativo !== (fStatus === 'ativos')) return false;
         if (soPend && !(p.pendencia || c.area == null || (c.div != null && c.div < 0))) return false;
-        if (q && !semAcento([origem, emp, p.permutante, p.num_matricula, p.observacao, p.pendencia, ...p.unidades.map(u => u.unidade_nome)].join(' ')).includes(q)) return false;
+        if (q && !semAcento([origem, emp, p.permutante, p.cidade, p.num_matricula, p.observacao, p.pendencia, ...p.unidades.map(u => u.unidade_nome)].join(' ')).includes(q)) return false;
         return true;
       })
       .sort((a, b) => a.origem.localeCompare(b.origem) || a.p.permutante.localeCompare(b.p.permutante));
-  }, [permutas, busca, fOrigem, soPend, empresas, negocios, dados.catalogo]);
+  }, [permutas, busca, fOrigem, soPend, fStatus, empresas, negocios, dados.catalogo]);
 
-  const pg = usePaginacao(linhas, POR_PAGINA, [busca, fOrigem, soPend]);
+  const pg = usePaginacao(linhas, POR_PAGINA, [busca, fOrigem, soPend, fStatus]);
   const soma = (f: (x: (typeof linhas)[number]) => number | null) => linhas.reduce((s, x) => s + (f(x) || 0), 0);
   const tMat = soma(x => x.p.area_matricula), tProprio = soma(x => (x.c.area != null ? x.c.proprio : 0)), tArea = soma(x => x.c.area), tDiv = soma(x => x.c.div), tAprov = soma(x => x.c.aprov);
   const nPend = linhas.filter(x => x.p.pendencia || x.c.area == null || (x.c.div != null && x.c.div < 0)).length;
@@ -62,14 +69,17 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
   const exportar = () => {
     const r4 = (v: number | null) => (v == null ? null : +v.toFixed(4));
     exportarExcel('permutas-terrenos-cadastros.xlsx', 'Cadastros',
-      ['Área / empreendimento', 'Origem', 'Permutante', 'Nº matrícula', 'Data do contrato', 'Área matrícula (m²)', 'Coeficiente', 'Aproveitamento (m²)', '% permuta',
-        'Área de permuta (m²)', 'Próprio empreendimento (m²)', 'Empreendimentos diversos (m²)', 'Unidades', 'Documentos', 'Observação', 'Pendência'],
+      ['Área / empreendimento', 'Origem', 'Permutante', 'Cidade', 'Situação', 'Motivo da inativação', 'Nº matrícula', 'Data do contrato', 'Área matrícula (m²)', 'Coeficiente', 'Aproveitamento (m²)', '% permuta',
+        'Área de permuta (m²)', 'Próprio empreendimento (m²)', 'Empreendimentos diversos (m²)', 'Unidades', 'Documentos', 'Observação', 'Pendência',
+        'Inscrição IPTU', 'Inscrição Equatorial', 'Inscrição Saneago/BRK'],
       linhas.map(({ p, c, origem, emp }) => [
-        emp ? `${origem} – ${emp}` : origem, p.empresa_id != null ? `Sienge ${p.empresa_id}` : 'Negócio', p.permutante, p.num_matricula, dataBr(p.data_contrato),
+        emp ? `${origem} – ${emp}` : origem, p.empresa_id != null ? `Sienge ${p.empresa_id}` : 'Negócio', p.permutante, p.cidade,
+        p.ativo ? 'Ativo' : 'Inativo', p.motivo_inativacao, p.num_matricula, dataBr(p.data_contrato),
         p.area_matricula, p.coeficiente, r4(c.aprov), p.pct_permuta == null ? null : +(p.pct_permuta * 100).toFixed(6),
         r4(c.area), p.area_propria, r4(c.div),
-        p.unidades.map(u => `${empNome(u)} ${u.unidade_nome}${u.area_privativa != null ? ` (${m2(u.area_privativa)} m²)` : ''}`).join(' | '),
+        p.unidades.map(u => `${empNome(u)} ${u.unidade_nome}${u.area_privativa != null ? ` (${m2(u.area_privativa)} m²)` : ''}${u.ativo === false ? ' [inativa]' : ''}`).join(' | '),
         p.anexos.map(a => (a.tipo === 'Outro' ? a.descricao : a.tipo)).join(' | '), p.observacao, p.pendencia,
+        p.inscricao_iptu, p.inscricao_equatorial, p.inscricao_saneago,
       ])).catch(e => ctx?.toast('Não foi possível gerar a planilha: ' + (e?.message || e)));
   };
 
@@ -126,6 +136,16 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
           <span className="pm-cap">Buscar</span>
           <input className="pm-in" value={busca} onChange={e => setBusca(e.target.value)} placeholder="Permutante, matrícula, unidade…" />
         </label>
+        <div className="pm-f" style={{ flex: 'none' }}>
+          <span className="pm-cap">Situação</span>
+          <div className="pm-segs" role="group" aria-label="Situação do cadastro">
+            {STATUS.map(([k, r]) => (
+              <button key={k || 'todos'} type="button" className={'pm-seg' + (fStatus === k ? ' on' : '')} aria-pressed={fStatus === k} onClick={() => setFStatus(k)}>
+                {r} <span>{k ? permutas.filter(p => p.ativo === (k === 'ativos')).length : permutas.length}</span>
+              </button>
+            ))}
+          </div>
+        </div>
         <label className="pm-check"><input type="checkbox" checked={soPend} onChange={e => setSoPend(e.target.checked)} />Só com pendência</label>
       </div>
 
@@ -137,14 +157,18 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
             <div className="pm-empty"><b>{permutas.length ? 'Nenhuma permuta para este filtro.' : 'Nenhuma permuta cadastrada ainda.'}</b>{permutas.length ? 'Ajuste os filtros acima.' : podeEditar ? 'Use “Novo permutante” para incluir a primeira.' : ''}</div>
           ) : null}
           {pg.visiveis.map(({ p, c, origem, emp }) => (
-            <div key={p.id} className="pm-tr row" style={cols.estilo} tabIndex={0} onClick={() => setModal({ p })} onKeyDown={e => { if (e.key === 'Enter') setModal({ p }); }}>
+            <div key={p.id} className={'pm-tr row' + (p.ativo ? '' : ' inativo')} style={cols.estilo} tabIndex={0} onClick={() => setModal({ p })} onKeyDown={e => { if (e.key === 'Enter') setModal({ p }); }}>
               <span style={{ display: 'flex', gap: '8px', alignItems: 'center', minWidth: 0 }}>
                 {p.empresa_id != null ? <span className="pm-code">{p.empresa_id}</span> : <span className="pm-tagn">Negócio</span>}
                 <b className="pm-ell" style={{ fontWeight: 600, color: 'var(--text)' }} title={emp ? `${origem} – ${emp}` : origem}>
                   {origem}{emp ? <span style={{ fontWeight: 500, color: 'var(--text-3)' }}> – {emp}</span> : null}
                 </b>
               </span>
-              <span className="pm-ell">{p.permutante}</span>
+              <span style={{ display: 'flex', gap: '6px', alignItems: 'center', minWidth: 0 }}>
+                <span className="pm-ell">{p.permutante}</span>
+                {p.ativo ? null : <span className="pm-chip err" title={p.motivo_inativacao || undefined}><i />Inativo</span>}
+              </span>
+              <span className="pm-ell">{p.cidade || '—'}</span>
               <span className="pm-ell">{p.num_matricula || "—"}</span>
               <span className="pm-n">{m2(p.area_matricula)}</span>
               <span className="pm-n">{p.coeficiente != null ? String(p.coeficiente).replace('.', ',') + 'x' : '—'}</span>
@@ -152,7 +176,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
               <span className="pm-n pm-calc">{m2(c.area)}</span>
               <span className="pm-n pm-calc">{m2(c.div)}</span>
               <span style={{ minWidth: 0, display: 'flex', flexDirection: 'column', gap: '3px' }}>
-                <span className="pm-ell" style={{ color: 'var(--text-3)' }}>{p.unidades.length ? p.unidades.map(u => `${empNome(u)} ${u.unidade_nome}`).join(', ') : '—'}</span>
+                <span className="pm-ell" style={{ color: 'var(--text-3)' }}>{unidadesAtivas(p).map(u => `${empNome(u)} ${u.unidade_nome}`).join(', ') || '—'}</span>
                 {p.pendencia || c.area == null || (c.div != null && c.div < 0) ? (
                   <span><span className="pm-chip warn"><i />{p.pendencia || (c.area == null ? 'Sem % ou área de permuta' : 'Próprio > área de permuta')}</span></span>
                 ) : null}
@@ -161,7 +185,7 @@ export default function PermutasCadastroPage({ v }: { v: any }) {
           ))}
           {linhas.length ? (
             <div className="pm-tr tot" style={cols.estilo}>
-              <span>Total{busca || fOrigem || soPend ? ' (filtrado)' : ''}</span><span /><span />
+              <span>Total{busca || fOrigem || soPend || fStatus ? ' (filtrado)' : ''}</span><span /><span /><span />
               <span className="pm-n">{m2(tMat)}</span><span /><span className="pm-n">{pct(pctMedio)}</span>
               <span className="pm-n">{m2(tArea)}</span><span className="pm-n">{m2(tDiv)}</span>
               <span style={{ color: 'var(--text-3)', fontWeight: 500 }}>Aproveitamento total {m2(tAprov)} m²</span>

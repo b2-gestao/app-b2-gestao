@@ -1,4 +1,5 @@
-// Permutas › Cadastro: dados e regras de cálculo (migration 20261016100000_app_permutas.sql).
+// Permutas › Cadastro: dados e regras de cálculo (migrations 20261016100000_app_permutas.sql e
+// 20261022100000_app_permutas_inativacao_historico.sql: inativação, inscrições e histórico).
 import { supabase } from './supabase';
 
 export const TIPOS_ANEXO = ['Contrato', 'Escritura', 'Matrícula', 'Aditivo', 'Outro'] as const;
@@ -26,6 +27,8 @@ export interface UnidadeDireta {
 export interface PermutaUnidade {
   id?: string; enterprise_id: number; unidade_id: number; unidade_nome: string;
   area_privativa: number | null; valor_unidade: number | null; ordem?: number;
+  /** Inativa: continua no cadastro, mas fora das somas e das outras telas. */
+  ativo?: boolean; motivo_inativacao?: string | null;
 }
 export interface PermutaAnexo {
   id: string; tipo: TipoAnexo; descricao: string | null; nome: string; mime: string;
@@ -34,37 +37,69 @@ export interface PermutaAnexo {
 export interface Permuta {
   id: string;
   empresa_id: number | null; negocio_id: string | null;
-  permutante: string; num_matricula: string | null;
+  permutante: string;
+  /** CPF/CNPJ do permutante principal, só dígitos. */
+  cpf_cnpj: string | null;
+  num_matricula: string | null;
   area_matricula: number | null; coeficiente: number | null;
   /** Fração: 0,12 = 12%. */
   pct_permuta: number | null;
   area_propria: number | null; area_informada: number | null;
   observacao: string | null; pendencia: string | null;
   data_contrato?: string | null;
+  cidade: string | null;
+  inscricao_iptu: string | null; inscricao_equatorial: string | null; inscricao_saneago: string | null;
+  ativo: boolean; motivo_inativacao: string | null;
   unidades: PermutaUnidade[];
   anexos: PermutaAnexo[];
 }
-export type PermutaDados = Omit<Permuta, 'id' | 'unidades' | 'anexos'>;
+/** O que o formulário grava; o status só muda por definirStatus (com motivo). */
+export type PermutaDados = Omit<Permuta, 'id' | 'unidades' | 'anexos' | 'ativo' | 'motivo_inativacao'>;
+/** Limites do motivo de inativação/reativação (o banco confere os mesmos). */
+export const MOTIVO_MIN = 5;
+export const MOTIVO_MAX = 500;
+
+/** Item do histórico (tabela app_permutas_historico; mais recente primeiro). */
+export type AcaoHistorico = 'criado' | 'editado' | 'inativado' | 'reativado'
+  | 'unidade_incluida' | 'unidade_editada' | 'unidade_removida' | 'unidade_inativada' | 'unidade_reativada';
+export interface HistoricoItem {
+  id: number; acao: AcaoHistorico; enterprise_id: number | null; unidade: string | null;
+  /** Só os campos que mudaram: { campo: { de, para } }. */
+  alteracoes: Record<string, { de: any; para: any }> | null;
+  motivo: string | null; usuario: string | null; criado_em: string;
+}
+
+/** Só cadastros ativos e, neles, só as unidades ativas (Visão Geral e Insights). */
+export const soAtivas = (l: Permuta[]): Permuta[] =>
+  l.filter(p => p.ativo !== false).map(p => (p.unidades.every(u => u.ativo !== false) ? p : { ...p, unidades: p.unidades.filter(u => u.ativo !== false) }));
 /** Arquivo escolhido na modal, enviado ao salvar. */
 export interface AnexoNovo { file: File; tipo: TipoAnexo | ''; descricao: string }
 
-// ---------- importar da escritura (edge function app-permutas) ----------
+// ---------- importar do contrato (edge function app-permutas) ----------
 /** Limite da leitura por IA (o anexo em si aceita até 50 MB). */
-export const MAX_ESCRITURA_IA = 15 * 1024 * 1024;
+export const MAX_CONTRATO_IA = 15 * 1024 * 1024;
 export type NivelAviso = 'ok' | 'atencao' | 'info';
 export interface AvisoImportacao { nivel: NivelAviso; texto: string }
-/** Preenchimento sugerido a partir da escritura; pct_permuta em pontos percentuais (12 = 12%). */
-export interface SugestaoEscritura {
-  permutante: string | null; num_matricula: string | null; area_matricula: number | null; coeficiente: number | null;
+/** Unidade principal citada no contrato (vagas e escaninhos vão na observação). */
+export interface UnidadeContrato { empreendimento: string; cnpj: string | null; unidade: string; area_m2: number | null; extras: string | null }
+/** Preenchimento sugerido a partir do contrato; pct_permuta em pontos percentuais (12 = 12%). */
+export interface SugestaoContrato {
+  permutante: string | null; cpf_cnpj: string | null; num_matricula: string | null; area_matricula: number | null; coeficiente: number | null;
   pct_permuta: number | null; area_propria: number | null; area_informada: number | null; data_contrato: string | null;
-  observacao: string | null; pendencia: string | null;
+  cidade: string | null; inscricao_iptu: string | null; inscricao_equatorial: string | null; inscricao_saneago: string | null;
+  observacao: string | null;
   empresa: { cnpj: string | null; nome: string | null };
   matriculas: string[];
+  unidades: UnidadeContrato[];
 }
-export interface ImportacaoEscritura {
-  tipoDocumento: 'ESCRITURA_PERMUTA' | 'COMPROMISSO_PERMUTA' | 'OUTRO';
-  sugestao: SugestaoEscritura; avisos: AvisoImportacao[]; modelo: string; cache: boolean;
+export interface ImportacaoContrato {
+  tipoDocumento: 'COMPROMISSO_PERMUTA' | 'ESCRITURA_PERMUTA' | 'OUTRO';
+  sugestao: SugestaoContrato; avisos: AvisoImportacao[]; modelo: string; cache: boolean;
+  /** "14 de 79" quando só o corpo do contrato foi lido; null no PDF escaneado ou no cache. */
+  paginas: string | null;
 }
+/** Preço da unidade na tabela de vendas do mês do contrato (ou a mais próxima). */
+export interface PrecoUnidade { enterprise_id: number; unidade: string; preco: number; mes_tabela: string }
 const paraBase64 = (f: File) => new Promise<string>((ok, falha) => {
   const r = new FileReader();
   r.onload = () => ok(String(r.result).replace(/^data:[^,]*,/, ''));
@@ -73,6 +108,27 @@ const paraBase64 = (f: File) => new Promise<string>((ok, falha) => {
 });
 /** Só os dígitos, para comparar CNPJ e matrículas escritos de jeitos diferentes. */
 export const digitos = (s: string | null | undefined) => String(s ?? '').replace(/\D/g, '');
+/** Máscara de CPF (até 11 dígitos) ou CNPJ (12 a 14) enquanto se digita. */
+export function formatarCpfCnpj(v: string | null | undefined): string {
+  const d = digitos(v).slice(0, 14);
+  if (d.length <= 11) return d.replace(/^(\d{3})(\d)/, '$1.$2').replace(/^(\d{3})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d{1,2})$/, '.$1-$2');
+  return d.replace(/^(\d{2})(\d)/, '$1.$2').replace(/^(\d{2})\.(\d{3})(\d)/, '$1.$2.$3').replace(/\.(\d{3})(\d)/, '.$1/$2').replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+}
+/** Dígitos verificadores de CPF (11 dígitos) ou CNPJ (14). */
+export function cpfCnpjValido(v: string): boolean {
+  const d = digitos(v);
+  if (d.length === 11) {
+    if (/^(\d)\1{10}$/.test(d)) return false;
+    const dv = (n: number) => { let s = 0; for (let i = 0; i < n; i++) s += Number(d[i]) * (n + 1 - i); const r = (s * 10) % 11; return r === 10 ? 0 : r; };
+    return dv(9) === Number(d[9]) && dv(10) === Number(d[10]);
+  }
+  if (d.length === 14) {
+    if (/^(\d)\1{13}$/.test(d)) return false;
+    const dv = (b: string) => { let s = 0, w = b.length - 7; for (const c of b) { s += Number(c) * w--; if (w < 2) w = 9; } const r = s % 11; return r < 2 ? 0 : 11 - r; };
+    return dv(d.slice(0, 12)) === Number(d[12]) && dv(d.slice(0, 13)) === Number(d[13]);
+  }
+  return false;
+}
 
 // ---------- regras de cálculo (as mesmas do Painel de Permutas) ----------
 export interface Calculo { aprov: number | null; area: number | null; proprio: number; div: number | null; fonte: 'calc' | 'informada' }
@@ -115,7 +171,6 @@ function sb() {
 function erro(e: { message: string; code?: string } | null) {
   if (!e) return;
   if (e.code === '42501') throw new Error('Seu perfil não tem permissão para esta alteração.');
-  if (e.code === '23505') throw new Error('Já existe um negócio com esse nome.');
   throw new Error(e.message);
 }
 const nomeArquivo = (s: string) =>
@@ -124,8 +179,9 @@ const uuid = () => (crypto as any).randomUUID ? crypto.randomUUID() : 'xxxxxxxx-
   const r = (Math.random() * 16) | 0; return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
 });
 
-const SEL = 'id, empresa_id, negocio_id, permutante, num_matricula, area_matricula, coeficiente, pct_permuta, area_propria, area_informada, observacao, pendencia, data_contrato, '
-  + 'unidades:app_permuta_unidades(id, enterprise_id, unidade_id, unidade_nome, area_privativa, valor_unidade, ordem), '
+const SEL = 'id, empresa_id, negocio_id, permutante, cpf_cnpj, num_matricula, area_matricula, coeficiente, pct_permuta, area_propria, area_informada, observacao, pendencia, data_contrato, '
+  + 'cidade, inscricao_iptu, inscricao_equatorial, inscricao_saneago, ativo, motivo_inativacao, '
+  + 'unidades:app_permuta_unidades(id, enterprise_id, unidade_id, unidade_nome, area_privativa, valor_unidade, ordem, ativo, motivo_inativacao), '
   + 'anexos:app_permuta_anexos(id, tipo, descricao, nome, mime, tamanho, storage_path, adicionado_em)';
 const FICHA = 'id, enterprise_id, nome, tipo, tipo_permuta, status, alerta, acao';
 const numOuNull = (v: any) => (v == null ? null : Number(v));
@@ -133,8 +189,8 @@ function normaliza(r: any): Permuta {
   return {
     ...r,
     area_matricula: numOuNull(r.area_matricula), coeficiente: numOuNull(r.coeficiente), pct_permuta: numOuNull(r.pct_permuta),
-    area_propria: numOuNull(r.area_propria), area_informada: numOuNull(r.area_informada),
-    unidades: (r.unidades || []).map((u: any) => ({ ...u, area_privativa: numOuNull(u.area_privativa), valor_unidade: numOuNull(u.valor_unidade) }))
+    area_propria: numOuNull(r.area_propria), area_informada: numOuNull(r.area_informada), ativo: r.ativo !== false,
+    unidades: (r.unidades || []).map((u: any) => ({ ...u, ativo: u.ativo !== false, area_privativa: numOuNull(u.area_privativa), valor_unidade: numOuNull(u.valor_unidade) }))
       .sort((a: any, b: any) => (a.ordem ?? 0) - (b.ordem ?? 0)),
     anexos: (r.anexos || []).map((a: any) => ({ ...a, tamanho: Number(a.tamanho) || 0 }))
       .sort((a: any, b: any) => String(a.adicionado_em).localeCompare(String(b.adicionado_em))),
@@ -189,14 +245,18 @@ export const permutasApi = {
     }));
   },
 
-  async criarNegocio(nome: string): Promise<Negocio> {
-    const { data, error } = await sb().from('negocios_permuta').insert({ nome: nome.trim() }).select('id, nome').single();
-    erro(error);
-    return data as Negocio;
+  /** Inativa ou reativa o cadastro (motivo obrigatório; o banco grava o histórico). */
+  async definirStatus(id: string, ativo: boolean, motivo: string): Promise<void> {
+    erro((await sb().rpc('app_permuta_status', { p_id: id, p_ativo: ativo, p_motivo: motivo.trim() })).error);
   },
-  async renomearNegocio(id: string, nome: string): Promise<void> {
-    const { error } = await sb().from('negocios_permuta').update({ nome: nome.trim() }).eq('id', id);
+  /** Inativa ou reativa uma unidade da permuta (motivo obrigatório). */
+  async definirStatusUnidade(id: string, ativo: boolean, motivo: string): Promise<void> {
+    erro((await sb().rpc('app_permuta_unidade_status', { p_id: id, p_ativo: ativo, p_motivo: motivo.trim() })).error);
+  },
+  async historico(permutaId: string): Promise<HistoricoItem[]> {
+    const { data, error } = await sb().rpc('app_permutas_historico', { p_permuta: permutaId });
     erro(error);
+    return (data || []) as HistoricoItem[];
   },
 
   /**
@@ -246,15 +306,24 @@ export const permutasApi = {
     if (p.anexos.length) await sb().storage.from(BUCKET).remove(p.anexos.map(a => a.storage_path));
   },
 
-  /** Lê a escritura com IA e devolve a sugestão de preenchimento. Nada é gravado. */
-  async lerEscritura(file: File): Promise<ImportacaoEscritura> {
+  /** Lê o contrato com IA e devolve a sugestão de preenchimento. Nada é gravado. */
+  async lerContrato(file: File): Promise<ImportacaoContrato> {
     const pdfBase64 = await paraBase64(file);
-    const { data, error } = await sb().functions.invoke('app-permutas', { body: { acao: 'ler_escritura', pdfBase64, nomeArquivo: file.name } });
+    const { data, error } = await sb().functions.invoke('app-permutas', { body: { acao: 'ler_contrato', pdfBase64, nomeArquivo: file.name } });
     if (error) {
       const b = await (error as any).context?.json?.().catch(() => null);
       throw new Error(b?.error || error.message);
     }
-    return data as ImportacaoEscritura;
+    return data as ImportacaoContrato;
+  },
+  /** Preços da tabela de vendas no mês do contrato (unidades sem preço não voltam). */
+  async precos(itens: { enterprise_id: number; unidade: string }[], data: string | null): Promise<PrecoUnidade[]> {
+    if (!itens.length) return [];
+    const { data: linhas, error } = await sb().rpc('app_permutas_precos', {
+      p_enterprise: itens.map(i => i.enterprise_id), p_unidade: itens.map(i => i.unidade), p_data: data,
+    });
+    erro(error);
+    return ((linhas || []) as any[]).map(l => ({ ...l, preco: Number(l.preco) }));
   },
 
   /** Link temporário (2 min) para baixar o anexo. */
