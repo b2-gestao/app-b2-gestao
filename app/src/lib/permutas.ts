@@ -98,6 +98,14 @@ export interface ImportacaoContrato {
   /** "14 de 79" quando só o corpo do contrato foi lido; null no PDF escaneado ou no cache. */
   paginas: string | null;
 }
+// ---------- notificar por e-mail (edge function app-email, tipo "permuta") ----------
+/** Usuário ativo do B2 sugerido como destinatário. */
+export interface Destinatario { nome: string; email: string; departamento: string | null }
+/** Os mesmos limites da edge function (ela confere de novo). */
+export const MAX_DESTINATARIOS = 10;
+export const MAX_ANEXO_EMAIL = 8 * 1024 * 1024;
+export const EMAIL_RE = /^[^\s@,;<>"]+@[^\s@,;<>"]+\.[^\s@,;<>"]+$/;
+
 /** Preço da unidade na tabela de vendas do mês do contrato (ou a mais próxima). */
 export interface PrecoUnidade { enterprise_id: number; unidade: string; preco: number; mes_tabela: string }
 const paraBase64 = (f: File) => new Promise<string>((ok, falha) => {
@@ -315,6 +323,21 @@ export const permutasApi = {
       throw new Error(b?.error || error.message);
     }
     return data as ImportacaoContrato;
+  },
+  /** Usuários ativos (nome, e-mail, departamento) para sugerir como destinatários. */
+  async destinatarios(): Promise<Destinatario[]> {
+    const { data, error } = await sb().from('app_usuarios').select('nome, email, departamento').eq('status', 'ativo').order('nome');
+    erro(error);
+    return (data || []) as Destinatario[];
+  },
+  /** Envia os dados da permuta por e-mail; a função monta o corpo e confere a permissão de edição. */
+  async notificar(permutaId: string, para: string[], opcoes: { novo: boolean; anexar: boolean }): Promise<void> {
+    const { error } = await sb().functions.invoke('app-email', { body: { tipo: 'permuta', permuta_id: permutaId, para, ...opcoes } });
+    if (!error) return;
+    const ctx = (error as any).context;
+    if (ctx?.status === 503) throw new Error('O envio de e-mail ainda não foi configurado no servidor.');
+    const b = await ctx?.json?.().catch(() => null);
+    throw new Error(b?.error || error.message);
   },
   /** Preços da tabela de vendas no mês do contrato (unidades sem preço não voltam). */
   async precos(itens: { enterprise_id: number; unidade: string }[], data: string | null): Promise<PrecoUnidade[]> {

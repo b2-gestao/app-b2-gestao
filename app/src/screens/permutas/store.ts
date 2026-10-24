@@ -4,7 +4,7 @@
 import { useSyncExternalStore } from 'react';
 import {
   permutasApi,
-  type AnexoNovo, type EmpreendimentoFicha, type HistoricoItem, type ImportacaoContrato, type PrecoUnidade, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
+  type AnexoNovo, type Destinatario, type EmpreendimentoFicha, type HistoricoItem, type ImportacaoContrato, type PrecoUnidade, type Negocio, type Permuta, type PermutaAnexo, type PermutaDados,
   type PermutaUnidade, type UnidadeCatalogo, type UnidadeDireta,
 } from '../../lib/permutas';
 
@@ -61,8 +61,9 @@ export const permutasStore = {
   },
 
   // ---------- permutas ----------
-  async salvar(id: string | null, dados: PermutaDados, unidades: PermutaUnidade[], novos: AnexoNovo[], removidos: PermutaAnexo[]) {
-    if (live) { await permutasApi.salvar(id, dados, unidades, novos, removidos); await recarregarBase(); return; }
+  /** Devolve o id da permuta (novo ou o mesmo). */
+  async salvar(id: string | null, dados: PermutaDados, unidades: PermutaUnidade[], novos: AnexoNovo[], removidos: PermutaAnexo[]): Promise<string> {
+    if (live) { const pid = await permutasApi.salvar(id, dados, unidades, novos, removidos); await recarregarBase(); return pid; }
     const anexosNovos: PermutaAnexo[] = novos.map(a => ({
       id: novoId(), tipo: a.tipo as PermutaAnexo['tipo'], descricao: a.tipo === 'Outro' ? a.descricao : null, nome: a.file.name,
       mime: a.file.type, tamanho: a.file.size, storage_path: '', adicionado_em: new Date().toISOString(),
@@ -77,6 +78,7 @@ export const permutasStore = {
       }),
     };
     set({ permutas: id ? estado.permutas.map(x => (x.id === id ? novo : x)) : [...estado.permutas, novo] });
+    return novo.id;
   },
   async excluir(p: Permuta) {
     if (live) { await permutasApi.excluir(p); await recarregarBase(); return; }
@@ -104,6 +106,14 @@ export const permutasStore = {
   async lerContrato(f: File): Promise<ImportacaoContrato> {
     if (!live) throw new Error('No modo demonstração a leitura do contrato por IA não está disponível.');
     return permutasApi.lerContrato(f);
+  },
+  /** Notificar por e-mail: usuários ativos (modo demonstração: nenhum) e o envio (precisa do Supabase). */
+  async destinatarios(): Promise<Destinatario[]> {
+    return live ? permutasApi.destinatarios() : [];
+  },
+  async notificar(permutaId: string, para: string[], opcoes: { novo: boolean; anexar: boolean }): Promise<void> {
+    if (!live) throw new Error('No modo demonstração o envio por e-mail não está disponível.');
+    return permutasApi.notificar(permutaId, para, opcoes);
   },
   /** Preço das unidades na tabela de vendas do mês do contrato (modo demonstração: sem preços). */
   async precos(itens: { enterprise_id: number; unidade: string }[], data: string | null): Promise<PrecoUnidade[]> {
