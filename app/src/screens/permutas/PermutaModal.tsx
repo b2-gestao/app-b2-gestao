@@ -9,6 +9,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { SeletorBusca } from './busca';
 import { HistoricoPermuta } from './historico';
 import { ModalMotivo } from './motivo';
+import { IcNotificar } from './notificar';
 import { PainelImportacao, PASSOS_IA, type FaseImportacao, type ModoCadastro } from './importar';
 import {
   calcular, cpfCnpjValido, digitos, formatarCpfCnpj, lerNumero, m2, paraCampo, tamanho, nomeEmpreendimento, MAX_ANEXO, MAX_CONTRATO_IA, TIPOS_ANEXO,
@@ -31,7 +32,8 @@ export interface PermutaModalProps {
   catalogo: UnidadeCatalogo[];
   podeEditar: boolean;
   toast: (m: string) => void;
-  salvar: (id: string | null, dados: PermutaDados, unidades: PermutaUnidade[], novos: AnexoNovo[], removidos: PermutaAnexo[]) => Promise<void>;
+  /** Devolve o id da permuta (novo ou o mesmo). */
+  salvar: (id: string | null, dados: PermutaDados, unidades: PermutaUnidade[], novos: AnexoNovo[], removidos: PermutaAnexo[]) => Promise<string>;
   excluir: (p: Permuta) => Promise<void>;
   baixar: (a: PermutaAnexo) => Promise<void>;
   definirStatus: (id: string, ativo: boolean, motivo: string) => Promise<void>;
@@ -43,6 +45,8 @@ export interface PermutaModalProps {
   /** Importar do contrato; sem ela o painel não aparece. */
   lerContrato?: (f: File) => Promise<ImportacaoContrato>;
   precos?: (itens: { enterprise_id: number; unidade: string }[], data: string | null) => Promise<PrecoUnidade[]>;
+  /** Notificar por e-mail (só para quem edita); `novo` = logo depois de cadastrar, com a pergunta antes. */
+  notificar?: (id: string, novo: boolean) => void;
 }
 
 const ORDEM_AVISO = { atencao: 0, ok: 1, info: 2 } as const;
@@ -390,10 +394,12 @@ export default function PermutaModal(p: PermutaModalProps) {
     };
     setSalvando(true);
     try {
-      await p.salvar(ed?.id || null, dados, unidades, fila.map(({ file, tipo, descricao }) => ({ file, tipo, descricao })), (ed?.anexos || []).filter(a => removidos.includes(a.id)));
+      const id = await p.salvar(ed?.id || null, dados, unidades, fila.map(({ file, tipo, descricao }) => ({ file, tipo, descricao })), (ed?.anexos || []).filter(a => removidos.includes(a.id)));
       const fora = completas.length - validas.length;
       p.toast((ed ? 'Alterações salvas' : 'Permutante adicionado') + (fora ? ` · ${fora} unidade(s) fora da regra removida(s)` : ''));
-      p.fechar();
+      // Cadastro novo: pergunta se deseja notificar por e-mail (a modal do permutante fecha junto).
+      if (!ed && p.notificar && p.podeEditar) p.notificar(id, true);
+      else p.fechar();
     } catch (e: any) {
       setErro(e?.message || String(e));
     } finally {
@@ -457,7 +463,12 @@ export default function PermutaModal(p: PermutaModalProps) {
             <div className="pm-mt" id="pm-mt">{ed ? 'Editar permutante' : 'Novo permutante'}</div>
             <div className="pm-ms">Área permutada, unidades dadas em troca e documentos.</div>
           </div>
-          <button type="button" className="pm-x" title="Fechar" onClick={p.fechar} disabled={salvando || lendo}><IcX /></button>
+          <div className="pm-mh-acts">
+            {ed && p.notificar && p.podeEditar && !inativo ? (
+              <button type="button" className="pm-x mail" title="Notificar por e-mail (dados já salvos)" aria-label="Notificar por e-mail" onClick={() => p.notificar!(ed.id, false)} disabled={salvando || lendo}><IcNotificar /></button>
+            ) : null}
+            <button type="button" className="pm-x" title="Fechar" aria-label="Fechar" onClick={p.fechar} disabled={salvando || lendo}><IcX /></button>
+          </div>
         </div>
         <div className="pm-abas" role="tablist">
           <button type="button" role="tab" aria-selected={aba === 'dados'} className={'pm-seg' + (aba === 'dados' ? ' on' : '')} onClick={() => setAba('dados')}>Dados</button>

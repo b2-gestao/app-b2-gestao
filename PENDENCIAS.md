@@ -103,6 +103,10 @@ Supabase
       Opcional: `EMAIL_FROM_NOME_PADRAO`. O "De" sai como "Nome do usuário <EMAIL_FROM>" e as respostas vão para o
       e-mail de quem enviou. O texto do e-mail fica em `MODELOS`, no topo de `supabase/functions/app-email/index.ts`;
       para liberar o envio em outra tela, crie um modelo lá e chame `app.abrirEnvioEmail(...)` com o PDF da tela.
+- [ ] **Notificar permuta por e-mail** (Permutas › Terrenos › Cadastros): republicar a edge function `app-email`
+      (arquivos `index.ts` e `permuta.ts`). Usa os mesmos segredos do Resend e a `SUPABASE_SERVICE_ROLE_KEY`
+      (automática), só para ler o nome dos empreendimentos no de-para. Só quem pode editar Permutas envia; o
+      contrato vai anexado até 8 MB. Validar no primeiro envio real: corpo, anexo e o "responder para".
 
 ### Validar no primeiro uso real
 

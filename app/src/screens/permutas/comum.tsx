@@ -1,7 +1,8 @@
 // Permutas › Terrenos: contexto vindo da lógica do app, KPI, nomes e a modal ligada ao store.
-import { useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { Permuta, PermutaAnexo, UnidadeCatalogo } from '../../lib/permutas';
 import PermutaModal, { type EmpresaOpcao } from './PermutaModal';
+import { ModalNotificar } from './notificar';
 import { permutasStore, usePermutas } from './store';
 
 export type PaginaPermutas = 'cadastros' | 'visao' | 'insights';
@@ -70,10 +71,20 @@ export function Kpi({ cor, fundo, rotulo, valor, un, sub, icone, onClick, ativo 
   );
 }
 
-/** Modal de permuta ligada ao store (usada em Cadastros e Visão Geral). */
+/** Modal de permuta ligada ao store (usada em Cadastros e Visão Geral), com o "Notificar por e-mail". */
 export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta: Permuta | null; ctx: PermutasCtx; empresas: EmpresaOpcao[]; fechar: () => void }) {
   const d = usePermutas();
   const historico = useCallback((id: string) => permutasStore.historico(id), []);
+  const destinatarios = useCallback(() => permutasStore.destinatarios(), []);
+  // novo: aberto logo depois de cadastrar; a modal do permutante já fechou e fecha de vez junto com esta.
+  const [notif, setNotif] = useState<{ p: Permuta; novo: boolean } | null>(null);
+  const podeEditar = ctx.podeEditar();
+  const pNotif = notif ? d.permutas.find(x => x.id === notif.p.id) || notif.p : null;
+  const abrirNotif = (id: string, novo: boolean) => {
+    const p = permutasStore.estado.permutas.find(x => x.id === id);
+    if (p) setNotif({ p, novo });
+    else if (novo) fechar();
+  };
   const baixar = async (a: PermutaAnexo) => {
     try {
       const url = await permutasStore.link(a);
@@ -83,14 +94,31 @@ export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta:
   };
   // Versão atual do store: reflete inativação/reativação feita com a modal aberta.
   const atual = permuta ? d.permutas.find(x => x.id === permuta.id) || permuta : null;
+  /** Prévia do assunto: mesma regra de `subject` em supabase/functions/app-email/permuta.ts (mudou lá, mude aqui). */
+  const assunto = (p: Permuta, novo: boolean) => {
+    const u = p.unidades.find(x => x.ativo !== false);
+    const emp = u ? d.catalogo.find(c => c.enterprise_id === u.enterprise_id)?.empreendimento || `Empreendimento ${u.enterprise_id}` : null;
+    return [novo ? 'Permuta cadastrada' : 'Dados da permuta', p.permutante, emp].filter(Boolean).join(' · ').slice(0, 200);
+  };
+  const fecharNotif = () => { const novo = notif?.novo; setNotif(null); if (novo) fechar(); };
   return (
+    <>
+    {notif?.novo ? null : (
     <PermutaModal
-      permuta={atual} empresas={empresas} negocios={d.negocios} catalogo={d.catalogo} podeEditar={ctx.podeEditar()}
+      permuta={atual} empresas={empresas} negocios={d.negocios} catalogo={d.catalogo} podeEditar={podeEditar}
       toast={ctx.toast} salvar={(...a) => permutasStore.salvar(...a)} excluir={p => permutasStore.excluir(p)} baixar={baixar}
       definirStatus={(...a) => permutasStore.definirStatus(...a)} definirStatusUnidade={(...a) => permutasStore.definirStatusUnidade(...a)}
       historico={historico} fechar={fechar}
       permutas={d.permutas} lerContrato={f => permutasStore.lerContrato(f)} precos={(i, dt) => permutasStore.precos(i, dt)}
+      notificar={podeEditar ? abrirNotif : undefined}
     />
+    )}
+    {notif && pNotif && podeEditar ? (
+      <ModalNotificar permuta={pNotif} novo={notif.novo} assunto={assunto(pNotif, notif.novo)} destinatarios={destinatarios}
+        enviar={(para, anexar) => permutasStore.notificar(pNotif.id, para, { novo: notif.novo, anexar })}
+        toast={ctx.toast} fechar={fecharNotif} />
+    ) : null}
+    </>
   );
 }
 

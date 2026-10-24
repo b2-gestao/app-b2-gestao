@@ -12,6 +12,9 @@
 // não manda texto livre, então a função não serve para disparar e-mails com qualquer conteúdo.
 // Para liberar o envio em outra tela, acrescente um modelo e chame a função com esse `tipo`.
 //
+// Tipo "permuta" (permuta.ts): o app manda só o id; os dados são lidos aqui com o token do usuário e o
+// envio exige editar em Permutas. O contrato vai anexado quando pedido.
+//
 // Segredos (Edge Functions › Secrets):
 //   RESEND_API_KEY          chave da API do Resend
 //   EMAIL_FROM              endereço do remetente no domínio verificado (ex.: sistemas@empresa.com.br)
@@ -19,16 +22,20 @@
 // Sem RESEND_API_KEY ou EMAIL_FROM a função responde 503.
 //
 // Entrada: { tipo, periodo, para: string[], arquivo: "x.pdf", pdf: base64 }
+//          { tipo: "permuta", permuta_id, para: string[], novo?: boolean, anexar?: boolean }
 // Saída:   { ok: true, id }
 
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { ErroEnvio, montarEmailPermuta, type EmailMontado } from "./permuta.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY") || "";
 const EMAIL_FROM = (Deno.env.get("EMAIL_FROM") || "").trim();
 const NOME_PADRAO = Deno.env.get("EMAIL_FROM_NOME_PADRAO") || "Departamento de Sistemas";
+const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") || "";
+const admin = SERVICE_KEY ? createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } }) : null;
 
 const MAX_DESTINATARIOS = 10;
 const MAX_PDF_BYTES = 8 * 1024 * 1024;
@@ -83,6 +90,24 @@ ${p(segue.replace(periodoEsc, `<b>${periodoEsc}</b>`))}
 /** Tamanho em bytes de um base64 (sem decodificar tudo). */
 const bytesBase64 = (b64: string) => Math.floor((b64.length * 3) / 4) - (b64.endsWith("==") ? 2 : b64.endsWith("=") ? 1 : 0);
 
+/** Análise com IA: assunto e corpo do modelo, PDF gerado pela tela como anexo. */
+function montarEmailAnalise(modelo: Modelo, b: Record<string, unknown>): EmailMontado {
+  const periodo = String(b.periodo || "").replace(/[\r\n<>]/g, " ").trim().slice(0, 60);
+  if (!periodo) throw new ErroEnvio("Período não informado.", 400);
+  const pdf = String(b.pdf || "").replace(/\s+/g, "");
+  if (!pdf) throw new ErroEnvio("PDF não informado.", 400);
+  if (bytesBase64(pdf) > MAX_PDF_BYTES) throw new ErroEnvio("PDF grande demais para enviar por e-mail.", 413);
+  if (!pdf.startsWith("JVBERi")) throw new ErroEnvio("O anexo não é um PDF.", 400); // "%PDF" em base64
+  const arquivo = (String(b.arquivo || "analise.pdf").replace(/[^\w.\-]+/g, "_").slice(0, 120) || "analise.pdf").replace(/(\.pdf)?$/i, ".pdf");
+  const paragrafos = modelo.paragrafos(periodo);
+  return {
+    subject: modelo.assunto(periodo),
+    html: montarHtml(paragrafos, periodo),
+    text: [...paragrafos, ASSINATURA.join("\n")].join("\n\n"),
+    attachments: [{ filename: arquivo, content: pdf }],
+  };
+}
+
 // ---------- handler ----------
 
 Deno.serve(async (req) => {
@@ -102,11 +127,8 @@ Deno.serve(async (req) => {
     if (!RESEND_API_KEY || !EMAIL_FROM) return json({ error: "Envio de e-mail não configurado (defina RESEND_API_KEY e EMAIL_FROM)." }, 503);
 
     const b = await req.json().catch(() => ({})) as Record<string, unknown>;
-    const modelo = MODELOS[String(b.tipo || "")];
-    if (!modelo) return json({ error: "Tipo de envio inválido." }, 400);
-
-    const periodo = String(b.periodo || "").replace(/[\r\n<>]/g, " ").trim().slice(0, 60);
-    if (!periodo) return json({ error: "Período não informado." }, 400);
+    const tipo = String(b.tipo || "");
+    if (tipo !== "permuta" && !Object.hasOwn(MODELOS, tipo)) return json({ error: "Tipo de envio inválido." }, 400);
 
     const para = [...new Set((Array.isArray(b.para) ? b.para : []).map((e) => String(e).trim().toLowerCase()).filter(Boolean))];
     if (!para.length) return json({ error: "Informe ao menos um e-mail." }, 400);
@@ -114,25 +136,19 @@ Deno.serve(async (req) => {
     const invalidos = para.filter((e) => !EMAIL_RE.test(e));
     if (invalidos.length) return json({ error: `E-mail inválido: ${invalidos.join(", ")}` }, 400);
 
-    const pdf = String(b.pdf || "").replace(/\s+/g, "");
-    if (!pdf) return json({ error: "PDF não informado." }, 400);
-    if (bytesBase64(pdf) > MAX_PDF_BYTES) return json({ error: "PDF grande demais para enviar por e-mail." }, 413);
-    if (!pdf.startsWith("JVBERi")) return json({ error: "O anexo não é um PDF." }, 400); // "%PDF" em base64
-    const arquivo = (String(b.arquivo || "analise.pdf").replace(/[^\w.\-]+/g, "_").slice(0, 120) || "analise.pdf").replace(/(\.pdf)?$/i, ".pdf");
-
     const meta = (quem.user.user_metadata || {}) as Record<string, unknown>;
     const nome = String(meta.full_name || meta.name || NOME_PADRAO).replace(/["<>\r\n]/g, "").trim() || NOME_PADRAO;
     const emailUsuario = (quem.user.email || "").trim().toLowerCase();
 
-    const paragrafos = modelo.paragrafos(periodo);
-    const envio: Record<string, unknown> = {
-      from: `${nome} <${EMAIL_FROM}>`,
-      to: para,
-      subject: modelo.assunto(periodo),
-      html: montarHtml(paragrafos, periodo),
-      text: [...paragrafos, ASSINATURA.join("\n")].join("\n\n"),
-      attachments: [{ filename: arquivo, content: pdf }],
-    };
+    const email = tipo === "permuta"
+      ? await montarEmailPermuta({
+        cliente, admin, permutaId: b.permuta_id, novo: b.novo === true, anexar: b.anexar !== false,
+        autor: nome, maxAnexoBytes: MAX_PDF_BYTES,
+      })
+      : montarEmailAnalise(MODELOS[tipo], b);
+
+    const envio: Record<string, unknown> = { from: `${nome} <${EMAIL_FROM}>`, to: para, ...email };
+    if (!email.attachments.length) delete envio.attachments;
     if (emailUsuario) envio.reply_to = emailUsuario;
 
     const r = await fetch("https://api.resend.com/emails", {
@@ -146,9 +162,10 @@ Deno.serve(async (req) => {
       console.error("app-email: Resend respondeu", r.status, JSON.stringify(resp).slice(0, 500));
       return json({ error: `O serviço de e-mail recusou o envio (${r.status})${resp.message ? `: ${resp.message}` : "."}` }, 502);
     }
-    console.log(JSON.stringify({ app_email: "enviado", tipo: b.tipo, qtd_destinatarios: para.length, usuario: emailUsuario, id: resp.id }));
+    console.log(JSON.stringify({ app_email: "enviado", tipo, qtd_destinatarios: para.length, usuario: emailUsuario, id: resp.id }));
     return json({ ok: true, id: resp.id ?? null });
   } catch (e) {
+    if (e instanceof ErroEnvio) return json({ error: e.message }, e.status);
     console.error("app-email:", e);
     return json({ error: String((e as Error)?.message || e) }, 500);
   }
