@@ -205,7 +205,7 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
             <div className={'pm-nt-box' + (erro ? ' bad' : '')} onMouseDown={e => { if (e.target === e.currentTarget) { e.preventDefault(); busca.current?.focus(); } }}>
               {sel.map(s => (
                 <span key={s.email} className={'pm-nt-chip' + (s.nome ? ' u' : '')} title={s.email}>
-                  {s.nome || s.email}
+                  <span className="t">{s.nome || s.email}</span>
                   <button type="button" aria-label={`Remover ${s.email}`} disabled={enviando} onClick={() => setSel(l => l.filter(x => x.email !== s.email))}>
                     <svg width="10" height="10" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" /></svg>
                   </button>
@@ -225,7 +225,7 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
                     onMouseDown={e => e.preventDefault()} onMouseEnter={() => setAtivo(i)} onClick={() => escolher(i)}>
                     <span className="pm-nt-av">{iniciais(u.nome)}</span>
                     <span className="pm-nt-who"><b className="pm-ell">{u.nome}</b><em className="pm-ell">{u.email}</em></span>
-                    {u.departamento ? <span className="pm-nt-dep">{u.departamento}</span> : null}
+                    {u.departamento ? <span className="pm-nt-dep" title={u.departamento}>{u.departamento}</span> : null}
                   </button>
                 ))}
                 {podeNovo ? (

@@ -98,7 +98,7 @@ export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta:
   const assunto = (p: Permuta, novo: boolean) => {
     const u = p.unidades.find(x => x.ativo !== false);
     const emp = u ? d.catalogo.find(c => c.enterprise_id === u.enterprise_id)?.empreendimento || `Empreendimento ${u.enterprise_id}` : null;
-    return [novo ? 'Permuta cadastrada' : 'Dados da permuta', p.permutante, emp].filter(Boolean).join(' · ');
+    return [novo ? 'Permuta cadastrada' : 'Dados da permuta', p.permutante, emp].filter(Boolean).join(' · ').slice(0, 200);
   };
   const fecharNotif = () => { const novo = notif?.novo; setNotif(null); if (novo) fechar(); };
   return (
