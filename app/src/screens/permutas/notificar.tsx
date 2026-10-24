@@ -3,9 +3,11 @@
 // ou e-mail digitado. O corpo é montado na edge function app-email (tipo "permuta"), que confere a permissão.
 import { useEffect, useMemo, useRef, useState, type ClipboardEvent, type KeyboardEvent as TeclaEvent } from 'react';
 import { EMAIL_RE, MAX_ANEXO_EMAIL, MAX_DESTINATARIOS, calcular, m2, tamanho, type Destinatario, type Permuta } from '../../lib/permutas';
-import { semAcento } from './comum';
-
 const MAX_SUGESTOES = 6;
+/** Depois do check de sucesso, tempo até a janela fechar sozinha. */
+const FECHAR_APOS_SUCESSO_MS = 1700;
+// Local (como em PermutaModal.tsx) para não criar import circular com comum.tsx.
+const semAcento = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 type Escolhido = { email: string; nome: string | null };
 
 const IcEmail = ({ s = 19 }: { s?: number }) => (
@@ -27,6 +29,7 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
 }) {
   const [passo, setPasso] = useState<'pergunta' | 'selecionar'>(novo ? 'pergunta' : 'selecionar');
   const [usuarios, setUsuarios] = useState<Destinatario[]>([]);
+  const [falhaUsuarios, setFalhaUsuarios] = useState(false);
   const [q, setQ] = useState('');
   const [sel, setSel] = useState<Escolhido[]>([]);
   const [ativo, setAtivo] = useState(0);
@@ -50,7 +53,8 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
   useEffect(() => {
     if (passo !== 'selecionar') return;
     let vivo = true;
-    destinatarios().then(l => { if (vivo) setUsuarios(l); }).catch(() => { /* sem sugestões: segue com e-mail digitado */ })
+    destinatarios().then(l => { if (vivo) setUsuarios(l); })
+      .catch(e => { console.error('Notificar: lista de usuários', e); if (vivo) setFalhaUsuarios(true); })
       .finally(() => { if (vivo) setCarregando(false); });
     busca.current?.focus();
     return () => { vivo = false; };
@@ -104,12 +108,15 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
     e.preventDefault();
     const validos = partes.map(p => p.toLowerCase()).filter(p => EMAIL_RE.test(p));
     const invalidos = partes.filter(p => !EMAIL_RE.test(p.toLowerCase()));
-    setSel(l => {
-      const novos = validos.filter((v, i) => validos.indexOf(v) === i && !l.some(s => s.email === v))
-        .map(v => ({ email: v, nome: usuarios.find(u => u.email.toLowerCase() === v)?.nome || null }));
-      return [...l, ...novos].slice(0, MAX_DESTINATARIOS);
-    });
-    setErro(invalidos.length ? `E-mail inválido: ${invalidos.join(', ')}` : '');
+    const novos = validos.filter((v, i) => validos.indexOf(v) === i && !sel.some(s => s.email === v))
+      .map(v => ({ email: v, nome: usuarios.find(u => u.email.toLowerCase() === v)?.nome || null }));
+    const cabem = Math.max(0, MAX_DESTINATARIOS - sel.length);
+    setSel(l => [...l, ...novos.slice(0, cabem)]);
+    const avisos = [
+      invalidos.length ? `E-mail inválido: ${invalidos.join(', ')}` : '',
+      novos.length > cabem ? `No máximo ${MAX_DESTINATARIOS} destinatários: ${novos.length - cabem} não foram adicionados.` : '',
+    ].filter(Boolean);
+    setErro(avisos.join(' '));
   };
 
   const confirmar = async () => {
@@ -125,7 +132,7 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
       toast(para.length === 1 ? `E-mail enviado para ${para[0]}` : `E-mail enviado para ${para.length} destinatários`);
       // Mostra a confirmação animada e fecha sozinho.
       setEnviadoPara(para); setFase('enviado');
-      timer.current = window.setTimeout(fechar, 1700);
+      timer.current = window.setTimeout(fechar, FECHAR_APOS_SUCESSO_MS);
     } catch (e: any) {
       setErro(e?.message || 'Não foi possível enviar o e-mail.');
       setFase('editar');
@@ -229,7 +236,9 @@ export function ModalNotificar({ permuta, novo, assunto, destinatarios, enviar, 
                   </button>
                 ) : null}
                 {!opcoes && carregando ? [0, 1, 2].map(i => <div key={i} className="pm-nt-sk" aria-hidden="true"><i /><span><em /><em /></span></div>) : null}
-                {!opcoes && !carregando ? <div className="pm-nt-vazio">Nenhum usuário encontrado. Digite o e-mail completo para adicionar.</div> : null}
+                {!opcoes && !carregando ? (
+                  <div className="pm-nt-vazio">{falhaUsuarios ? 'Não foi possível carregar os usuários. Digite o e-mail completo para adicionar.' : 'Nenhum usuário encontrado. Digite o e-mail completo para adicionar.'}</div>
+                ) : null}
               </div>
             ) : null}
           </div>

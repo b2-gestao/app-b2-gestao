@@ -94,7 +94,7 @@ export function ModalPermutaStore({ permuta, ctx, empresas, fechar }: { permuta:
   };
   // Versão atual do store: reflete inativação/reativação feita com a modal aberta.
   const atual = permuta ? d.permutas.find(x => x.id === permuta.id) || permuta : null;
-  /** Prévia do assunto, igual ao que a edge function monta. */
+  /** Prévia do assunto: mesma regra de `subject` em supabase/functions/app-email/permuta.ts (mudou lá, mude aqui). */
   const assunto = (p: Permuta, novo: boolean) => {
     const u = p.unidades.find(x => x.ativo !== false);
     const emp = u ? d.catalogo.find(c => c.enterprise_id === u.enterprise_id)?.empreendimento || `Empreendimento ${u.enterprise_id}` : null;

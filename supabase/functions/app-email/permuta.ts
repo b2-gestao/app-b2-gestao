@@ -20,6 +20,8 @@ export interface EmailMontado {
 }
 
 const BUCKET = "app-permutas";
+/** Limite do assunto (o Resend aceita mais; acima disso o cliente de e-mail corta). */
+const MAX_ASSUNTO = 200;
 const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]!));
@@ -66,7 +68,11 @@ export async function montarEmailPermuta(opts: {
   if (!UUID_RE.test(id)) throw new ErroEnvio("Permuta inválida.", 400);
 
   const { data: pode, error: pErr } = await cliente.rpc("app_permutas_pode", { p_editar: true });
-  if (pErr || pode !== true) throw new ErroEnvio("Seu perfil só pode visualizar Permutas: o envio por e-mail exige permissão de edição.", 403);
+  if (pErr) {
+    console.error("app-email: app_permutas_pode", pErr.message);
+    throw new ErroEnvio("Não foi possível conferir a permissão. Tente de novo.", 500);
+  }
+  if (pode !== true) throw new ErroEnvio("Seu perfil só pode visualizar Permutas: o envio por e-mail exige permissão de edição.", 403);
 
   const { data: p, error } = await cliente.from("app_permutas")
     .select("id, empresa_id, negocio_id, permutante, cpf_cnpj, num_matricula, area_matricula, coeficiente, pct_permuta, area_propria, area_informada, "
@@ -74,7 +80,10 @@ export async function montarEmailPermuta(opts: {
       + "unidades:app_permuta_unidades(enterprise_id, unidade_nome, area_privativa, valor_unidade, ordem, ativo), "
       + "anexos:app_permuta_anexos(tipo, descricao, nome, tamanho, storage_path, adicionado_em)")
     .eq("id", id).maybeSingle();
-  if (error) throw new ErroEnvio(`Não foi possível ler a permuta: ${error.message}`, 500);
+  if (error) {
+    console.error("app-email: leitura da permuta", error.message);
+    throw new ErroEnvio("Não foi possível ler a permuta.", 500);
+  }
   if (!p) throw new ErroEnvio("Permuta não encontrada.", 404);
   const r = p as Record<string, any>;
 
@@ -106,7 +115,7 @@ export async function montarEmailPermuta(opts: {
 
   // Contrato: o anexo do tipo Contrato mais recente.
   const anexos = ((r.anexos || []) as any[]).sort((a, b) => String(a.adicionado_em).localeCompare(String(b.adicionado_em)));
-  const contrato = [...anexos].reverse().find((a) => a.tipo === "Contrato") || null;
+  const contrato = [...anexos].reverse().find((a) => a.tipo === "Contrato" && a.storage_path) || null;
   const attachments: EmailMontado["attachments"] = [];
   let avisoAnexo: string | null = null;
   if (opts.anexar && contrato) {
@@ -131,7 +140,7 @@ export async function montarEmailPermuta(opts: {
   const pct = num(r.pct_permuta);
   const coef = num(r.coeficiente);
   const titulo = opts.novo ? "Permuta cadastrada" : "Dados da permuta";
-  const subject = [titulo, permutante, principal].filter(Boolean).join(" · ").slice(0, 200);
+  const subject = [titulo, permutante, principal].filter(Boolean).join(" · ").slice(0, MAX_ASSUNTO);
   const quando = new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", dateStyle: "short", timeStyle: "short" }).replace(", ", " às ");
 
   const secoes: { titulo: string; itens?: Item[]; html?: string; texto?: string }[] = [
@@ -156,7 +165,8 @@ export async function montarEmailPermuta(opts: {
 
   // Unidades: tabela com total.
   if (unidades.length) {
-    const totM2 = unidades.reduce((s, u) => s + (num(u.area_privativa) ?? 0), 0);
+    const comArea = unidades.filter((u) => num(u.area_privativa) != null);
+    const totM2 = comArea.length ? f2.format(comArea.reduce((s, u) => s + num(u.area_privativa)!, 0)) : "—";
     const comValor = unidades.filter((u) => num(u.valor_unidade) != null);
     const totValor = comValor.reduce((s, u) => s + (num(u.valor_unidade) ?? 0), 0);
     const td = (t: string, dir = false, extra = "") => `<td style="padding:8px 10px;${dir ? "text-align:right;" : ""}${extra}">${t}</td>`;
@@ -166,10 +176,10 @@ export async function montarEmailPermuta(opts: {
       html: `<table style="width:100%;border-collapse:collapse;font-size:13px;margin-top:8px">
 <tr style="background:#F7F8FA;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:#4B5563">${td("Empreendimento")}${td("Unidade")}${td("m²", true)}${td("Valor", true)}</tr>
 ${linhas}
-<tr style="font-weight:700;background:#F7F8FA"><td style="padding:8px 10px" colspan="2">Total · ${unidades.length} ${unidades.length === 1 ? "unidade" : "unidades"}</td>${td(esc(f2.format(totM2)), true)}${td(esc(comValor.length ? brl(totValor) : "—"), true)}</tr>
+<tr style="font-weight:700;background:#F7F8FA"><td style="padding:8px 10px" colspan="2">Total · ${unidades.length} ${unidades.length === 1 ? "unidade" : "unidades"}</td>${td(esc(totM2), true)}${td(esc(comValor.length ? brl(totValor) : "—"), true)}</tr>
 </table>`,
       texto: [...unidades.map((u) => `- ${nomeEmp(u.enterprise_id)} · ${linha(u.unidade_nome)} · ${num(u.area_privativa) == null ? "—" : f2.format(num(u.area_privativa)!)} m² · ${brl(num(u.valor_unidade))}`),
-        `Total: ${unidades.length} ${unidades.length === 1 ? "unidade" : "unidades"} · ${f2.format(totM2)} m² · ${comValor.length ? brl(totValor) : "—"}`].join("\n"),
+        `Total: ${unidades.length} ${unidades.length === 1 ? "unidade" : "unidades"} · ${totM2} m² · ${comValor.length ? brl(totValor) : "—"}`].join("\n"),
     });
   }
 
